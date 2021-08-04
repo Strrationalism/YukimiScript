@@ -6,35 +6,57 @@
 
 ```
 
-@Sprite = newObject
+@Sprite := newObject                    # 一切Sprite的原型对象
+@Sprite.image := null                   # 定义原型对象中的一些属性
+@Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
+@Sprite.mask := null
+@Sprite.transparent := false
 
-- function Sprite.show 
+- method Sprite.show                  # 原型对象中的方法，将会自动传入self参数
     @systemAPI.show self
 
-- function createSprite path blend mask tranparent
+- method createSprite path blend mask tranparent  # 一个普通的方法，其self参数是调用此函数的作用域
     @sprite := newObject -metaclass=Sprite
     @sprite.image := loadImage -file=path
     @sprite.blend := blend
     @sprite.mask := loadImage -file=mask
     @if transparent {
+        @sprite.transparent := true
         @system.spriteAPI.makeTransparent sprite
     }
     
     @return sprite
 
-- section a
-{
+- section a                 # 剧情段a
+{                           # 开始一个作用域
 @sprite := createSprite "sprite.png" -blend=normal -mask="sprite mask.png" -transparent
 @sprite.show
 @wait 5
-}
+}                           # 作用域销毁，引用sprite销毁，其引用计数归0，其对象确定性析构
 
-@name := "由纪美"
-@y := makeCharacter -name=name
+@name := "由纪美"                                  
+@y := makeCharacter -name=name  
 @ani := createTextAnimation -type="Jump" -smooth
-y:你好~我叫[name]，[wait 1]<ani 很高兴认识你！> \
+y:你好~我叫[name]，[wait -time 1]<ani 很高兴认识你！> \
 欢迎你来我家里玩~
 y:感谢您使用由纪美脚本语言！
+
+# 以上文字内容编译为
+# @_.begin -character=y
+# @_.text -text "你好~我叫"
+# @_.text -text (name)
+# @_.text -text "，"
+# @_.text -text (wait -time 1)
+# @_.pushBlock -mark ani
+# @_.text -text "很高兴认识你！"
+# @_.popBlock
+# @_.br
+# @_.text "欢迎你来我家里玩~"
+# @_.end
+
+# @_.begin -character=y
+# @_.text "感谢您使用由纪美脚本语言！"
+# @_.end
 
 ```
 
