@@ -10,7 +10,7 @@
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
 @Sprite.mask := null
-@Sprite.transparent := false
+@Sprite.transparent := null             # YukimiScript没有false，只有一个true，使用null表示false。
 
 - method Sprite.show                  # 原型对象中的方法，将会自动传入self参数
     @systemAPI.show self
@@ -26,6 +26,9 @@
     }
     
     @return sprite
+    
+- method id x
+    @return x
 
 - section a                 # 剧情段a
 {                           # 开始一个作用域
@@ -44,9 +47,9 @@ y:感谢您使用由纪美脚本语言！
 # 以上文字内容编译为
 # @_.begin -character=y
 # @_.text -text "你好~我叫"
-# @_.text -text (name)
+# @_.text -text [name]
 # @_.text -text "，"
-# @_.text -text (wait -time 1)
+# @_.text -text [wait -time 1]
 # @_.pushBlock -mark ani
 # @_.text -text "很高兴认识你！"
 # @_.popBlock
@@ -57,6 +60,14 @@ y:感谢您使用由纪美脚本语言！
 # @_.begin -character=y
 # @_.text "感谢您使用由纪美脚本语言！"
 # @_.end
+
+# 关于类似[f]这种写法的特殊说明：
+# 仅在一对方括号内只存在一个符号时执行此特殊的求值方法。
+# 搜索此符号时，将会作用域内向外搜索，如果找到一个方法，则会调用它，如果找到一个对象，则会返回该对象自身。
+# 如果需要引用该函数自身，可以实现一个id方法，使用id方法来引用函数自身。
+
+# 关于调用时键值对语法的设计：
+# 命令放在最左边，之后是使用键值对形式的参数，如果该键值对不存在“值的部分”，则传入true，不存在于参数列表的，则作为null传入。
 
 ```
 
