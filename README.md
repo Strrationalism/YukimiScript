@@ -27,6 +27,10 @@
     - 引入了文本换行语法
 * 不支持分支跳转
     - 给section命名，允许在section之间跳转
+### 来自krkr和BKE的经验
+* 引入了看起来像是flags和键值对调用的写法
+* 允许在文本间通过方括号嵌入对象以动态生成文本
+
 
 ## 概览
 
@@ -75,7 +79,7 @@ y:感谢您使用由纪美脚本语言！
 # @_.text -text "你好~我叫"
 # @_.text -text [name]
 # @_.text -text "，"
-# @_.text -text [wait -time 1]
+# @_.texwait -time 1]
 # @_.pushBlock -mark ani
 # @_.text -text "很高兴认识你！"
 # @_.popBlock
