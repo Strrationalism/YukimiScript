@@ -12,7 +12,7 @@
 @Sprite.mask := null
 @Sprite.transparent := null             # YukimiScript没有false，只有一个true，使用null表示false。
 
-- method Sprite.show                  # 原型对象中的方法，将会自动传入self参数
+- method Sprite.show                    # 原型对象中的方法，将会自动传入self参数
     @systemAPI.show self
 
 - method createSprite path blend mask tranparent  # 一个普通的方法，其self参数是调用此函数的作用域
@@ -78,3 +78,23 @@ y:感谢您使用由纪美脚本语言！
 * 支持用于设计编辑器的扩展语法，用于为编辑器提供额外信息。
 * 是描述视觉小说的领域专用语言，同时也可以进行通用编程。
 * 基于《空梦》的开发经验设计，充分向其他视觉小说开发者学习开发经验，以可用性为优先。
+
+## 基础对象列表
+
+Yukimi Script必须使用这些对象来实现其基础功能。
+
+### 基础全局方法
+
+| 方法名 | 返回值类型 | 参数类型 | 描述 |
+| -----  | --------- | -------- | ---  |
+| id     | T         | -x=T     | 返回其自身，用于引用一个方法自身。 |
+| newObject | object | -metaclass=object/null | 创建一个object，并可以设置一个metaclass。|
+
+
+### 基础全局对象
+* Int    - 整数
+* Number - 有理数
+* String - 字符串
+* Method - 方法
+* null   - 空
+* true   - 真
