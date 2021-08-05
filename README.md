@@ -124,4 +124,4 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 * Method - 方法
 * Section - 段
 * null   - 空
-* true   - 真
+* Flag   - 旗帜
