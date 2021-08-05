@@ -53,6 +53,8 @@
     @if transparent {
         @sprite.transparent := true
         @system.spriteAPI.makeTransparent sprite
+    } else {
+        # emmm...
     }
     
     @return sprite
