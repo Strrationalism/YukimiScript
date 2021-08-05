@@ -79,7 +79,7 @@ y:感谢您使用由纪美脚本语言！
 # @_.text -text "你好~我叫"
 # @_.text -text [name]
 # @_.text -text "，"
-# @_.texwait [wait -time 1]
+# @_.text [wait -time 1]
 # @_.pushBlock -mark ani
 # @_.text -text "很高兴认识你！"
 # @_.popBlock
