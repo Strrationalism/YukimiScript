@@ -63,6 +63,9 @@
 
 ```
 
+- global
+@_ := systemAPI.makeTextReciver
+
 @Sprite := newObject                    # 一切Sprite的原型对象
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
