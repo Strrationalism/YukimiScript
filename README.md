@@ -70,6 +70,8 @@
 @Sprite.mask := null
 @Sprite.transparent := null             # YukimiScript没有false，只有一个true，使用null表示false。
 
+# 在第一个section和function开始之前的区域被称作global区，在此处定义的变量生存在根作用域中。
+
 - section entrypoint
 @systemAPI.init
 @jumpToSection a
