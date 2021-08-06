@@ -153,7 +153,7 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 | -----  | --------- | -------- | ---  |
 | id     | T         | --x=T     | 返回其自身，用于引用一个方法自身。 |
 | newObject | object | --class=object/null | 创建一个object，并可以设置一个原型对象。|
-| return | T | --x=T | 使当前函数返回。 |
+| return | bottom | --x=T | 使当前函数返回。 |
 
 
 
