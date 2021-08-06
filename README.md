@@ -68,7 +68,7 @@
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
 @Sprite.mask := null
-@Sprite.transparent := null             # YukimiScript没有false，只有一个true，使用null表示false。
+@Sprite.transparent := null             # YukimiScript没有false，只有一个flag，使用flag和null分别表示true和false。
 
 # 在第一个section和function开始之前的区域被称作global区，在此处定义的变量生存在根作用域中。
 
