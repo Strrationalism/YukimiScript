@@ -76,6 +76,7 @@
     @sprite := newObject --metaclass Sprite
     @sprite.image := loadImage --file path
     @sprite.blend := blend
+    @sprite.position := 100, 50
     @sprite.mask := loadImage --file mask
     @sprite.information := "这个精灵来自于：" + path
     @if transparent {
