@@ -76,11 +76,11 @@
     @sprite := newObject --metaclass Sprite
     @sprite.image := loadImage --file path
     @sprite.blend := blend
-    @sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了对象，包含成员head和tail，可以通过递归的方式取出。
+    @sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了链表包含成员head和tail
     @sprite.mask := loadImage --file mask
     @sprite.information := "这个精灵来自于：" + path
     @if transparent {
-        @sprite.transparent := true
+        @sprite.transparent := flag
         @system.spriteAPI.makeTransparent sprite
     } else {
         # emmm...
@@ -155,4 +155,4 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 * Method - 方法
 * Section - 段
 * null   - 空
-* Flag   - 旗帜
+* flag   - 旗帜
