@@ -76,7 +76,7 @@
     @sprite := newObject --metaclass Sprite
     @sprite.image := loadImage --file path
     @sprite.blend := blend
-    @sprite.position := 100, 50
+    @sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了对象，包含成员head和tail，可以通过递归的方式取出。
     @sprite.mask := loadImage --file mask
     @sprite.information := "这个精灵来自于：" + path
     @if transparent {
