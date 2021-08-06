@@ -62,18 +62,17 @@
 ## 概览
 
 ```
-
-- section entrypoint
-@systemAPI.init
-@jumpToSection a
-
-- global
+@import "system.ykm"
 @_ := systemAPI.makeTextReciver
 @Sprite := newObject                    # 一切Sprite的原型对象
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
 @Sprite.mask := null
 @Sprite.transparent := null             # YukimiScript没有false，只有一个true，使用null表示false。
+
+- section entrypoint
+@systemAPI.init
+@jumpToSection a
 
 - method Sprite.show                    # 原型对象中的方法，将会自动传入self参数
     @systemAPI.show self
