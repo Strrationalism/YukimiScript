@@ -80,7 +80,7 @@
     @systemAPI.show self
 
 - method createSprite path blend mask tranparent  # 一个普通的方法，其self参数是调用此函数的作用域
-    @sprite := newObject --metaclass Sprite
+    @sprite := newObject --class Sprite
     @sprite.image := loadImage --file path
     @sprite.blend := blend
     @sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了链表包含成员head和tail
