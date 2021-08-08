@@ -77,8 +77,6 @@
 ## 概览
 
 ```
-@_ := extern "textReciver"              # 从宿主语言获取textReciver
-
 @Sprite := newObject                    # 一切Sprite的原型对象
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
@@ -172,7 +170,6 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 | id     | T         | --x T     | 返回其自身，用于引用一个方法自身。 |
 | newObject | object | --class object/null | 创建一个object，并可以设置一个原型对象。|
 | return | bottom | --x T | 使当前函数返回。 |
-| extern | object | --name string | 从宿主语言进行依赖注入。 |
 
 
 
