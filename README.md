@@ -77,17 +77,21 @@
 ## 概览
 
 ```
-@_ := systemAPI.makeTextReciver
+@_ := extern "textReciver"              # 从宿主语言获取textReciver
+
 @Sprite := newObject                    # 一切Sprite的原型对象
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
 @Sprite.mask := null
 @Sprite.transparent := null             # YukimiScript没有false，只有一个flag，使用flag和null分别表示true和false。
 
+@bg := extern "BGManager"               # 从宿主语言进行依赖注入
+@bg.play := extern "BGManager.Play"     # 从宿主语言进行依赖注入
+
 # 在第一个section和function开始之前的区域被称作global区，在此处定义的变量生存在根作用域中。
+# 根作用域对象不能被外部直接修改，只能被其成员函数修改，由编译器保证
 
 - section entrypoint
-@systemAPI.init
 @jumpToSection a
 
 - method Sprite.show                    # 原型对象中的方法，将会自动传入self参数
@@ -165,9 +169,10 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 
 | 方法名 | 返回值类型 | 参数类型 | 描述 |
 | -----  | --------- | -------- | ---  |
-| id     | T         | --x=T     | 返回其自身，用于引用一个方法自身。 |
-| newObject | object | --class=object/null | 创建一个object，并可以设置一个原型对象。|
-| return | bottom | --x=T | 使当前函数返回。 |
+| id     | T         | --x T     | 返回其自身，用于引用一个方法自身。 |
+| newObject | object | --class object/null | 创建一个object，并可以设置一个原型对象。|
+| return | bottom | --x T | 使当前函数返回。 |
+| extern | object | --name string | 从宿主语言进行依赖注入。 |
 
 
 
