@@ -83,9 +83,6 @@
 @Sprite.mask := null
 @Sprite.transparent := null             # YukimiScript没有false，只有一个flag，使用flag和null分别表示true和false。
 
-@bg := extern "BGManager"               # 从宿主语言进行依赖注入
-@bg.play := extern "BGManager.Play"     # 从宿主语言进行依赖注入
-
 # 在第一个section和function开始之前的区域被称作global区，在此处定义的变量生存在根作用域中。
 # 根作用域对象不能被外部直接修改，只能被其成员函数修改，由编译器保证
 
