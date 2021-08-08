@@ -83,33 +83,32 @@
 @Sprite.mask := null
 @Sprite.transparent := null             # YukimiScript没有false，只有一个flag，使用flag和null分别表示true和false。
 
-# 在第一个section和function开始之前的区域被称作global区，在此处定义的变量生存在根作用域中。
-# 根作用域对象不能被外部直接修改，只能被其成员函数修改，由编译器保证
+# 在第一个section和function开始之前的区域将会在加载当前模块时被执行。
 
 - section entrypoint
 @jumpToSection a
 
 - method Sprite.show                    # 原型对象中的方法，将会自动传入self参数
-    @systemAPI.show self
+@systemAPI.show self
 
 - method createSprite path blend mask tranparent  # 一个普通的方法，其self参数是调用此函数的作用域
-    @sprite := newObject --class Sprite
-    @sprite.image := loadImage --file path
-    @sprite.blend := blend
-    @sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了链表包含成员head和tail
-    @sprite.mask := loadImage --file mask
-    @sprite.information := "这个精灵来自于：" + path
-    @if transparent {
-        @sprite.transparent := flag
-        @system.spriteAPI.makeTransparent sprite
-    } else {
-        # emmm...
-    }
-    
-    @return sprite
+@sprite := newObject --class Sprite
+@sprite.image := loadImage --file path
+@sprite.blend := blend
+@sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了链表包含成员head和tail
+@sprite.mask := loadImage --file mask
+@sprite.information := "这个精灵来自于：" + path
+@if transparent {
+    @sprite.transparent := flag
+    @system.spriteAPI.makeTransparent sprite
+} else {
+    # emmm...
+}
+
+@return sprite
     
 - method id x
-    @return x
+@return x
 
 - section a                 # 剧情段a
 {                           # 开始一个作用域
@@ -170,11 +169,12 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 
 
 
-### 基础全局对象
-* Int    - 整数
-* Number - 有理数
-* String - 字符串
-* Method - 方法
-* Section - 段
+### 数据类型
+* int    - 整数
+* number - 有理数
+* string - 字符串
+* method - 方法
+* section - 段
 * null   - 空
 * flag   - 旗帜
+* object - 对象
