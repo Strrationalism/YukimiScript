@@ -77,7 +77,6 @@
 ## 概览
 
 ```
-@import "system.ykm"
 @_ := systemAPI.makeTextReciver
 @Sprite := newObject                    # 一切Sprite的原型对象
 @Sprite.image := null                   # 定义原型对象中的一些属性
