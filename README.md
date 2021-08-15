@@ -42,6 +42,8 @@
     - 引入了文本换行语法
 * 不支持分支跳转
     - 给section命名，允许在section之间跳转
+* 不支持跨行字体设置
+    - 以类似XML的语法支持设置跨行字体
 
 ### 来自krkr的启发
 * 引入了看起来像是flags和键值对调用的写法
@@ -85,7 +87,7 @@
 
 # 在第一个section和function开始之前的区域将会在加载当前模块时被执行。
 
-- section entrypoint
+- scene entrypoint
 @jumpToSection a
 
 - method Sprite.show                    # 原型对象中的方法，将会自动传入self参数
@@ -110,7 +112,7 @@
 - method id x
 @return x
 
-- section a                 # 剧情段a
+- scene a                   # 幕a
 {                           # 开始一个作用域
 @sprite := createSprite "sprite.png" --blend normal --mask "sprite mask.png" --transparent
 @sprite.show
@@ -157,6 +159,9 @@ y:感谢您使用由纪美脚本语言！
 # 使用a.b的方式调用时，会向b传入a作为self参数。如果将b单独取出，则需要手动传入self参数。
 # 成员函数调用时，Runtime会向其传入-self参数，此传参发生在已经确定符号是函数之后才发生。
 
+# 关于scene：
+# 一幕开始时将会重置所有状态机。
+
 ```
 
 ## 基础对象列表
@@ -178,7 +183,7 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 * number - 有理数
 * string - 字符串
 * method - 方法
-* section - 段
+* scene - 幕
 * null   - 空
 * flag   - 旗帜
 * object - 对象
