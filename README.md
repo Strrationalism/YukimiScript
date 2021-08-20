@@ -93,7 +93,7 @@
 - method Sprite.show                    # 原型对象中的方法，将会自动传入self参数
 @systemAPI.show self
 
-- method createSprite path blend mask tranparent  # 一个普通的方法，其self参数是调用此函数的作用域
+- method createSprite path blend mask=null tranparent=flag  # 一个普通的方法，其self参数是调用此函数的作用域
 @sprite := newObject --class Sprite
 @sprite.image := loadImage --file path
 @sprite.blend := blend
