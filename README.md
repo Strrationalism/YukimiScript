@@ -122,10 +122,10 @@
 @name := "由纪美"                                  
 @y := makeCharacter --name name  
 @ani := createTextAnimation --type "Jump" --smooth
-y:你好~我叫[name]，[wait --time 1]<ani:很高兴认识你！> \
-<Font>                      # 在这里引入一组可以跨行的字体
+y:你好~我叫[name]，[wait --time 1]<ani, ani2:很高兴认识你！> \
+<Font, Font2> {                      # 在这里引入一组可以跨行的字体
 欢迎你来我家里玩~
-</Font>
+}
 y:感谢您使用由纪美脚本语言！
 
 # 以上文字内容编译为
@@ -135,12 +135,16 @@ y:感谢您使用由纪美脚本语言！
 # @_.text --text "，"
 # @_.text [wait --time 1]
 # @_.pushMark --mark ani
+# @_.pushMark --mark ani2
 # @_.text --text "很高兴认识你！"
-# @_.popMark
+# @_.popMark --mark ani2
+# @_.popMark --mark ani
 # @_.br
 # @_.pushMark Font
+# @_.pushMark Font2
 # @_.text "欢迎你来我家里玩~"
-# @_.popMark font
+# @_.popMark --mark Font2
+# @_.popMark --mark Font
 # @_.end
 
 # @_.begin --character y
