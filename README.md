@@ -79,7 +79,7 @@
 ## 概览
 
 ```
-@Sprite := newObject                    # 一切Sprite的原型对象
+@Sprite := new                          # 一切Sprite的原型对象
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
 @Sprite.mask := null
@@ -94,7 +94,7 @@
 @systemAPI.show self
 
 - method createSprite path blend mask=null tranparent=flag  # 一个普通的方法，其self参数是调用此函数的作用域
-@sprite := newObject --class Sprite
+@sprite := new --class Sprite
 @sprite.image := loadImage --file path
 @sprite.blend := blend
 @sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了链表包含成员head和tail
