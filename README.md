@@ -187,7 +187,54 @@ Yukimi Script必须使用这些对象来实现其基础功能。
 * number - 有理数
 * string - 字符串
 * method - 方法
-* scene - 幕
 * null   - 空
 * flag   - 旗帜
 * object - 对象
+
+## 字节码
+YukimiScript采用小端序[RIFF格式](https://docs.microsoft.com/zh-cn/windows/win32/multimedia/resource-interchange-file-format-services)进行存储。    
+所有区块的大小以4字节对齐。
+
+### RIFF区块
+RIFF区块中FormType的字段应该为"YKMO"，包含以下字段：
+* META
+* SYMS(LIST)
+* STRP(LIST)
+* PROG(LIST)
+
+### META区块
+META区块中包含以下内容：
+* version : uint32
+    - 表示当前字节码的版本号
+* encoding : uint32
+    - 此字段表明字符串池所使用的编码：
+        + 0 - UTF-8
+        + 1 - UCS16-LE
+
+### SYMS区块
+SYMS区块为一个LIST区块，其ListType为SYMS，其中包含一些SYMB区块。    
+每个SYMB区块包含一个ANSI编码的字符串，不足处补'\0'，表示一个符号。
+    
+### STRP区块
+STRP区块为一个LIST区块，其ListType为STRP，其中包含一些STRC区块。    
+每个STRC区块包含一个以META区块中encoding记录的编码方式编码的字符串。
+
+### PROG区块
+PROG区块为一个LIST区块，其ListType为PROG，其中包含以下区块：
+* METH
+* INIT
+* SCEN
+
+#### METH区块
+METH区块包含了一个方法的字节码。    
+TODO：需要讨论它的参数及默认值信息的保存方式。    
+
+#### INIT区块
+INIT区块包含了启动时要执行的字节码，INIT区块需要做以下事情：
+* 定义源代码中的Global对象
+* 将METH区块绑定到各个对象的的方法中
+
+#### SCEN区块
+SCEN区块包含了一个场景的代码，其区块前四个字节为一个uint32，为此SCEN的名字。  
+可以在STRP区块中找到这个名字的字符串形式。  
+
