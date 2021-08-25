@@ -79,6 +79,7 @@
 ## 概览
 
 ```
+- global                                # 全局可见
 @Sprite := new                          # 一切Sprite的原型对象
 @Sprite.image := null                   # 定义原型对象中的一些属性
 @Sprite.blend := normal                 # 派生对象中找不到属性时，将会从原型对象中搜索
@@ -86,6 +87,9 @@
 @Sprite.transparent := null             # YukimiScript没有false，只有一个flag，使用flag和null分别表示true和false。
 
 # 在第一个section和function开始之前的区域将会在加载当前模块时被执行。
+
+- local                                 # 本代码文件内可见
+@ui := createSprite "a"
 
 - scene entrypoint
 @jumpToSection a
