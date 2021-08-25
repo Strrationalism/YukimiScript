@@ -128,8 +128,8 @@ if transparent {
 @name := "由纪美"                                  
 @y := makeCharacter --name name  
 @ani := createTextAnimation --type "Jump" --smooth
-y:你好~我叫[name]，[wait --time 1]<ani, ani2:很高兴认识你！> \
 <Font, Font2> {                      # 在这里引入一组可以跨行的字体
+y:你好~我叫[name]，[wait --time 1]<ani, ani2:很高兴认识你！> \
 欢迎你来我家里玩~
 }
 y:感谢您使用由纪美脚本语言！
