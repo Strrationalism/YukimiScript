@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="Elements.fs" />
     <Compile Include="Line.fs" />
+    <Compile Include="ParserMonad.fs" />
   </ItemGroup>
 
 </Project>
