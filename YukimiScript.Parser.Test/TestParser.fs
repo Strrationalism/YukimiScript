@@ -44,8 +44,11 @@ let testSceneDefination () =
 
 [<Test>]
 let testMethodDefination () =
-    testParse "  -   method    system.id    x # id: a -> a"
+    testParse "  -   method    system.id    x  y  z w# id: a -> a"
         (MethodDefination 
             (ObjectName (Some (ObjectName (None, "system")), "id"),
-                [ Parameter ("x", None) ]))
+                [ Parameter ("x", None)
+                  Parameter ("y", None)
+                  Parameter ("z", None)
+                  Parameter ("w", None) ]))
 

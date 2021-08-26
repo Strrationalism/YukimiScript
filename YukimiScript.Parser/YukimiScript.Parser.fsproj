@@ -9,6 +9,8 @@
     <Compile Include="Elements.fs" />
     <Compile Include="Line.fs" />
     <Compile Include="ParserMonad.fs" />
+    <Compile Include="BasicParser.fs" />
+    <Compile Include="TopLevelParser.fs" />
     <Compile Include="Parser.fs" />
   </ItemGroup>
 
