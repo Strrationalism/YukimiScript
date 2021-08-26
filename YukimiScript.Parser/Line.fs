@@ -1,7 +1,7 @@
 ﻿namespace YukimiScript.AST
 
 open YukimiScript.AST.Elements
-open System.IO
+
 
 type Line =
     | GlobalDefination

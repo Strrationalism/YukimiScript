@@ -1,9 +1,11 @@
 namespace YukimiScript.AST.Elements
 
+
 type ObjectName = 
     | ObjectName of
         parent: ObjectName option *
         name: string
+
 
 type Constant =
     | Flag
@@ -11,6 +13,7 @@ type Constant =
     | String of string
     | Integer of int
     | Number of float
+
 
 type Operator =
     | Add
@@ -20,6 +23,7 @@ type Operator =
     | Mod
     | And
     | Or
+
 
 type Expression = 
     | Constant of Constant
@@ -34,10 +38,12 @@ type Expression =
         operator: Operator *
         right: Expression
 
+
 type Parameter = 
     | Parameter of
         name: string *
         defaultExpr: Expression
+
 
 type Statment =
     | Binding of
@@ -59,6 +65,7 @@ type Statment =
     | NormalScopeBegin
     | End
     | Do of Expression
+
 
 type TextSlice =
     | Text of string
