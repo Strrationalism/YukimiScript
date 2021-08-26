@@ -1,4 +1,4 @@
-namespace YukimiScript.AST.Elements
+namespace YukimiScript.Parser.Elements
 
 
 type ObjectName = 
@@ -42,7 +42,7 @@ type Expression =
 type Parameter = 
     | Parameter of
         name: string *
-        defaultExpr: Expression
+        defaultExpr: Expression option
 
 
 type Statment =

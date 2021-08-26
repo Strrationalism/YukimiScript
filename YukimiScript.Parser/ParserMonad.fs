@@ -24,8 +24,11 @@ let mapError (f: exn -> exn) (p: Parser<'a>) : Parser<'a> =
     { p with Run = p.Run >> Result.mapError f }
 
 
+exception ExceptNameException of string
+
+
 let name (name: string) (a: Parser<'a>) : Parser<'a> =
-    { a with Name = name }
+    { a with Name = name } 
 
 
 let fail<'a> (e: exn) : Parser<'a> =
@@ -52,7 +55,7 @@ let tryWith (f: exn -> Parser<'a>) (a: Parser<'a>) : Parser<'a> =
             fun input ->
                 match a.Run input with
                 | Error e -> (f e).Run input
-                | x -> x }
+                | Ok x -> Ok x }
 
 
 type ParserBuilder () =
@@ -72,9 +75,9 @@ exception EndOfUnitException
 let anyChar = 
     { Run = 
         function
-        | x::ls -> Ok (x, ls)
-        | [] -> Error EndOfUnitException 
-      Name = "Any Character" }
+            | x::ls -> Ok (x, ls)
+            | [] -> Error EndOfUnitException 
+      Name = "Any" }
 
 
 let ( <+> ) (a: Parser<'a>) (b: Parser<'b>) = 
@@ -83,42 +86,39 @@ let ( <+> ) (a: Parser<'a>) (b: Parser<'b>) =
         let! b = b
         return (a, b)
     }
-    |> name ("(" + a.Name + ", " + b.Name + ")")
 
 
 let ( <@+> ) (a: Parser<'a>) (b: Parser<_>) : Parser<'a> =
-    (a <+> b) |> map fst |> name ("(" + b.Name + ", ..)")
+    (a <+> b) |> map fst
 
 
 let ( <+@> ) (a: Parser<_>) (b: Parser<'a>) : Parser<'a> =
-    (a <+> b) |> map snd |> name ("(.., " + b.Name + ")")
+    (a <+> b) |> map snd
 
 
 exception BinaryException of exn * exn
 
 
-let ( <||> ) (a: Parser<'a>) (b: Parser<'b>) = 
-    parser {
-        return! (
-            try 
-                map Choice1Of2 a
-            with 
-            | e1 -> 
-                map Choice2Of2 b 
-                |> mapError 
-                    (fun e2 -> 
-                        BinaryException (e1, e2))
-        )
+let ( <||> ) (a: Parser<'a>) (b: Parser<'b>) : Parser<Choice<'a, 'b>> = 
+    { Name = a.Name
+      Run = 
+          fun input ->
+              match a.Run input with
+              | Ok (x, r) -> Ok (Choice1Of2 x, r)
+              | Error e1 -> 
+                  match b.Run input with
+                  | Ok (x, r) -> Ok (Choice2Of2 x, r)
+                  | Error e2 ->
+                      BinaryException (e1, e2) |> Error
     }
-    |> name ("(" + a.Name + " | " + b.Name + ")")
 
 
 let ( <|> ) (a: Parser<'a>) (b: Parser<'a>) =
-    (a <||> b)
+    (a <||> b) 
     |> map
         (function
-        | Choice1Of2 x -> x
-        | Choice2Of2 x -> x)
+            | Choice1Of2 x -> x
+            | Choice2Of2 x -> x)
 
 
 let rec zeroOrMore (a: Parser<'a>) : Parser<'a list> =
@@ -130,13 +130,11 @@ let rec zeroOrMore (a: Parser<'a>) : Parser<'a list> =
         with 
         | _ -> return []
     }
-    |> name ("ZeroOrMore (" + a.Name + ")")
 
 
 let oneOrMore (a: Parser<'a>) : Parser<'a list> =
     (a <+> zeroOrMore a)
     |> map (fun (head, tail) -> head::tail)
-    |> name ("OneOrMore (" + a.Name + ")")
 
 
 let zeroOrOne (a: Parser<'a>) : Parser<'a option> =
@@ -146,4 +144,25 @@ let zeroOrOne (a: Parser<'a>) : Parser<'a option> =
         with 
         | _ -> return None
     }
-    |> name ("ZeroOrOne (" + a.Name + ")")
+
+
+exception NotInRangeException of char seq
+
+
+let rec inRange (range: char seq) : Parser<char> =
+    anyChar
+    |> predicate (fun x -> Seq.exists ((=) x) range)
+    |> mapError (fun _ -> NotInRangeException range)
+
+
+exception NotLiteralException of string 
+
+
+let rec literal (x: string) : Parser<string> =
+    if x = "" then return' ""
+    else 
+        ((predicate ((=) x.[0]) anyChar) 
+        <+> literal x.[1..])
+        |> map (fun (a, b) -> string a + b)
+        |> mapError (fun _ -> NotLiteralException x)
+

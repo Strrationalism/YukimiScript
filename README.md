@@ -88,9 +88,6 @@
 
 # 在第一个section和function开始之前的区域将会在加载当前模块时被执行。
 
-- local                                 # 本代码文件内可见
-@ui := createSprite "a"
-
 - scene entrypoint
 @jumpToSection a
 
@@ -98,19 +95,18 @@
 @systemAPI.show self
 
 - method createSprite path blend mask=null tranparent=flag  # 一个普通的方法，其self参数是调用此函数的作用域
-@{
-sprite := new --class Sprite
-sprite.image := loadImage --file path
-sprite.blend := blend
-sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了链表包含成员head和tail
-sprite.mask := loadImage --file mask
-sprite.information := "这个精灵来自于：" + path
-if transparent {
-    sprite.transparent := flag
-    system.spriteAPI.makeTransparent sprite
-} else {
-    # emmm...
-}
+@sprite := new --class Sprite
+@sprite.image := loadImage --file path
+@sprite.blend := blend
+@sprite.position := 100, 50                   # 这里position使用元组语法，但实际上生成了链表包含成员head和tail
+@sprite.mask := loadImage --file mask
+@sprite.information := "这个精灵来自于：" + path
+@if transparent {
+    @sprite.transparent := flag
+    @system.spriteAPI.makeTransparent sprite
+} 
+@else {
+@    # emmm...
 }
 
 @return sprite

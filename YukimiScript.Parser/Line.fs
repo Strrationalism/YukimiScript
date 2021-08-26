@@ -1,15 +1,14 @@
-﻿namespace YukimiScript.AST
+﻿namespace YukimiScript.Parser
 
-open YukimiScript.AST.Elements
+open YukimiScript.Parser.Elements
 
 
 type Line =
     | GlobalDefination
-    | LocalDefination
     | SceneDefination of sceneName: string
     | MethodDefination of
         name: ObjectName *
-        param: Parameter
+        param: Parameter list
     | Statment of Statment
     | TextLine of 
         character: ObjectName option *
