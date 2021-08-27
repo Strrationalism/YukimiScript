@@ -1,13 +1,9 @@
-module YukimiScript.Parser.Test.TestParsers
+module YukimiScript.Parser.Test.TestTopLevels
 
 open YukimiScript.Parser.Test.Utils
 open YukimiScript.Parser
 open YukimiScript.Parser.Elements
 open NUnit.Framework
-
-
-[<SetUp>]
-let setup () = ()
 
 
 [<Test>]
@@ -38,8 +34,8 @@ let testGlobalDefination () =
 
 [<Test>]
 let testSceneDefination () =
-    testParse "- scene a" 
-        <| SceneDefination "a"
+    testParse "- scene \"这是一个 测试 用\\n的 场景A\"" 
+        <| SceneDefination "这是一个 测试 用\n的 场景A"
 
 
 [<Test>]

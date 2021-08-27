@@ -1,4 +1,4 @@
-﻿module TopLevelParser
+﻿module internal YukimiScript.Parser.TopLevelParser
 
 open YukimiScript.Parser
 open YukimiScript.Parser.Elements
@@ -40,7 +40,12 @@ let private methodDefination =
 let private sceneDefination =
     parser {
         do!  explicit whitespace1
-        let! sceneName = explicit identifier
+        let! sceneName = 
+            ConstantParser.stringParser
+            |> name "<scene name>"
+            |> mapError 
+                (fun _ -> ExceptSymbolException "<scene name>")
+            |> explicit
         return SceneDefination sceneName
     }
     |> name "<scene defination>"

@@ -9,7 +9,8 @@
 
   <ItemGroup>
     <Compile Include="Utils.fs" />
-    <Compile Include="TestParser.fs" />
+    <Compile Include="TestTopLevels.fs" />
+    <Compile Include="TestConstant.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

@@ -12,7 +12,10 @@ let whitespace0, whitespace1 =
 
     
 let toString = 
-    Seq.toArray >> fun x -> System.String(x).Trim()
+    Seq.toArray >> fun x -> System.String(x)
+
+let toStringTrim x = 
+    (toString x).Trim()
 
 
 let lineComment: Parser<string> =
@@ -26,7 +29,7 @@ let lineComment: Parser<string> =
 
         let! comment = zeroOrMore commentChar
 
-        return toString comment
+        return toStringTrim comment
     }
     |> name "<lineComment>"
 
@@ -49,7 +52,7 @@ let identifier: Parser<string> =
     parser {
         let! first = inRange firstCharacter
         let! tail = zeroOrMore (inRange character)
-        return toString (first :: tail)
+        return toStringTrim (first :: tail)
     }
     |> name "<identifier>"
     |> mapError (fun _ -> InvalidIdentifierException)

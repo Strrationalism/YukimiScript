@@ -24,7 +24,7 @@ let mapError (f: exn -> exn) (p: Parser<'a>) : Parser<'a> =
     { p with Run = p.Run >> Result.mapError f }
 
 
-exception ExceptNameException of string
+exception ExceptSymbolException of string
 
 
 let name (name: string) (a: Parser<'a>) : Parser<'a> =
@@ -182,3 +182,23 @@ let rec literal (x: string) : Parser<unit> =
         |> mapError (fun _ -> NotLiteralException x)
     |> name ("(literal " + x + ")")
 
+
+exception ParseUnfinishedException of string
+
+
+let run (line: string) (parser: Parser<'a>) : Result<'a, exn> =
+    try
+        parser.Run (Seq.toList line)
+        |> Result.bind 
+            (fun (result, remainder) -> 
+                if List.isEmpty remainder then
+                    Ok result
+                else 
+                    remainder
+                    |> List.toArray
+                    |> System.String
+                    |> ParseUnfinishedException
+                    |> Error)
+    with 
+    | e -> Error e
+    

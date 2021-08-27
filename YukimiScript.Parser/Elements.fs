@@ -15,28 +15,16 @@ type Constant =
     | Number of float
 
 
-type Operator =
-    | Add
-    | Sub
-    | Mul
-    | Div
-    | Mod
-    | And
-    | Or
-
-
 type Expression = 
     | Constant of Constant
     | Call of 
         methodName: ObjectName *
         unnamedArguments: Expression list *
         namedArguments: (string * Expression) list
-    | IdOrCall of name: ObjectName
+    | ReferenceOrCall of name: ObjectName
+    | Reference of name: ObjectName
     | Tuple of Expression list
-    | BinaryOperation of 
-        left: Expression *
-        operator: Operator *
-        right: Expression
+    | Bracket of Expression
 
 
 type Parameter = 

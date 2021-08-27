@@ -59,10 +59,7 @@
 * 可以同时添加多个标记，可以用表达式生成标记（WIP）
 * 可读性极好的立绘语法
     - 可以通过命令加广义表的语法来实现
-
-### 来自NS的启发
-* 中缀表达式
-
+    
 ### 来自AVGPlus的启发
 * Lambda表达式
     - 目前不知道这种情况的使用频率，暂不加入
@@ -89,7 +86,7 @@
 # 在第一个section和function开始之前的区域将会在加载当前模块时被执行。
 
 - scene entrypoint
-@jumpToSection a
+@jumpToSection "场景 第一个场景"
 
 - method Sprite.show                    # 原型对象中的方法，将会自动传入self参数
 @systemAPI.show self
@@ -114,7 +111,7 @@
 - method id x
 @return x
 
-- scene a                   # 幕a
+- scene "场景 第一个场景"
 {                           # 开始一个作用域
 @sprite := createSprite "sprite.png" --blend normal --mask "sprite mask.png" --transparent
 @sprite.show
