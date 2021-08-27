@@ -14,7 +14,6 @@ let private commandCall =
         do!  explicit (literal "]")
         return TextSlice.CommandCall commandCall
     }
-    |> name "<command call in text slice>"
 
 
 let private bareText =
@@ -34,7 +33,7 @@ let private bareText =
 
     oneOrMore textChar
     |> map (toString >> TextSlice.Text)
-    |> name "<text>"
+    |> name "text"
 
 
 let rec private markBlock () =
@@ -46,7 +45,7 @@ let rec private markBlock () =
         do! literal ">"
         return Marked (mark, innerText)
     }
-    |> name "<marked text>"
+    |> name "text mark"
     
 
 and private textSlice () =
@@ -55,6 +54,7 @@ and private textSlice () =
         bareText
         markBlock ()
     ]
+    |> name "text slice"
 
 
 let text = 
@@ -72,6 +72,14 @@ let text =
 
         let text =
             text
+            |> List.filter 
+                (function
+                    | TextSlice.Text x -> 
+                        not <| System.String.IsNullOrWhiteSpace x
+                    | _ -> true)
+
+        let text =
+            text
             |> List.tryFindIndexBack 
                 (function
                     | TextSlice.Text _ -> true
@@ -85,11 +93,6 @@ let text =
                         | _ -> failwith ""
 
                     text.[..index-1] @ [lastTextSlice] @ text.[index+1..]
-            |> List.filter 
-                (function
-                    | TextSlice.Text x -> 
-                        not <| System.String.IsNullOrWhiteSpace x
-                    | _ -> true)
 
         let! hasMore = 
             parser {
@@ -99,17 +102,9 @@ let text =
             }
             |> zeroOrOne
 
-        if
-            List.forall 
-                (function
-                    | TextSlice.Text x -> 
-                        not <| System.String.IsNullOrWhiteSpace x
-                    | _ -> true)
-                text
-        then
-            return Line.Text (character, text, hasMore.IsSome)
-        else
-            return! fail (ExceptNamesException ["<text>"])
-        
+        return Text
+            { Character = character;
+              Text = text;
+              HasMore = hasMore.IsSome }
     }
-    |> name "<text>"
+    |> name "text"

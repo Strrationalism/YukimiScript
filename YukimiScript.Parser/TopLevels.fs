@@ -11,9 +11,8 @@ let private macroDefination =
         let! macroName = explicit symbol
         let! param =
             parser {
-                do! whitespace1
+                do!  whitespace1
                 let! paramName = symbol
-
                 let! defArg =
                     parser {
                         do! literal "="
@@ -25,26 +24,29 @@ let private macroDefination =
             }
             |> zeroOrMore
 
-        return MacroDefination (macroName, param)
+        return { Name = macroName; Param = param }
     }
 
 
 let private sceneDefaintion =
     parser {
-        let! sceneName = explicit stringParser
-        
+        let! sceneName = 
+            explicit <| 
+                name "scene name" stringParser
+
         let! inheritScene =
             parser {
                 do! whitespace0
                 do! literal "inherit"
                 do! whitespace0
-                return! explicit stringParser
+                return! explicit <| 
+                    name "inherit scene name" stringParser
             }
             |> zeroOrOne
 
-        return SceneDefination (sceneName, inheritScene)
+        return { Name = sceneName; Inherit = inheritScene }
     }
-    |> name "<sceneDefination>"
+    |> name "scene defination"
 
 
 exception InvalidTopLevelException of string
@@ -60,12 +62,11 @@ let topLevels =
         match symbol  with
         | "import" -> 
             let! importName = 
-                explicit stringParser
-                |> mapError (fun _ -> ExceptNamesException ["<import>"])
+                explicit (stringParser |> name "import file")
             return Import importName
 
-        | "macro" -> return! macroDefination
-        | "scene" -> return! sceneDefaintion
+        | "macro" -> return! map MacroDefination macroDefination
+        | "scene" -> return! map SceneDefination sceneDefaintion
         | x -> return! fail (InvalidTopLevelException x)
     }
-    |> name "<topLevel>"
+    |> name "top level"

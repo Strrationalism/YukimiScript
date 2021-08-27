@@ -39,6 +39,5 @@ let symbol: Parser<string> =
         let! tail = zeroOrMore (inRange character)
         return toStringTrim (first :: tail)
     }
-    |> name "<symbol>"
     |> mapError (fun _ -> InvalidSymbolException)
 

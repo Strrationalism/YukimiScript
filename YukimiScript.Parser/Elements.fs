@@ -9,10 +9,9 @@ type Constant =
 
 
 type CommandCall =
-    | CommandCall of
-        callee: string *
-        unnamedArgs: Constant list *
-        namedArgs: (string * Constant) list
+    { Callee: string
+      UnnamedArgs: Constant list
+      NamedArgs: (string * Constant) list }
 
 
 type TextSlice =
@@ -23,17 +22,26 @@ type TextSlice =
         inner: TextSlice list
 
 
+type MacroDefination =
+    { Name: string
+      Param: (string * Constant option) list }
+
+
+type SceneDefination =
+    { Name: string
+      Inherit: string option }
+
+
+type TextBlock =
+    { Character: string option
+      Text: TextSlice list
+      HasMore: bool }
+
+
 type Line =
     | EmptyLine
     | Import of string
-    | SceneDefination of 
-        sceneName: string *
-        inheritScene: string option
-    | MacroDefination of 
-        name: string *
-        param: (string * Constant option) list
+    | SceneDefination of SceneDefination
+    | MacroDefination of MacroDefination
     | CommandCall of CommandCall
-    | Text of 
-        character: string option *
-        text: TextSlice list *
-        more: bool
+    | Text of TextBlock

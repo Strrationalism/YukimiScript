@@ -6,6 +6,7 @@ open YukimiScript.Parser.Elements
 open NUnit.Framework
 
 
+[<Test>]
 let testComment () =
     Parser.parseLine "   # test "
     |> function
@@ -33,26 +34,32 @@ let testImportDefination () =
 
 [<Test>]
 let testSceneDefination () =
-    testParse "- scene \"这是一个 测试 用\\n的 场景A\"" 
-        <| SceneDefination ("这是一个 测试 用\n的 场景A", None)
+    testParse "- scene \"娴嬭瘯鍦烘櫙A\"" <|
+        SceneDefination { Name = "娴嬭瘯鍦烘櫙A"; Inherit = None }
 
-    testParse "- scene \"这是一个 测试 用\\n的 场景B\" inherit \"A\"" 
-    <| SceneDefination ("这是一个 测试 用\n的 场景B", Some "A")
+    testParse "- scene \"娴嬭瘯鍦烘櫙B\" inherit \"A\"" <|
+        SceneDefination { Name = "娴嬭瘯鍦烘櫙B"; Inherit = Some "A" }
 
 
 [<Test>]
 let testMacroDefination () =
-    testParse "  -   macro   test" <| MacroDefination ("test", [])
-    testParse " -  macro test  param1" <| MacroDefination ("test", ["param1", None])
+    testParse "  -   macro   test" <| 
+        MacroDefination { Name = "test"; Param = [] }
+
+    testParse " -  macro test  param1" <|
+        MacroDefination { Name = "test"; Param = ["param1", None] }
+
     testParse " -  macro test  param1 param2" <| 
-        MacroDefination ("test", ["param1", None; "param2", None])
+        MacroDefination 
+            { Name = "test"
+              Param = ["param1", None; "param2", None] }
 
     testParse " -  macro test  param1=def param2 param3=1 param4 param5=\"what\"" <| 
-        MacroDefination ("test", 
-            [
-                "param1", Some (Symbol "def")
-                "param2", None
-                "param3", Some (Integer 1)
-                "param4", None
-                "param5", Some (String "what")
-            ])
+        MacroDefination 
+            { Name = "test"
+              Param =
+                [ "param1", Some (Symbol "def")
+                  "param2", None
+                  "param3", Some (Integer 1)
+                  "param4", None
+                  "param5", Some (String "what") ] }

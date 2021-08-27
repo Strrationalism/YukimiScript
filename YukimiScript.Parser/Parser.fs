@@ -18,7 +18,7 @@ let private lineComment: Parser<string> =
 
         return toStringTrim comment
     }
-    |> name "<lineComment>"
+    |> name "comment"
 
 
 type Parsed =
@@ -28,7 +28,7 @@ type Parsed =
 
 let parseLine (line: string) =
     parser {
-        do! whitespace0
+        do!  whitespace0
         let! parsed =
             choices [
                 TopLevels.topLevels
@@ -41,5 +41,4 @@ let parseLine (line: string) =
         let! comment = zeroOrOne lineComment
         return { Line = parsed; Comment = comment }
     }
-    |> name "<single line>"
     |> run line

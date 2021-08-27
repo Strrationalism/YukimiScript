@@ -29,15 +29,18 @@ let commandCall =
             }
             |> zeroOrMore
 
-        return CommandCall.CommandCall (command, unnamedArgs, namedArgs)
+        return 
+            { Callee = command
+              UnnamedArgs = unnamedArgs
+              NamedArgs = namedArgs }
     }
-    |> name "<command statment>"
+    |> name "command call"
 
 
 let statment =
     parser {
         do! literal "@"
-        return! choices [
-            commandCall |> map CommandCall
-        ]
+        return! 
+            commandCall 
+            |> map CommandCall
     }

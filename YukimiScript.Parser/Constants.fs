@@ -14,7 +14,7 @@ let private numberParser, integerParser =
             let! n = oneOrMore numberChar
             return toStringTrim n
         }
-        |> name "<integer>"
+        |> name "digit"
 
     let sign = 
         parser {
@@ -33,7 +33,7 @@ let private numberParser, integerParser =
 
             return Number <| float (sign + a + "." + b)
         }
-        |> name "<number constant>"
+        |> name "number"
 
     let integerParser =
         parser {
@@ -42,7 +42,7 @@ let private numberParser, integerParser =
             let! i = unsignedIntegerString
             return Integer <| int (sign + i)
         }
-        |> name "<integer constant>" 
+        |> name "integer" 
 
     numberParser,
     integerParser 
@@ -88,7 +88,7 @@ let stringParser =
         do! literal "\""
         return toString chars
     }
-    |> name "<string constant>"
+    |> name "string"
 
 
 let private stringConstant =

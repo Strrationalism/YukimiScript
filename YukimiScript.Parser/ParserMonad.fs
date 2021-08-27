@@ -2,18 +2,15 @@ module YukimiScript.Parser.ParserMonad
 
 
 type Parser<'a> =
-    { Run: char list -> Result<'a * char list, exn>
-      Name: string }
+    { Run: char list -> Result<'a * char list, exn> }
 
 
 let bind (f: 'a -> Parser<'b>) (p: Parser<'a>) : Parser<'b> =
-    { Run = p.Run >> Result.bind (fun (a, ls) -> (f a).Run ls)
-      Name = p.Name }
+    { Run = p.Run >> Result.bind (fun (a, ls) -> (f a).Run ls) }
 
 
 let return' (a: 'a) : Parser<'a> = 
-    { Run = fun x -> Ok (a, x)
-      Name = string a }
+    { Run = fun x -> Ok (a, x) }
 
 
 let map (f: 'a -> 'b) (p: Parser<'a>) : Parser<'b> =
@@ -21,28 +18,26 @@ let map (f: 'a -> 'b) (p: Parser<'a>) : Parser<'b> =
 
 
 let mapError (f: exn -> exn) (p: Parser<'a>) : Parser<'a> =
-    { p with Run = p.Run >> Result.mapError f }
+    { Run = p.Run >> Result.mapError f }
 
 
 exception ExceptSymbolException of string
 
 
 let name (name: string) (a: Parser<'a>) : Parser<'a> =
-    { a with Name = name } 
+    mapError (fun _ -> ExceptSymbolException name) a
 
 
 let fail<'a> (e: exn) : Parser<'a> =
-    { Run = fun _ -> Error e
-      Name = string e }
+    { Run = fun _ -> Error e }
 
 
 let tryWith (f: exn -> Parser<'a>) (a: Parser<'a>) : Parser<'a> = 
-    { a with 
-        Run = 
-            fun input ->
-                match a.Run input with
-                | Error e -> (f e).Run input
-                | Ok x -> Ok x }
+    { Run = 
+        fun input ->
+            match a.Run input with
+            | Error e -> (f e).Run input
+            | Ok x -> Ok x }
 
 
 let explicit (a: Parser<'a>) : Parser<'a> =
@@ -67,8 +62,7 @@ let anyChar =
     { Run = 
         function
             | x::ls -> Ok (x, ls)
-            | [] -> Error EndException 
-      Name = "any" }
+            | [] -> Error EndException }
 
       
 exception PredicateFailedException
@@ -80,26 +74,22 @@ let predicate (f: 'a -> bool) (a: Parser<'a>) : Parser<'a> =
         | a when f a -> return a
         | _ -> return! fail PredicateFailedException
     }
-    |> name ("(predicate ? " + a.Name + ")")
 
 
-exception ExceptNamesException of string list
+exception MultiException of exn list
 
 
 let ( <||> ) (a: Parser<'a>) (b: Parser<'b>) : Parser<Choice<'a, 'b>> = 
-    { Name = a.Name
-      Run = 
+    { Run = 
           fun input ->
               match a.Run input with
               | Ok (x, r) -> Ok (Choice1Of2 x, r)
               | Error e1 -> 
                   match b.Run input with
                   | Ok (x, r) -> Ok (Choice2Of2 x, r)
-                  | Error e2 ->
-                      ExceptNamesException [ a.Name; b.Name ]
-                      |> Error
+                  | Error e2 -> Error (MultiException [ e1; e2 ])
+                              
     }
-    |> name ("(<||> " + a.Name + b.Name)
 
 
 let ( <|> ) (a: Parser<'a>) (b: Parser<'a>) =
@@ -114,17 +104,7 @@ let rec choices (ls: Parser<'a> list) : Parser<'a> =
     match ls with
     | [] -> invalidArg (nameof ls) "Choices must more than 1."
     | [a] -> a
-    | a :: more ->
-        let names = List.map (fun x -> x.Name) ls
-        (a <|> choices more)
-        |> mapError 
-            (fun _ -> ExceptNamesException names)
-        |> name 
-            ("(choices " 
-                + List.reduce 
-                    (fun a b -> a + " " + b)
-                    names
-                + ")")
+    | a :: more -> a <|> choices more
 
 
 let rec zeroOrMore (a: Parser<'a>) : Parser<'a list> =
@@ -136,7 +116,6 @@ let rec zeroOrMore (a: Parser<'a>) : Parser<'a list> =
         with 
         | _ -> return []
     }
-    |> name ("(zeroOrMore " + a.Name + ")")
 
 
 let oneOrMore (a: Parser<'a>) : Parser<'a list> =
@@ -145,7 +124,6 @@ let oneOrMore (a: Parser<'a>) : Parser<'a list> =
         let! tail = zeroOrMore a
         return head :: tail
     }
-    |> name ("(oneOrMore" + a.Name + ")")
 
 
 let zeroOrOne (a: Parser<'a>) : Parser<'a option> =
@@ -155,7 +133,6 @@ let zeroOrOne (a: Parser<'a>) : Parser<'a option> =
         with 
         | _ -> return None
     }
-    |> name ("(zeroOrOne " + a.Name + ")")
 
 
 exception NotInRangeException of char seq
@@ -165,7 +142,6 @@ let rec inRange (range: char seq) : Parser<char> =
     anyChar
     |> predicate (fun x -> Seq.exists ((=) x) range)
     |> mapError (fun _ -> NotInRangeException range)
-    |> name ("(inRange ?)")
 
 
 exception NotLiteralException of string 
@@ -180,7 +156,6 @@ let rec literal (x: string) : Parser<unit> =
             return ()
         }
         |> mapError (fun _ -> NotLiteralException x)
-    |> name ("(literal " + x + ")")
 
 
 exception ParseUnfinishedException of string
