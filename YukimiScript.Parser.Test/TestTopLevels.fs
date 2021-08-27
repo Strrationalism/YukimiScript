@@ -6,7 +6,6 @@ open YukimiScript.Parser.Elements
 open NUnit.Framework
 
 
-[<Test>]
 let testComment () =
     Parser.parseLine "   # test "
     |> function
@@ -28,23 +27,32 @@ let testEmptyLine () =
 
 
 [<Test>]
-let testGlobalDefination () = 
-    testParse "   -  global   # ? " GlobalDefination
+let testImportDefination () = 
+    testParse "   -  import \"abc\"   # ? " <| Import "abc"
 
 
 [<Test>]
 let testSceneDefination () =
-    testParse "- scene \"è¿™æ˜¯ä¸€ä¸ª æµ‹è¯• ç”¨\\nçš„ åœºæ™¯A\"" 
-        <| SceneDefination "è¿™æ˜¯ä¸€ä¸ª æµ‹è¯• ç”¨\nçš„ åœºæ™¯A"
+    testParse "- scene \"ÕâÊÇÒ»¸ö ²âÊÔ ÓÃ\\nµÄ ³¡¾°A\"" 
+        <| SceneDefination ("ÕâÊÇÒ»¸ö ²âÊÔ ÓÃ\nµÄ ³¡¾°A", None)
+
+    testParse "- scene \"ÕâÊÇÒ»¸ö ²âÊÔ ÓÃ\\nµÄ ³¡¾°B\" inherit \"A\"" 
+    <| SceneDefination ("ÕâÊÇÒ»¸ö ²âÊÔ ÓÃ\nµÄ ³¡¾°B", Some "A")
 
 
 [<Test>]
-let testMethodDefination () =
-    testParse "  -   method    system.id    x  y  z w# id: a -> a"
-        (MethodDefination 
-            (ObjectName (Some (ObjectName (None, "system")), "id"),
-                [ Parameter ("x", None)
-                  Parameter ("y", None)
-                  Parameter ("z", None)
-                  Parameter ("w", None) ]))
+let testMacroDefination () =
+    testParse "  -   macro   test" <| MacroDefination ("test", [])
+    testParse " -  macro test  param1" <| MacroDefination ("test", ["param1", None])
+    testParse " -  macro test  param1 param2" <| 
+        MacroDefination ("test", ["param1", None; "param2", None])
 
+    testParse " -  macro test  param1=def param2 param3=1 param4 param5=\"what\"" <| 
+        MacroDefination ("test", 
+            [
+                "param1", Some (Symbol "def")
+                "param2", None
+                "param3", Some (Integer 1)
+                "param4", None
+                "param5", Some (String "what")
+            ])

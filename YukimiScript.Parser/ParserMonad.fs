@@ -70,7 +70,6 @@ let anyChar =
             | [] -> Error EndException 
       Name = "any" }
 
-
       
 exception PredicateFailedException
 
@@ -85,6 +84,7 @@ let predicate (f: 'a -> bool) (a: Parser<'a>) : Parser<'a> =
 
 
 exception ExceptNamesException of string list
+
 
 let ( <||> ) (a: Parser<'a>) (b: Parser<'b>) : Parser<Choice<'a, 'b>> = 
     { Name = a.Name
@@ -113,7 +113,7 @@ let ( <|> ) (a: Parser<'a>) (b: Parser<'a>) =
 let rec choices (ls: Parser<'a> list) : Parser<'a> =
     match ls with
     | [] -> invalidArg (nameof ls) "Choices must more than 1."
-    | a :: [] -> a
+    | [a] -> a
     | a :: more ->
         let names = List.map (fun x -> x.Name) ls
         (a <|> choices more)

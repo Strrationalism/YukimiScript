@@ -2,7 +2,6 @@ module YukimiScript.Parser.Test.Utils
 
 open YukimiScript.Parser.Elements
 open YukimiScript.Parser.Parser
-open YukimiScript.Parser
 open NUnit.Framework
 
 
@@ -17,12 +16,22 @@ let testParse (x: string) (case: Line) =
         Assert.Fail (sprintf "%A" ex)
 
 
-let testExpr expr case =
-    testParse 
-        ("@ " + expr) 
-        (Statment.Do case |> Statment)
 
-
-let testConstant expr constant =
-    testExpr expr <| Constant constant
-
+let testParseScript (x: string) =
+    x.Replace("\r", "").Split('\n')
+    |> Array.iteri (fun lineNumber line ->
+        let lineNumber = lineNumber + 1
+        match parseLine line with
+        | Error e ->
+            printfn ""
+            printfn ""
+            printfn "Error: Line %d" lineNumber
+            printfn "%A" e
+            Assert.Fail ()
+        | Ok parsed ->
+            printfn ""
+            printfn ""
+            printfn "%A" parsed.Line
+            if parsed.Comment.IsSome then
+                printfn "# %s" parsed.Comment.Value
+    )

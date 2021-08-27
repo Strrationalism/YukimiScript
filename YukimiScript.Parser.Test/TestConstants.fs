@@ -1,15 +1,15 @@
-﻿module YukimiScript.Parser.Test.TestConstant
+﻿module YukimiScript.Parser.Test.TestConstants
 
-open YukimiScript.Parser.Test.Utils
 open YukimiScript.Parser
 open YukimiScript.Parser.Elements
 open NUnit.Framework
 
 
-[<Test>]
-let testConstantFlagAndNull () =
-    testConstant "null" Null
-    testConstant "flag" Flag
+let testConstant (x: string) case =
+    ParserMonad.run x Constants.constantParser
+    |> function 
+        | Ok x -> Assert.AreEqual(case, x)
+        | Error x -> Assert.Fail(x.ToString())
 
 
 [<Test>]
@@ -19,9 +19,9 @@ let testIntegers () =
         let i = rnd.Next()
         testConstant (string i) <| Integer i
         let j = -rnd.Next()
-        testConstant (string i) <| Integer i
+        testConstant (string j) <| Integer j
 
-    testConstant "-  1674 " <| Integer -1674
+    testConstant "-  1674" <| Integer -1674
 
 
 [<Test>]

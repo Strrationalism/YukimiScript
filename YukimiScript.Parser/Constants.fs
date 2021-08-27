@@ -1,24 +1,8 @@
-module internal YukimiScript.Parser.ConstantParser
+﻿module YukimiScript.Parser.Constants
 
-open YukimiScript.Parser.ParserMonad
-open YukimiScript.Parser.BasicParser
+open Basics
 open YukimiScript.Parser.Elements
-
-
-let private nullParser =
-    parser {
-        do! literal "null"
-        return Null
-    }
-    |> name "<constant null>"
-
-
-let private flagParser =
-    parser {
-        do! literal "flag"
-        return Flag
-    }
-    |> name "<constant flag>"
+open ParserMonad
 
 
 let private numberParser, integerParser =
@@ -49,7 +33,7 @@ let private numberParser, integerParser =
 
             return Number <| float (sign + a + "." + b)
         }
-        |> name "<constant number>"
+        |> name "<number constant>"
 
     let integerParser =
         parser {
@@ -58,7 +42,7 @@ let private numberParser, integerParser =
             let! i = unsignedIntegerString
             return Integer <| int (sign + i)
         }
-        |> name "<constant integer>" 
+        |> name "<integer constant>" 
 
     numberParser,
     integerParser 
@@ -104,18 +88,19 @@ let stringParser =
         do! literal "\""
         return toString chars
     }
-    |> name "<string>"
+    |> name "<string constant>"
+
 
 let private stringConstant =
     map String stringParser
 
+
 let constantParser =
     [
-        nullParser
-        flagParser
         numberParser
         integerParser
         stringConstant
+        symbol |> map Symbol
     ]
     |> choices
     |> name "<constant>"

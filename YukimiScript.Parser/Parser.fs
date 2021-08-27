@@ -1,42 +1,45 @@
-module YukimiScript.Parser.Parser
+﻿module YukimiScript.Parser.Parser
 
-open YukimiScript.Parser.BasicParser
 open YukimiScript.Parser.Elements
-open YukimiScript.Parser.ParserMonad
+open ParserMonad
+open Basics
 
 
-let private emptyLine = return' EmptyLine
-
-
-let private line =
-    [
-        TopLevelParser.topLevelScopeDefination
-        StatmentParser.statment |> map Statment
-        emptyLine
-    ]
-    |> choices
-    |> name "<line>"
-    
-
-let private codeLine = 
+let private lineComment: Parser<string> =
     parser {
-        do!  whitespace0
-        let! line = line
-        do!  whitespace0
-        let! comment = zeroOrOne lineComment
+        do! literal "#"
 
-        return line, comment
+        let commentChar = 
+            predicate 
+                (fun x -> x <> '\r' && x <> '\n')
+                anyChar
+
+        let! comment = zeroOrMore commentChar
+
+        return toStringTrim comment
     }
-    |> name "<codeLine>"
+    |> name "<lineComment>"
 
 
-type Parsed = 
-    { Line: Line
+type Parsed =
+    { Line: Elements.Line
       Comment: string option }
-    
 
-let parseLine (line: string) : Result<Parsed, exn> =
-    run line codeLine
-    |> Result.map (fun (parsed, comment) ->
-        { Line = parsed; Comment = comment })
-    
+
+let parseLine (line: string) =
+    parser {
+        do! whitespace0
+        let! parsed =
+            choices [
+                TopLevels.topLevels
+                Statment.statment
+                Text.text
+                return' EmptyLine
+            ]
+            
+        do! whitespace0
+        let! comment = zeroOrOne lineComment
+        return { Line = parsed; Comment = comment }
+    }
+    |> name "<single line>"
+    |> run line

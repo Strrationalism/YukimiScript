@@ -7,13 +7,12 @@
 
   <ItemGroup>
     <Compile Include="Elements.fs" />
-    <Compile Include="Line.fs" />
     <Compile Include="ParserMonad.fs" />
-    <Compile Include="BasicParser.fs" />
-    <Compile Include="ConstantParser.fs" />
-    <Compile Include="ExpressionParser.fs" />
-    <Compile Include="StatmentParser.fs" />
-    <Compile Include="TopLevelParser.fs" />
+    <Compile Include="Basics.fs" />
+    <Compile Include="Constants.fs" />
+    <Compile Include="TopLevels.fs" />
+    <Compile Include="Statment.fs" />
+    <Compile Include="Text.fs" />
     <Compile Include="Parser.fs" />
   </ItemGroup>
 

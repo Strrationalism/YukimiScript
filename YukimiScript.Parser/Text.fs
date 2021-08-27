@@ -1,0 +1,115 @@
+﻿module internal YukimiScript.Parser.Text
+
+open YukimiScript.Parser.Elements
+open ParserMonad
+open Basics
+
+
+let private commandCall =
+    parser {
+        do!  literal "["
+        do!  whitespace0
+        let! commandCall = explicit Statment.commandCall
+        do!  whitespace0
+        do!  explicit (literal "]")
+        return TextSlice.CommandCall commandCall
+    }
+    |> name "<command call in text slice>"
+
+
+let private bareText =
+    let charPred x =
+        Seq.exists ((=) x) 
+            [ '\n'
+              '['
+              '<'
+              ']'
+              '>'
+              '#'
+              '\\'
+              '\r' ]
+        |> not
+
+    let textChar = predicate charPred anyChar
+
+    oneOrMore textChar
+    |> map (toString >> TextSlice.Text)
+    |> name "<text>"
+
+
+let rec private markBlock () =
+    parser {
+        do! literal "<"
+        let! mark = symbol
+        do! whitespace1
+        let! innerText = zeroOrMore <| textSlice ()
+        do! literal ">"
+        return Marked (mark, innerText)
+    }
+    |> name "<marked text>"
+    
+
+and private textSlice () =
+    choices [
+        commandCall
+        bareText
+        markBlock ()
+    ]
+
+
+let text = 
+    parser {
+        let! character =
+            parser {
+                do! whitespace0
+                let! character = symbol
+                do! literal ":"
+                return character
+            }
+            |> zeroOrOne
+
+        let! text = oneOrMore <| textSlice ()
+
+        let text =
+            text
+            |> List.tryFindIndexBack 
+                (function
+                    | TextSlice.Text _ -> true
+                    | _ -> false)
+            |> function
+                | None -> text
+                | Some index ->
+                    let lastTextSlice =
+                        match text.[index] with
+                        | TextSlice.Text x -> x.Trim () |> TextSlice.Text
+                        | _ -> failwith ""
+
+                    text.[..index-1] @ [lastTextSlice] @ text.[index+1..]
+            |> List.filter 
+                (function
+                    | TextSlice.Text x -> 
+                        not <| System.String.IsNullOrWhiteSpace x
+                    | _ -> true)
+
+        let! hasMore = 
+            parser {
+                do! whitespace0
+                do! literal "\\"
+                do! whitespace0
+            }
+            |> zeroOrOne
+
+        if
+            List.forall 
+                (function
+                    | TextSlice.Text x -> 
+                        not <| System.String.IsNullOrWhiteSpace x
+                    | _ -> true)
+                text
+        then
+            return Line.Text (character, text, hasMore.IsSome)
+        else
+            return! fail (ExceptNamesException ["<text>"])
+        
+    }
+    |> name "<text>"

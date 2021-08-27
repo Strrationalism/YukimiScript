@@ -1,64 +1,39 @@
-namespace YukimiScript.Parser.Elements
-
-
-type ObjectName = 
-    | ObjectName of
-        parent: ObjectName option *
-        name: string
+﻿namespace YukimiScript.Parser.Elements
 
 
 type Constant =
-    | Flag
-    | Null
     | String of string
-    | Integer of int
     | Number of float
+    | Integer of int32
+    | Symbol of string
 
 
-type Expression = 
-    | Constant of Constant
-    | Call of 
-        methodName: ObjectName *
-        unnamedArguments: Expression list *
-        namedArguments: (string * Expression) list
-    | ReferenceOrCall of name: ObjectName
-    | Reference of name: ObjectName
-    | Tuple of Expression list
-    | Bracket of Expression
-
-
-type Parameter = 
-    | Parameter of
-        name: string *
-        defaultExpr: Expression option
-
-
-type Statment =
-    | Binding of
-        name: ObjectName *
-        expr: Expression
-    | IfScopeBegin of 
-        cond: Expression
-    | ElseIfScopeBegin of
-        cond: Expression
-    | ElseScopeBegin
-    | WhileScopeBegin of
-        cond: Expression
-    | ForScopeBegin of
-        variable: string *
-        init: Expression *
-        final: Expression
-    | MarkScopeBegin of
-        marks: Expression
-    | NormalScopeBegin
-    | ScopeEnd
-    | Do of Expression
+type CommandCall =
+    | CommandCall of
+        callee: string *
+        unnamedArgs: Constant list *
+        namedArgs: (string * Constant) list
 
 
 type TextSlice =
     | Text of string
-    | Do of Expression
-    | MarkSlice of 
-        marks: Expression *
-        TextSlice
+    | CommandCall of CommandCall
+    | Marked of 
+        mark: string *
+        inner: TextSlice list
 
+
+type Line =
+    | EmptyLine
+    | Import of string
+    | SceneDefination of 
+        sceneName: string *
+        inheritScene: string option
+    | MacroDefination of 
+        name: string *
+        param: (string * Constant option) list
+    | CommandCall of CommandCall
+    | Text of 
+        character: string option *
+        text: TextSlice list *
+        more: bool
