@@ -85,3 +85,32 @@ y:感谢您使用由纪美脚本语言！
 ```
 
 
+## 字节码
+
+字节码以小端序按照[RIFF格式](https://docs.microsoft.com/zh-cn/windows/win32/directshow/avi-riff-file-reference)进行存储。
+
+### RIFF区块
+RIFF区块中，fileType为"YKMO"，包含以下子区块：
+* meta
+* LIST symb
+* LIST strp
+* LIST scen
+
+### meta区块
+meta区块包含以下内容：
+* bytecodeVersion: uint32    
+* encoding: uint32
+* signatrue: uint32[8]
+
+其中bytecodeVersion指定了字节码版本，当前版本为0。    
+encoding指定了字符串池中字符串的编码方式：
+* 0 - UTF8
+* 1 - UCS16-LE
+signature的部分则是将除meta区块外所有区块按照先后顺序排列到一起后的字节进行SHA256摘要得到的结果，如果使用了数字签名，则此处存放数字签名。
+
+### LIST symb区块
+此区块为一个LIST区块，其formType为"symb"，包含数个symb区块，每个symb区块保存了一串ANSI编码的符号表。  
+其中第一个symb区块的编号为0，第二个symb区块的编号为1，以此类推。
+
+### LIST strp区块
+此区块为一个LIST区块，其formType为"strp"，包含数个strp区块，每个strp区块保存了一串以指定编码方式编码的字符串。
