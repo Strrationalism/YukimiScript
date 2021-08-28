@@ -15,16 +15,10 @@
 
 ## 工具链
 * 编译器
-    - 目标为json表示的AST
-    - 目标为RIFF表示的字节码
-* Uni-Gal互编译器
-    - Uni-Gal到Yukimi Script的编译器
-    - Yukimi Script到Uni-Gal编译器
-    - Uni-Gal API集
 * 运行时
-    - Rust实现的Native运行时
-* 本地化差分脚本生成工具
 * 配音稿生成工具
+* 本地化差分脚本生成工具
+* DGML剧情线路图工具
 
 ## 根据开发经验做出的设计
 ### 空梦

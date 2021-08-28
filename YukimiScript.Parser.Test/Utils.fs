@@ -19,7 +19,7 @@ let testParse (x: string) (case: Line) =
 
 let testParseScript (x: string) =
     x.Replace("\r", "").Split('\n')
-    |> Array.iteri 
+    |> Array.mapi 
         (fun lineNumber line ->
             let lineNumber = lineNumber + 1
             match parseLine line with
@@ -29,9 +29,14 @@ let testParseScript (x: string) =
                 printfn "Error: Line %d" lineNumber
                 printfn "%A" e
                 Assert.Fail ()
+                failwith ""
             | Ok parsed ->
                 printfn ""
                 printfn ""
                 printfn "%A" parsed.Line
                 if parsed.Comment.IsSome then
-                    printfn "# %s" parsed.Comment.Value)
+                    printfn "# %s" parsed.Comment.Value
+                    
+                parsed)
+    |> YukimiScript.Parser.Dom.analyze
+    |> printfn "%A"
