@@ -19,15 +19,13 @@ type Block = (Operation * DebugInformation) list
 
 
 type Dom = 
-    { Imports: (string * DebugInformation) list 
-      HangingEmptyLine: DebugInformation list
+    { HangingEmptyLine: DebugInformation list
       Macros: (MacroDefination * Block * DebugInformation) list
       Scenes: (SceneDefination * Block * DebugInformation) list }
 
 
 let private empty = 
-    { Imports = [] 
-      HangingEmptyLine = []
+    { HangingEmptyLine = []
       Macros = []
       Scenes = [] }
 
@@ -94,14 +92,6 @@ let private analyzeFold
                         HangingEmptyLine = 
                             debugInfo :: state.Result.HangingEmptyLine } }
             |> Ok
-    | Import import ->
-        { state with
-            Result = 
-                { state.Result with
-                    Imports = 
-                        (import, debugInfo) 
-                        :: state.Result.Imports } }
-        |> Ok
 
     | Line.CommandCall x -> pushOperation (CommandCall x)
     | Line.Text x -> pushOperation (Text x)
@@ -126,7 +116,6 @@ let analyze (x: Parsed seq) : Result<Dom, exn> =
     
     finalState 
     |> Result.map (fun x -> 
-        { Imports = List.rev x.Result.Imports
-          Scenes = List.rev x.Result.Scenes
+        { Scenes = List.rev x.Result.Scenes
           Macros = List.rev x.Result.Macros
           HangingEmptyLine = List.rev x.Result.HangingEmptyLine })

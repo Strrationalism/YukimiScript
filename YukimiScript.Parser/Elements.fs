@@ -40,7 +40,6 @@ type TextBlock =
 
 type Line =
     | EmptyLine
-    | Import of string
     | SceneDefination of SceneDefination
     | MacroDefination of MacroDefination
     | CommandCall of CommandCall

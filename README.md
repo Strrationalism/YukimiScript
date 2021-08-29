@@ -45,9 +45,6 @@
 ## 概览
 
 ```
-- import "lib.ykm"
-- import "lib2.ykm"
-
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
 

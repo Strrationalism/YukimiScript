@@ -25,12 +25,7 @@ let testNoComment () =
 [<Test>]
 let testEmptyLine () = 
     testParse "  " EmptyLine
-
-
-[<Test>]
-let testImportDefination () = 
-    testParse "   -  import \"abc\"   # ? " <| Import "abc"
-
+    
 
 [<Test>]
 let testSceneDefination () =

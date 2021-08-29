@@ -60,11 +60,6 @@ let topLevels =
         do!  whitespace0
 
         match symbol  with
-        | "import" -> 
-            let! importName = 
-                explicit (stringParser |> name "import file")
-            return Import importName
-
         | "macro" -> return! map MacroDefination macroDefination
         | "scene" -> return! map SceneDefination sceneDefaintion
         | x -> return! fail (InvalidTopLevelException x)

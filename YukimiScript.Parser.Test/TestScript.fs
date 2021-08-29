@@ -5,9 +5,6 @@ open NUnit.Framework
 
 
 let private example = """
-- import "lib.ykm"
-- import "lib2.ykm"
-
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
 
