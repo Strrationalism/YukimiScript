@@ -33,7 +33,8 @@ let macroDefinationParser =
     |> map (fun x ->
         match 
             Seq.countBy fst x.Param
-            |> Seq.tryFind (fun (_, x) -> x > 1) with
+            |> Seq.tryFind (fun (_, x) -> x > 1) 
+            with
         | Some (p, _) -> raise <| ParamRepeatedException (x, p)
         | None -> x)
 
@@ -41,7 +42,7 @@ let macroDefinationParser =
 exception NoMacroMatchedException
 
 
-exception ParamNotMatchedException of 
+exception ArgumentsTooMuchException of 
     MacroDefination * CommandCall
 
 
@@ -55,44 +56,41 @@ let private matchMacro x macro =
 
     match List.tryFind pred macro with
     | None -> Error NoMacroMatchedException
+    | Some (macro, _) when macro.Param.Length < x.UnnamedArgs.Length ->
+        Error <| ArgumentsTooMuchException (macro, x)
     | Some (macro, other) -> 
-        if macro.Param.Length < x.UnnamedArgs.Length then
-            Error (ParamNotMatchedException (macro, x))
-        else 
-            let defaultArgs =
-                macro.Param
-                |> List.choose (fun (name, x) ->
-                    Option.map (fun x -> name, x) x)
+        let defaultArgs =
+            macro.Param
+            |> List.choose (fun (name, x) ->
+                Option.map (fun x -> name, x) x)
 
-            let inputArgs =
-                x.UnnamedArgs
-                |> List.zip 
-                    (List.map fst macro.Param.[..x.UnnamedArgs.Length - 1])
-                |> List.append x.NamedArgs
+        let inputArgs =
+            x.UnnamedArgs
+            |> List.zip (List.map fst macro.Param.[..x.UnnamedArgs.Length - 1])
+            |> List.append x.NamedArgs
 
-            // 检查是否有重复传入的参数
-            let inputArgRepeat =
-                Seq.countBy fst inputArgs
-                |> Seq.tryFind (fun (_, l) -> l > 1)
-                |> function
-                    | None -> Ok ()
-                    | Some (p, _) -> 
-                        Error <| ArgumentRepeatException (macro, x, p)
-            
-            
-            let matchArg paramName =
-                let find = List.tryFind (fst >> (=) paramName)
-                find inputArgs
-                |> Option.defaultWith 
-                    (fun () -> 
-                        find defaultArgs
-                        |> Option.defaultWith 
-                            (fun () -> paramName, Symbol "false"))
+        // 检查是否有重复传入的参数
+        let inputArgRepeat =
+            Seq.countBy fst inputArgs
+            |> Seq.tryFind (fun (_, l) -> l > 1)
+            |> function
+                | None -> Ok ()
+                | Some (p, _) -> 
+                    Error <| ArgumentRepeatException (macro, x, p)
+        
+        
+        let matchArg paramName =
+            let find = List.tryFind (fst >> (=) paramName)
+            find inputArgs
+            |> Option.defaultWith (fun () -> 
+                find defaultArgs
+                |> Option.defaultWith (fun () -> 
+                    paramName, Symbol "false"))
 
-            inputArgRepeat 
-            |> Result.map (fun () -> 
-                let args = List.map (fst >> matchArg) macro.Param
-                macro, other, args)
+        inputArgRepeat 
+        |> Result.map (fun () -> 
+            let args = List.map (fst >> matchArg) macro.Param
+            macro, other, args)
 
         
 let private replaceParamToArgs args macroBody =
@@ -114,32 +112,33 @@ let private replaceParamToArgs args macroBody =
     
 
 
-let rec private expandSingleOperation macros operation : Result<Block, exn> =
+let rec private expandSingleOperation 
+                macros 
+                operation 
+                : Result<Block, exn> =
     match operation with
-    | (CommandCall command, debug) ->
+    | CommandCall command, debug ->
         match matchMacro command macros with
-        | Error NoMacroMatchedException -> Ok <| [CommandCall command, debug]
+        | Error NoMacroMatchedException -> 
+            Ok <| [CommandCall command, debug]
         | Error e -> Error e
         | Ok (macro, macroBody: Block, args) ->
             let macros =
                 macros 
-                |> List.filter 
-                    (fun (x, _) -> 
-                        x.Name <> macro.Name)
+                |> List.filter (fun (x, _) -> 
+                    x.Name <> macro.Name)
                         
             macroBody
-            |> List.map 
-                (function
-                    | (CommandCall call, debugInfo) -> 
-                        CommandCall <| replaceParamToArgs args call, debugInfo
-                    | x -> x)
+            |> List.map (function
+                | CommandCall call, debugInfo -> 
+                    CommandCall <| replaceParamToArgs args call, debugInfo
+                | x -> x)
             |> List.fold 
                 (fun state x -> 
                     state
                     |> Result.bind (fun state ->
                         expandSingleOperation macros x 
-                        |> Result.map 
-                            (fun x -> x :: state)))
+                        |> Result.map (fun x -> x :: state)))
                 (Ok [])
             |> Result.map (List.rev >> List.concat)
     | x -> Ok [x]
@@ -150,10 +149,19 @@ let expandBlock macros (block: Block) =
         (fun x state ->
             expandSingleOperation macros x
             |> Result.bind (fun r ->
-                Result.map 
-                    (fun state ->
-                        r :: state)
-                    state))
+                state
+                |> Result.map (fun state -> 
+                    r :: state)))
         block
         (Ok [])
     |> Result.map List.concat
+
+
+let expandSystemMacros (block: Block) =
+    let systemMacros = [ "__diagram_link_to"]
+    block
+    |> List.map (function
+        | CommandCall cmdCall, dbg when 
+            List.exists ((=) cmdCall.Callee) systemMacros ->
+            EmptyLine, dbg
+        | x -> x)

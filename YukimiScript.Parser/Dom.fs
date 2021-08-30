@@ -35,7 +35,8 @@ exception MacroRepeatException of debugInfo: DebugInformation * macro: string
 
 let private analyzeFold 
             state 
-            (line, debugInfo) =
+            (line, debugInfo) 
+            =
 
     let pushOperation x =
         match state.CurrentBlock with
@@ -43,10 +44,12 @@ let private analyzeFold
         | Some (line, labelDbgInfo, block) -> 
             { state with
                 CurrentBlock = 
-                    Some 
-                        (line,
-                         labelDbgInfo,
-                         (x, debugInfo) :: block) }
+                    Some (
+                        line,
+                        labelDbgInfo,
+                        (x, debugInfo) :: block
+                    ) 
+            }
             |> Ok
 
     let saveCurrentBlock state =
@@ -85,8 +88,8 @@ let private analyzeFold
                             debugInfo :: state.Result.HangingEmptyLine } }
             |> Ok
 
-    | Line.CommandCall x -> pushOperation (CommandCall x)
-    | Line.Text x -> pushOperation (Text x)
+    | Line.CommandCall x -> pushOperation <| CommandCall x
+    | Line.Text x -> pushOperation <| Text x
     | SceneDefination scene ->
         if List.exists (fun (x, _, _) -> x.Name = scene.Name) state.Result.Scenes then
             Error <| SceneRepeatException (debugInfo, scene.Name)
@@ -101,8 +104,7 @@ let analyze (x: Parsed seq) : Result<Dom, exn> =
     let finalState =
         x
         |> Seq.indexed
-        |> Seq.map 
-            (fun (lineNumber, { Line = line; Comment = comment }) ->
+        |> Seq.map (fun (lineNumber, { Line = line; Comment = comment }) ->
                 line, { LineNumber = lineNumber + 1; Comment = comment })
         |> Seq.fold 
             (fun state x -> 
@@ -123,22 +125,20 @@ let expandTextCommands (x: Dom) : Dom =
     let mapBlock (defination, block, debugInfo) =
         let block = 
             block
-            |> List.collect 
-                (function
-                    | (Text x, debugInfo) ->
-                        [ if debugInfo.Comment.IsSome then
-                              EmptyLine, debugInfo
+            |> List.collect (function
+                | Text x, debugInfo ->
+                    [ if debugInfo.Comment.IsSome then
+                          EmptyLine, debugInfo
 
-                          let blockDebugInfo: DebugInformation =
-                              { debugInfo with Comment = None }
-                            
-                          yield! (
-                              Text.toCommands x
-                              |> List.map 
-                                  (fun x -> 
-                                      CommandCall x, blockDebugInfo))
-                        ]
-                    | x -> [x]) 
+                      let blockDebugInfo: DebugInformation =
+                          { debugInfo with Comment = None }
+                        
+                      yield! 
+                          Text.toCommands x
+                          |> List.map (fun x -> 
+                                CommandCall x, blockDebugInfo)
+                    ]
+                | x -> [x]) 
                     
         defination, block, debugInfo
 
@@ -147,19 +147,25 @@ let expandTextCommands (x: Dom) : Dom =
         Macros = List.map mapBlock x.Macros }
 
 
-let expandMacros (x: Dom) =
+let expandUserMacros (x: Dom) =
     let macros = List.map (fun (a, b, _) -> a, b) x.Macros
     List.foldBack 
         (fun (sceneDef, block, debugInfo) state ->
             Macro.expandBlock macros block
             |> Result.bind (fun block -> 
                 state 
-                |> Result.map 
-                    (fun state -> 
-                        (sceneDef, block, debugInfo) :: state)))
+                |> Result.map (fun state -> 
+                    (sceneDef, block, debugInfo) :: state)))
         x.Scenes
         (Ok [])
-    |> Result.map 
-        (fun scenes ->
-            { x with Scenes = scenes; Macros = [] })
+    |> Result.map (fun scenes ->
+        { x with Scenes = scenes; Macros = [] })
             
+ 
+let expandSystemMacros (x: Dom) =
+    { x with 
+        Scenes = 
+            x.Scenes 
+            |> List.map (fun (a, b, c) -> 
+                a, Macro.expandSystemMacros b, c) }
+                

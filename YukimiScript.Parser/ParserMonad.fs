@@ -44,7 +44,7 @@ let explicit (a: Parser<'a>) : Parser<'a> =
     mapError raise a
 
 
-type ParserBuilder () =
+type ParserBuilder() =
     member _.Bind(x, f) = bind f x
     member _.Return(x) = return' x
     member _.ReturnFrom(x) = x
@@ -61,8 +61,8 @@ exception EndException
 let anyChar = 
     { Run = 
         function
-            | x::ls -> Ok (x, ls)
-            | [] -> Error EndException }
+        | x::ls -> Ok (x, ls)
+        | [] -> Error EndException }
 
       
 exception PredicateFailedException
@@ -94,15 +94,14 @@ let ( <||> ) (a: Parser<'a>) (b: Parser<'b>) : Parser<Choice<'a, 'b>> =
 
 let ( <|> ) (a: Parser<'a>) (b: Parser<'a>) =
     (a <||> b) 
-    |> map
-        (function
-            | Choice1Of2 x -> x
-            | Choice2Of2 x -> x)
+    |> map (function
+        | Choice1Of2 x -> x
+        | Choice2Of2 x -> x)
 
 
-let rec choices (ls: Parser<'a> list) : Parser<'a> =
-    match ls with
-    | [] -> invalidArg (nameof ls) "Choices must more than 1."
+let rec choices : Parser<'a> list -> Parser<'a> =
+    function
+    | [] -> invalidArg "_arg0" "Choices must more than 1."
     | [a] -> a
     | a :: more -> a <|> choices more
 
@@ -113,8 +112,7 @@ let rec zeroOrMore (a: Parser<'a>) : Parser<'a list> =
             let! head = a
             let! tail = zeroOrMore a
             return head :: tail
-        with 
-        | _ -> return []
+        with _ -> return []
     }
 
 
@@ -129,9 +127,9 @@ let oneOrMore (a: Parser<'a>) : Parser<'a list> =
 let zeroOrOne (a: Parser<'a>) : Parser<'a option> =
     parser {
         try 
-            let! a = a in return Some a
-        with 
-        | _ -> return None
+            let! a = a 
+            return Some a
+        with _ -> return None
     }
 
 
@@ -164,16 +162,14 @@ exception ParseUnfinishedException of string
 let run (line: string) (parser: Parser<'a>) : Result<'a, exn> =
     try
         parser.Run (Seq.toList line)
-        |> Result.bind 
-            (fun (result, remainder) -> 
-                if List.isEmpty remainder then
-                    Ok result
-                else 
-                    remainder
-                    |> List.toArray
-                    |> System.String
-                    |> ParseUnfinishedException
-                    |> Error)
-    with 
-    | e -> Error e
+        |> Result.bind (fun (result, remainder) -> 
+            if List.isEmpty remainder then
+                Ok result
+            else 
+                remainder
+                |> List.toArray
+                |> System.String
+                |> ParseUnfinishedException
+                |> Error)
+    with e -> Error e
     

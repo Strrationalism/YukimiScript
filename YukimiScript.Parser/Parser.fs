@@ -34,10 +34,10 @@ let parseLine (line: string) =
                 TopLevels.topLevels
                 Statment.statment
                 Text.text
-                return' Line.EmptyLine
+                return' Line.EmptyLine 
             ]
             
-        do! whitespace0
+        do!  whitespace0
         let! comment = zeroOrOne lineComment
         return { Line = parsed; Comment = comment }
     }

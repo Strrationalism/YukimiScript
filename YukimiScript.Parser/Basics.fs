@@ -5,7 +5,7 @@ open ParserMonad
 
 let whitespace0, whitespace1 =
     let whitespaceChar = inRange [ ' '; '\t' ]
-    let post = map ignore >> name "<whitespace>"
+    let post = map ignore >> name "whitespace"
     zeroOrMore whitespaceChar |> post,
     oneOrMore whitespaceChar |> post
 

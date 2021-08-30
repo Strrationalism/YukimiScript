@@ -9,8 +9,8 @@ open Constants
 let private sceneDefaintion =
     parser {
         let! sceneName = 
-            explicit <| 
-                name "scene name" stringParser
+            explicit 
+            <| name "scene name" stringParser
 
         let! inheritScene =
             parser {
@@ -36,7 +36,7 @@ let topLevels =
         do!  whitespace0
         let! symbol = explicit symbol
         do!  whitespace0
-
+        
         match symbol  with
         | "macro" -> 
             return! map MacroDefination Macro.macroDefinationParser

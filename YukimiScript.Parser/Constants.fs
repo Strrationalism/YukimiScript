@@ -66,14 +66,13 @@ let stringParser =
                 | x -> 
                     let ex = 
                         InvalidStringCharException 
-                            ("\\" + string x)
+                        <| "\\" + string x
                     raise ex
                     return! fail ex
             }
 
         parser {
-            let! char = predicate ((<>) '\"') anyChar
-            match char with
+            match! predicate ((<>) '\"') anyChar with
             | '\n' -> 
                 let ex = InvalidStringCharException "<newline>"
                 raise ex
@@ -83,9 +82,9 @@ let stringParser =
         }
 
     parser {
-        do! literal "\""
+        do!  literal "\""
         let! chars = zeroOrMore stringChar
-        do! literal "\""
+        do!  literal "\""
         return toString chars
     }
     |> name "string"
@@ -96,11 +95,9 @@ let private stringConstant =
 
 
 let constantParser =
-    [
-        numberParser
-        integerParser
-        stringConstant
-        symbol |> map Symbol
-    ]
+    [ numberParser
+      integerParser
+      stringConstant
+      map Symbol symbol ]
     |> choices
-    |> name "<constant>"
+    |> name "constant"

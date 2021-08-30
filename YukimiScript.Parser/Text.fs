@@ -18,7 +18,8 @@ let private commandCall =
 
 let private bareText =
     let charPred x =
-        Seq.exists ((=) x) 
+        Seq.exists 
+            ((=) x) 
             [ '\n'
               '['
               '<'
@@ -52,7 +53,7 @@ and private textSlice () =
     choices [
         commandCall
         bareText
-        markBlock ()
+        markBlock () 
     ]
     |> name "text slice"
 
@@ -72,24 +73,23 @@ let text =
 
         let text =
             text
-            |> List.filter 
-                (function
-                    | TextSlice.Text x -> 
-                        not <| System.String.IsNullOrWhiteSpace x
-                    | _ -> true)
+            |> List.filter (function
+                | TextSlice.Text x -> 
+                    not <| System.String.IsNullOrWhiteSpace x
+                | _ -> true)
 
         let text =
             text
-            |> List.tryFindIndexBack 
-                (function
-                    | TextSlice.Text _ -> true
-                    | _ -> false)
+            |> List.tryFindIndexBack (function
+                | TextSlice.Text _ -> true
+                | _ -> false)
             |> function
                 | None -> text
                 | Some index ->
                     let lastTextSlice =
                         match text.[index] with
-                        | TextSlice.Text x -> x.Trim () |> TextSlice.Text
+                        | TextSlice.Text x -> 
+                            x.Trim () |> TextSlice.Text
                         | _ -> failwith ""
 
                     text.[..index-1] @ [lastTextSlice] @ text.[index+1..]
@@ -102,46 +102,48 @@ let text =
             }
             |> zeroOrOne
 
-        return Line.Text
-            { Character = character;
-              Text = text;
-              HasMore = hasMore.IsSome }
+        return 
+            Line.Text
+                { Character = character;
+                  Text = text;
+                  HasMore = hasMore.IsSome }
     }
     |> name "text"
 
 
 let toCommands (text: TextBlock) : CommandCall list =
     [ 
-        { Callee = "__text_begin"
-          UnnamedArgs = []
-          NamedArgs = [ 
-              if text.Character.IsSome then
-                  "character", Symbol text.Character.Value
-          ] }
+        { 
+            Callee = "__text_begin"
+            UnnamedArgs = []
+            NamedArgs = [ 
+                if text.Character.IsSome then
+                    "character", Symbol text.Character.Value
+            ] 
+        }
         
         let rec textSliceToCommand x =
             x
-            |> List.collect
-                (function
-                    | TextSlice.CommandCall x -> [x]
-                    | TextSlice.Text x ->
-                        [ { Callee = "__text_type"
-                            UnnamedArgs = []
-                            NamedArgs = [ "text", String x] }]
-                    | Marked (mark, inner) ->
-                        [
-                            { Callee = "__text_pushMark"
-                              UnnamedArgs = []
-                              NamedArgs = [ "mark", Symbol mark ] }
+            |> List.collect (function
+                | TextSlice.CommandCall x -> [x]
+                | TextSlice.Text x ->
+                    [ { Callee = "__text_type"
+                        UnnamedArgs = []
+                        NamedArgs = [ "text", String x] } ]
+                | Marked (mark, inner) ->
+                    [
+                        { Callee = "__text_pushMark"
+                          UnnamedArgs = []
+                          NamedArgs = [ "mark", Symbol mark ] }
 
-                            yield! (textSliceToCommand inner)
+                        yield! textSliceToCommand inner
 
-                            { Callee = "__text_popMark"
-                              UnnamedArgs = [] 
-                              NamedArgs = [ "mark", Symbol mark] }
-                        ])
+                        { Callee = "__text_popMark"
+                          UnnamedArgs = [] 
+                          NamedArgs = [ "mark", Symbol mark] }
+                    ])
 
-        yield! (textSliceToCommand text.Text)
+        yield! textSliceToCommand text.Text
 
 
         { Callee = "__text_end"
