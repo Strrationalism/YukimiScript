@@ -16,6 +16,7 @@
     <Compile Include="Text.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Dom.fs" />
+    <Compile Include="Diagram.fs" />
   </ItemGroup>
 
 </Project>
