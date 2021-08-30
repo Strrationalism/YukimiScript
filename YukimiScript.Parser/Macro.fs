@@ -114,7 +114,7 @@ let private replaceParamToArgs args macroBody =
     
 
 
-let rec expandSingleOperation macros operation : Result<Block, exn> =
+let rec private expandSingleOperation macros operation : Result<Block, exn> =
     match operation with
     | (CommandCall command, debug) ->
         match matchMacro command macros with
@@ -143,4 +143,17 @@ let rec expandSingleOperation macros operation : Result<Block, exn> =
                 (Ok [])
             |> Result.map (List.rev >> List.concat)
     | x -> Ok [x]
+
     
+let expandBlock macros (block: Block) =
+    List.foldBack 
+        (fun x state ->
+            expandSingleOperation macros x
+            |> Result.bind (fun r ->
+                Result.map 
+                    (fun state ->
+                        r :: state)
+                    state))
+        block
+        (Ok [])
+    |> Result.map List.concat

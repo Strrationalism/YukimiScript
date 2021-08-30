@@ -145,3 +145,21 @@ let expandTextCommands (x: Dom) : Dom =
     { x with 
         Scenes = List.map mapBlock x.Scenes
         Macros = List.map mapBlock x.Macros }
+
+
+let expandMacros (x: Dom) =
+    let macros = List.map (fun (a, b, _) -> a, b) x.Macros
+    List.foldBack 
+        (fun (sceneDef, block, debugInfo) state ->
+            Macro.expandBlock macros block
+            |> Result.bind (fun block -> 
+                state 
+                |> Result.map 
+                    (fun state -> 
+                        (sceneDef, block, debugInfo) :: state)))
+        x.Scenes
+        (Ok [])
+    |> Result.map 
+        (fun scenes ->
+            { x with Scenes = scenes; Macros = [] })
+            

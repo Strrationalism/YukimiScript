@@ -8,14 +8,17 @@ let private example = """
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
 
-- macro wait time=1
+- macro wait time=1 force=false
+@systemAPI_sleep_begin force    # 这里的内容将会被展开
 @systemAPI_sleep time
+@systemAPI_sleep_end
 
 - scene "场景 第一个场景"
 y:你好~我叫[name]，[wait --time 1 --force]<ani 很高兴认识你！> \
 欢迎你来我家里玩~
 @wait 3
 y:感谢您使用由纪美脚本语言！
+@wait
 
 # 以上文字内容编译为
 # @__text_begin --character y
