@@ -134,7 +134,8 @@ let rec expandSingleOperation macros operation : Result<Block, exn> =
                         let macros =
                             macros 
                             |> List.filter 
-                                (fun (x, _) -> x.Name <> macro.Name)
+                                (fun (x, _) -> 
+                                    x.Name <> macro.Name)
 
                         expandSingleOperation macros x 
                         |> Result.map 
