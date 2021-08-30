@@ -121,6 +121,12 @@ let rec expandSingleOperation macros operation : Result<Block, exn> =
         | Error NoMacroMatchedException -> Ok <| [CommandCall command, debug]
         | Error e -> Error e
         | Ok (macro, macroBody: Block, args) ->
+            let macros =
+                macros 
+                |> List.filter 
+                    (fun (x, _) -> 
+                        x.Name <> macro.Name)
+                        
             macroBody
             |> List.map 
                 (function
@@ -131,16 +137,10 @@ let rec expandSingleOperation macros operation : Result<Block, exn> =
                 (fun state x -> 
                     state
                     |> Result.bind (fun state ->
-                        let macros =
-                            macros 
-                            |> List.filter 
-                                (fun (x, _) -> 
-                                    x.Name <> macro.Name)
-
                         expandSingleOperation macros x 
                         |> Result.map 
-                            (fun x -> state @ [x])))
+                            (fun x -> x :: state)))
                 (Ok [])
-            |> Result.map List.concat
+            |> Result.map (List.rev >> List.concat)
     | x -> Ok [x]
     
