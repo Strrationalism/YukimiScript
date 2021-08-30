@@ -4,20 +4,6 @@ open YukimiScript.Parser.Parser
 open YukimiScript.Parser.Elements
 
 
-type DebugInformation =
-    { LineNumber: int
-      Comment: string option }
-
-
-type Operation =
-    | Text of TextBlock
-    | CommandCall of CommandCall
-    | EmptyLine
-
-
-type Block = (Operation * DebugInformation) list
-
-
 type Dom = 
     { HangingEmptyLine: DebugInformation list
       Macros: (MacroDefination * Block * DebugInformation) list

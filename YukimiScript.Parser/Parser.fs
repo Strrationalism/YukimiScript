@@ -34,7 +34,7 @@ let parseLine (line: string) =
                 TopLevels.topLevels
                 Statment.statment
                 Text.text
-                return' EmptyLine
+                return' Line.EmptyLine
             ]
             
         do! whitespace0

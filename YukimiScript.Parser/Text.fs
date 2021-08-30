@@ -102,7 +102,7 @@ let text =
             }
             |> zeroOrOne
 
-        return Text
+        return Line.Text
             { Character = character;
               Text = text;
               HasMore = hasMore.IsSome }

@@ -8,13 +8,13 @@ open NUnit.Framework
 [<Test>]
 let testTextOnly () =
     testParse "你好？   \\ " <|
-        Text 
+        Line.Text 
             { Character = None
               Text = [TextSlice.Text "你好？"]
               HasMore = true }
 
     testParse "  A:你好？  " <| 
-        Text 
+        Line.Text 
             { Character = Some "A"
               Text = [TextSlice.Text "你好？"]
               HasMore = false }
@@ -23,7 +23,7 @@ let testTextOnly () =
 [<Test>]
 let testCommand () =
     testParse "[wait --time 5]\\" <|
-        Text 
+        Line.Text 
             { Character = None
               Text = 
                   [ TextSlice.CommandCall 
@@ -36,7 +36,7 @@ let testCommand () =
         
 
     testParse "A:测试  [wait  5]测试  " <|
-        Text 
+        Line.Text 
             { Character = Some "A"
               Text = 
                   [ TextSlice.Text "测试  "

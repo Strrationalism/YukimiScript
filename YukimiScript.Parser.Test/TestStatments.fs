@@ -8,7 +8,7 @@ open NUnit.Framework
 [<Test>]
 let testCommandCall () =
     testParse " @  bg.play Black \"C1\" -256 --effect a --camera -2.0" <|
-        CommandCall
+        Line.CommandCall
             { Callee = "bg.play"
               UnnamedArgs = [ Symbol "Black"; String "C1"; Integer -256 ]
               NamedArgs = 

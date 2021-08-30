@@ -10,7 +10,7 @@ open NUnit.Framework
 let testComment () =
     Parser.parseLine "   # test "
     |> function
-        | Ok { Line = EmptyLine; Comment = Some "test" } -> ()
+        | Ok { Line = Line.EmptyLine; Comment = Some "test" } -> ()
         | x -> Assert.Fail <| sprintf "%A" x
 
 
@@ -18,13 +18,13 @@ let testComment () =
 let testNoComment () =
     Parser.parseLine "   "
     |> function
-        | Ok { Line = EmptyLine; Comment = None } -> ()
+        | Ok { Line = Line.EmptyLine; Comment = None } -> ()
         | x -> Assert.Fail <| sprintf "%A" x
 
 
 [<Test>]
 let testEmptyLine () = 
-    testParse "  " EmptyLine
+    testParse "  " Line.EmptyLine
     
 
 [<Test>]

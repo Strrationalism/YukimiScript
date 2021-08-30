@@ -49,5 +49,5 @@ let statment =
         do! literal "@"
         return! 
             commandCall 
-            |> map CommandCall
+            |> map Line.CommandCall
     }

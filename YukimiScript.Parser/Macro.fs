@@ -49,7 +49,7 @@ exception ArgumentRepeatException of
     MacroDefination * CommandCall * string
 
 
-let matchMacro x macro =
+let private matchMacro x macro =
     let pred (macro: MacroDefination, _) = 
         macro.Name = x.Callee
 
@@ -95,3 +95,46 @@ let matchMacro x macro =
                 macro, other, args)
 
         
+let private replaceParamToArgs args macroBody =
+    let replaceArg = 
+        function
+        | Symbol x -> 
+            match List.tryFind (fst >> (=) x) args with
+            | None -> Symbol x
+            | Some (_, x) -> x
+        | x -> x
+
+    { macroBody with
+        UnnamedArgs = 
+            List.map replaceArg macroBody.UnnamedArgs
+        NamedArgs = 
+            List.map 
+                (fun (name, arg) -> name, replaceArg arg) 
+                macroBody.NamedArgs }
+    
+
+
+let rec expandSingleOperation macros operation : Result<Block, exn> =
+    match operation with
+    | (CommandCall command, debug) ->
+        match matchMacro command macros with
+        | Error NoMacroMatchedException -> Ok <| [CommandCall command, debug]
+        | Error e -> Error e
+        | Ok (_, macroBody: Block, args) ->
+            macroBody
+            |> List.map 
+                (function
+                    | (CommandCall call, debugInfo) -> 
+                        CommandCall <| replaceParamToArgs args call, debugInfo
+                    | x -> x)
+            |> List.fold 
+                (fun state x -> 
+                    state
+                    |> Result.bind (fun state ->
+                        expandSingleOperation macros x 
+                        |> Result.map 
+                            (fun x -> state @ [x])))
+                (Ok [])
+            |> Result.map List.concat
+    | x -> Ok [x]
+    

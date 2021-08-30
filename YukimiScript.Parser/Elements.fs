@@ -44,3 +44,17 @@ type Line =
     | MacroDefination of MacroDefination
     | CommandCall of CommandCall
     | Text of TextBlock
+
+
+type DebugInformation =
+    { LineNumber: int
+      Comment: string option }
+
+
+type Operation =
+    | Text of TextBlock
+    | CommandCall of CommandCall
+    | EmptyLine
+
+
+type Block = (Operation * DebugInformation) list
