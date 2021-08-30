@@ -12,7 +12,7 @@ let private example = """
 @systemAPI_sleep time
 
 - scene "场景 第一个场景"
-y:你好~我叫[name]，[wait --time 1]<ani 很高兴认识你！> \
+y:你好~我叫[name]，[wait --time 1 --force]<ani 很高兴认识你！> \
 欢迎你来我家里玩~
 @wait 3
 y:感谢您使用由纪美脚本语言！
@@ -22,13 +22,14 @@ y:感谢您使用由纪美脚本语言！
 # @__text_type --text "你好~我叫"
 # @name
 # @__text_type --text "，"
-# @wait --time 1
+# @wait --time 1 --force true
 # @__text_pushMark --mark ani
 # @__text_type --text "很高兴认识你！"
 # @__text_popMark --mark ani
-# @__text_br
+# @__text_end --hasMore true
+# @__text_begin
 # @__text_type "欢迎你来我家里玩~"
-# @__text_end
+# @__text_end --hasMore false
 
 # @__text_begin --character y
 # @__text_type --text "感谢您使用由纪美脚本语言！"

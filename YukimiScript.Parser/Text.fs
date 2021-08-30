@@ -108,3 +108,45 @@ let text =
               HasMore = hasMore.IsSome }
     }
     |> name "text"
+
+
+let toCommands (text: TextBlock) : CommandCall list =
+    [ 
+        { Callee = "__text_begin"
+          UnnamedArgs = []
+          NamedArgs = [ 
+              if text.Character.IsSome then
+                  "character", Symbol text.Character.Value
+          ] }
+        
+        let rec textSliceToCommand x =
+            x
+            |> List.collect
+                (function
+                    | TextSlice.CommandCall x -> [x]
+                    | TextSlice.Text x ->
+                        [ { Callee = "__text_type"
+                            UnnamedArgs = []
+                            NamedArgs = [ "text", String x] }]
+                    | Marked (mark, inner) ->
+                        [
+                            { Callee = "__text_pushMark"
+                              UnnamedArgs = []
+                              NamedArgs = [ "mark", Symbol mark ] }
+
+                            yield! (textSliceToCommand inner)
+
+                            { Callee = "__text_popMark"
+                              UnnamedArgs = [] 
+                              NamedArgs = [ "mark", Symbol mark] }
+                        ])
+
+        yield! (textSliceToCommand text.Text)
+
+
+        { Callee = "__text_end"
+          UnnamedArgs = []
+          NamedArgs = 
+              [ "hasMore", Symbol <| text.HasMore.ToString().ToLower() ] }
+    ]
+

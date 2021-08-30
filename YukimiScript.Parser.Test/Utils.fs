@@ -39,4 +39,5 @@ let testParseScript (x: string) =
                     
                 parsed)
     |> YukimiScript.Parser.Dom.analyze
+    |> Result.map YukimiScript.Parser.Dom.expandTextCommands
     |> printfn "%A"

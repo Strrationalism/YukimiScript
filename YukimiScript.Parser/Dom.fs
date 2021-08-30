@@ -119,3 +119,30 @@ let analyze (x: Parsed seq) : Result<Dom, exn> =
         { Scenes = List.rev x.Result.Scenes
           Macros = List.rev x.Result.Macros
           HangingEmptyLine = List.rev x.Result.HangingEmptyLine })
+
+
+let expandTextCommands (x: Dom) : Dom =
+    let mapBlock (defination, block, debugInfo) =
+        let block = 
+            block
+            |> List.collect 
+                (function
+                    | (Text x, debugInfo) ->
+                        [ if debugInfo.Comment.IsSome then
+                              EmptyLine, debugInfo
+
+                          let blockDebugInfo: DebugInformation =
+                              { debugInfo with Comment = None }
+                            
+                          yield! (
+                              Text.toCommands x
+                              |> List.map 
+                                  (fun x -> 
+                                      CommandCall x, blockDebugInfo))
+                        ]
+                    | x -> [x]) 
+        defination, block, debugInfo
+
+    { x with 
+        Scenes = List.map mapBlock x.Scenes
+        Macros = List.map mapBlock x.Macros }

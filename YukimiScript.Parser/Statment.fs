@@ -22,9 +22,16 @@ let commandCall =
             parser {
                 do! whitespace1
                 do! literal "--"
-                let! param = symbol
-                do! whitespace1
-                let! arg = constantParser
+                let! param = explicit symbol
+
+                let arg = 
+                    parser {
+                        do! whitespace1
+                        return! constantParser
+                    }
+
+                let! arg = arg <|> return' (Symbol "true")
+
                 return param, arg
             }
             |> zeroOrMore
