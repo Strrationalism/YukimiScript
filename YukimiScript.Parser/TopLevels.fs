@@ -6,28 +6,6 @@ open Basics
 open Constants
 
 
-let private macroDefination =
-    parser {
-        let! macroName = explicit symbol
-        let! param =
-            parser {
-                do!  whitespace1
-                let! paramName = symbol
-                let! defArg =
-                    parser {
-                        do! literal "="
-                        return! constantParser
-                    }
-                    |> zeroOrOne
-                 
-                return paramName, defArg
-            }
-            |> zeroOrMore
-
-        return { Name = macroName; Param = param }
-    }
-
-
 let private sceneDefaintion =
     parser {
         let! sceneName = 
@@ -60,8 +38,10 @@ let topLevels =
         do!  whitespace0
 
         match symbol  with
-        | "macro" -> return! map MacroDefination macroDefination
-        | "scene" -> return! map SceneDefination sceneDefaintion
+        | "macro" -> 
+            return! map MacroDefination Macro.macroDefinationParser
+        | "scene" -> 
+            return! map SceneDefination sceneDefaintion
         | x -> return! fail (InvalidTopLevelException x)
     }
     |> name "top level"

@@ -41,6 +41,12 @@ exception HangingOperationException of debugInfo: DebugInformation
 exception UnknownException
 
 
+exception SceneRepeatException of debugInfo: DebugInformation * scene: string
+
+
+exception MacroRepeatException of debugInfo: DebugInformation * macro: string
+
+
 let private analyzeFold 
             state 
             (line, debugInfo) =
@@ -95,8 +101,14 @@ let private analyzeFold
 
     | Line.CommandCall x -> pushOperation (CommandCall x)
     | Line.Text x -> pushOperation (Text x)
-    | (SceneDefination _ | MacroDefination _) as x -> 
-        setLabel state x |> Ok
+    | SceneDefination scene ->
+        if List.exists (fun (x, _, _) -> x.Name = scene.Name) state.Result.Scenes then
+            Error <| SceneRepeatException (debugInfo, scene.Name)
+        else Ok <| setLabel state (SceneDefination scene)
+    | MacroDefination macro -> 
+        if List.exists (fun (x, _, _) -> x.Name = macro.Name) state.Result.Scenes then
+            Error <| SceneRepeatException (debugInfo, macro.Name)
+        else Ok <| setLabel state (MacroDefination macro)
 
 
 let analyze (x: Parsed seq) : Result<Dom, exn> = 
@@ -141,6 +153,7 @@ let expandTextCommands (x: Dom) : Dom =
                                       CommandCall x, blockDebugInfo))
                         ]
                     | x -> [x]) 
+                    
         defination, block, debugInfo
 
     { x with 
