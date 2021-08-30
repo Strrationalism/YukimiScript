@@ -120,7 +120,7 @@ let rec expandSingleOperation macros operation : Result<Block, exn> =
         match matchMacro command macros with
         | Error NoMacroMatchedException -> Ok <| [CommandCall command, debug]
         | Error e -> Error e
-        | Ok (_, macroBody: Block, args) ->
+        | Ok (macro, macroBody: Block, args) ->
             macroBody
             |> List.map 
                 (function
@@ -131,6 +131,11 @@ let rec expandSingleOperation macros operation : Result<Block, exn> =
                 (fun state x -> 
                     state
                     |> Result.bind (fun state ->
+                        let macros =
+                            macros 
+                            |> List.filter 
+                                (fun (x, _) -> x.Name <> macro.Name)
+
                         expandSingleOperation macros x 
                         |> Result.map 
                             (fun x -> state @ [x])))
