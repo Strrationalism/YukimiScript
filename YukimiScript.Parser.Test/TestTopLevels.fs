@@ -37,24 +37,40 @@ let testSceneDefination () =
 
 
 [<Test>]
+let testExternDefination () =
+    testParse "- extern wait time=1" <|
+        ExternDefination 
+            (ExternCommand 
+                ("wait", 
+                 [ { Parameter = "time"
+                     Default = Some <| Integer 1 } ]))
+
+
+[<Test>]
 let testMacroDefination () =
     testParse "  -   macro   test" <| 
         MacroDefination { Name = "test"; Param = [] }
 
     testParse " -  macro test  param1" <|
-        MacroDefination { Name = "test"; Param = ["param1", None] }
+        MacroDefination 
+            { Name = "test"
+              Param = 
+                [ { Parameter = "param1"
+                    Default = None } ] }
 
     testParse " -  macro test  param1 param2" <| 
         MacroDefination 
             { Name = "test"
-              Param = ["param1", None; "param2", None] }
+              Param = 
+                [ { Parameter = "param1"; Default = None }
+                  { Parameter = "param2"; Default = None } ] }
 
     testParse " -  macro test  param1=def param2 param3=1 param4 param5=\"what\"" <| 
         MacroDefination 
             { Name = "test"
               Param =
-                [ "param1", Some (Symbol "def")
-                  "param2", None
-                  "param3", Some (Integer 1)
-                  "param4", None
-                  "param5", Some (String "what") ] }
+                [ { Parameter = "param1"; Default = Some <| Symbol "def" }
+                  { Parameter = "param2"; Default = None }
+                  { Parameter = "param3"; Default = Some <| Integer 1 }
+                  { Parameter = "param4"; Default = None }
+                  { Parameter = "param5"; Default = Some <| String "what" } ] }

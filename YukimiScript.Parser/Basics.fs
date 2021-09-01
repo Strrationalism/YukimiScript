@@ -41,3 +41,4 @@ let symbol: Parser<string> =
     }
     |> mapError (fun _ -> InvalidSymbolException)
 
+

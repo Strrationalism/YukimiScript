@@ -7,36 +7,44 @@ open Constants
 
 
 exception ParamRepeatedException of 
-    macro: MacroDefination * param: string
+    parent: string * param: string
+
+
+let private parameter: Parser<Parameter> =
+    parser {
+        do!  whitespace1
+        let! paramName = symbol
+        let! defArg =
+            parser {
+                do! literal "="
+                return! constantParser
+            }
+            |> zeroOrOne
+         
+        return { Parameter = paramName
+                 Default = defArg }
+    }
+    |> name "parameter"
+
+
+let parameterList parentName : Parser<Parameter list> =
+    zeroOrMore parameter
+    |> map (fun x ->
+        match 
+            Seq.countBy (fun x -> x.Parameter) x
+            |> Seq.tryFind (fun (_, x) -> x > 1) 
+            with
+        | Some (p, _) -> raise <| ParamRepeatedException (parentName, p)
+        | None -> x)
 
 
 let macroDefinationParser =
     parser {
         let! macroName = explicit symbol
-        let! param =
-            parser {
-                do!  whitespace1
-                let! paramName = symbol
-                let! defArg =
-                    parser {
-                        do! literal "="
-                        return! constantParser
-                    }
-                    |> zeroOrOne
-                 
-                return paramName, defArg
-            }
-            |> zeroOrMore
+        let! param = parameterList macroName
 
         return { Name = macroName; Param = param }
     }
-    |> map (fun x ->
-        match 
-            Seq.countBy fst x.Param
-            |> Seq.tryFind (fun (_, x) -> x > 1) 
-            with
-        | Some (p, _) -> raise <| ParamRepeatedException (x, p)
-        | None -> x)
 
 
 exception NoMacroMatchedException
@@ -61,12 +69,16 @@ let private matchMacro x macro =
     | Some (macro, other) -> 
         let defaultArgs =
             macro.Param
-            |> List.choose (fun (name, x) ->
-                Option.map (fun x -> name, x) x)
+            |> List.choose 
+                (fun { Parameter = name; Default = x } ->
+                    Option.map (fun x -> name, x) x)
 
         let inputArgs =
             x.UnnamedArgs
-            |> List.zip (List.map fst macro.Param.[..x.UnnamedArgs.Length - 1])
+            |> List.zip 
+                (List.map 
+                    (fun x -> x.Parameter) 
+                    macro.Param.[..x.UnnamedArgs.Length - 1])
             |> List.append x.NamedArgs
 
         // 检查是否有重复传入的参数
@@ -89,7 +101,7 @@ let private matchMacro x macro =
 
         inputArgRepeat 
         |> Result.map (fun () -> 
-            let args = List.map (fst >> matchArg) macro.Param
+            let args = List.map (fun x -> matchArg x.Parameter) macro.Param
             macro, other, args)
 
         

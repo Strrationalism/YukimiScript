@@ -6,12 +6,14 @@ open YukimiScript.Parser.Elements
 
 type Dom = 
     { HangingEmptyLine: DebugInformation list
+      Externs: (ExternDefination * DebugInformation) list
       Macros: (MacroDefination * Block * DebugInformation) list
       Scenes: (SceneDefination * Block * DebugInformation) list }
 
 
 let private empty = 
     { HangingEmptyLine = []
+      Externs = []
       Macros = []
       Scenes = [] }
 
@@ -31,6 +33,9 @@ exception SceneRepeatException of debugInfo: DebugInformation * scene: string
 
 
 exception MacroRepeatException of debugInfo: DebugInformation * macro: string
+
+
+exception ExternRepeatException of debugInfo: DebugInformation * name: string
 
 
 let private analyzeFold 
@@ -98,6 +103,18 @@ let private analyzeFold
         if List.exists (fun (x, _, _) -> x.Name = macro.Name) state.Result.Scenes then
             Error <| SceneRepeatException (debugInfo, macro.Name)
         else Ok <| setLabel state (MacroDefination macro)
+    | ExternDefination (ExternCommand (name, param)) ->
+        if List.exists (fun (x, _, _) -> x.Name = name) state.Result.Scenes then
+            Error <| SceneRepeatException (debugInfo, name)
+        else 
+            let nextState = saveCurrentBlock state
+            { nextState with
+                Result = 
+                    { nextState.Result with 
+                        Externs = 
+                            (ExternCommand (name, param), debugInfo) 
+                            :: nextState.Result.Externs } }
+            |> Ok
 
 
 let analyze (x: Parsed seq) : Result<Dom, exn> = 
@@ -118,6 +135,7 @@ let analyze (x: Parsed seq) : Result<Dom, exn> =
     |> Result.map (fun x -> 
         { Scenes = List.rev x.Result.Scenes
           Macros = List.rev x.Result.Macros
+          Externs = List.rev x.Result.Externs
           HangingEmptyLine = List.rev x.Result.HangingEmptyLine })
 
 

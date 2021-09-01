@@ -30,6 +30,13 @@ let private sceneDefaintion =
 exception InvalidTopLevelException of string
 
 
+let private externDefination =
+    parser {
+        let! externName = explicit symbol
+        let! param = Macro.parameterList externName
+        return ExternCommand (externName, param)
+    }
+
 let topLevels =
     parser {
         do!  literal "-"
@@ -38,10 +45,9 @@ let topLevels =
         do!  whitespace0
         
         match symbol  with
-        | "macro" -> 
-            return! map MacroDefination Macro.macroDefinationParser
-        | "scene" -> 
-            return! map SceneDefination sceneDefaintion
-        | x -> return! fail (InvalidTopLevelException x)
+        | "macro" -> return! map MacroDefination Macro.macroDefinationParser
+        | "scene" -> return! map SceneDefination sceneDefaintion
+        | "extern" -> return! map ExternDefination externDefination
+        | x -> return! explicit <| fail (InvalidTopLevelException x)
     }
     |> name "top level"

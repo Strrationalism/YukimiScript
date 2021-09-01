@@ -5,6 +5,9 @@ open NUnit.Framework
 
 
 let private example = """
+- extern systemAPI_sleep time=1 # 在这里定义宿主命令
+- extern name
+
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
 

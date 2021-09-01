@@ -45,6 +45,9 @@
 ## 概览
 
 ```
+- extern systemAPI_sleep time=1
+- extern name
+
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
 

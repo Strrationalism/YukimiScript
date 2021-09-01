@@ -22,9 +22,14 @@ type TextSlice =
         inner: TextSlice list
 
 
+type Parameter = 
+    { Parameter: string
+      Default: Constant option }
+
+
 type MacroDefination =
     { Name: string
-      Param: (string * Constant option) list }
+      Param: Parameter list }
 
 
 type SceneDefination =
@@ -38,10 +43,15 @@ type TextBlock =
       HasMore: bool }
 
 
+type ExternDefination =
+    | ExternCommand of string * Parameter list
+
+
 type Line =
     | EmptyLine
     | SceneDefination of SceneDefination
     | MacroDefination of MacroDefination
+    | ExternDefination of ExternDefination
     | CommandCall of CommandCall
     | Text of TextBlock
 
