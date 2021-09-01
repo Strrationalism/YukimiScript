@@ -38,6 +38,27 @@ exception MacroRepeatException of debugInfo: DebugInformation * macro: string
 exception ExternRepeatException of debugInfo: DebugInformation * name: string
 
 
+let private saveCurrentBlock state =
+    match state.CurrentBlock with
+    | None -> state
+    | Some (label, debugInfo, block) ->
+        { CurrentBlock = None
+          Result = 
+              { state.Result with
+                  Macros = 
+                      match label with
+                      | MacroDefination x ->
+                          (x, List.rev block, debugInfo) :: state.Result.Macros 
+                      | SceneDefination _ -> state.Result.Macros
+                      | _ -> raise UnknownException 
+                  Scenes =
+                      match label with
+                      | MacroDefination _ -> state.Result.Scenes
+                      | SceneDefination x -> 
+                          (x, List.rev block, debugInfo) :: state.Result.Scenes 
+                      | _ -> raise UnknownException } }
+
+
 let private analyzeFold 
             state 
             (line, debugInfo) 
@@ -56,26 +77,6 @@ let private analyzeFold
                     ) 
             }
             |> Ok
-
-    let saveCurrentBlock state =
-        match state.CurrentBlock with
-        | None -> state
-        | Some (label, debugInfo, block) ->
-            { CurrentBlock = None
-              Result = 
-                  { state.Result with
-                      Macros = 
-                          match label with
-                          | MacroDefination x ->
-                              (x, List.rev block, debugInfo) :: state.Result.Macros 
-                          | SceneDefination _ -> state.Result.Macros
-                          | _ -> raise UnknownException 
-                      Scenes =
-                          match label with
-                          | MacroDefination _ -> state.Result.Scenes
-                          | SceneDefination x -> 
-                              (x, List.rev block, debugInfo) :: state.Result.Scenes 
-                          | _ -> raise UnknownException } }
 
     let setLabel state line =
         { saveCurrentBlock state with
@@ -130,6 +131,7 @@ let analyze (x: Parsed seq) : Result<Dom, exn> =
                     state)
             (Ok { Result = empty
                   CurrentBlock = None })
+        |> Result.map saveCurrentBlock
     
     finalState 
     |> Result.map (fun x -> 
@@ -173,7 +175,7 @@ let expandUserMacros (x: Dom) =
         |> Result.map (fun x -> sceneDef, x, debugInfo))
     |> ParserMonad.switchResultList
     |> Result.map (fun scenes ->
-        { x with Scenes = scenes; Macros = [] })
+        { x with Scenes = scenes })
             
  
 let expandSystemMacros (x: Dom) =
@@ -182,15 +184,47 @@ let expandSystemMacros (x: Dom) =
             x.Scenes 
             |> List.map (fun (a, b, c) -> 
                 a, Macro.expandSystemMacros b, c) }
-                
 
-exception MustExpandMacrosBeforeLinkException
+
+exception MustExpandTextBeforeLinkException
+
+
+exception ExternCommandDefinationNotFoundException of string * DebugInformation
+
+
+let private systemCommands =  
+    let parse str =
+        TopLevels.topLevels |> ParserMonad.run str
+        |> function
+            | Ok (ExternDefination x) -> x
+            | _ -> failwith "Bug here!"
+    
+    [ parse "- extern __text_begin character=null"
+      parse "- extern __text_type text"
+      parse "- extern __text_pushMark mark"
+      parse "- extern __text_popMark mark"
+      parse "- extern __text_end hasMore" ]
 
 
 let linkToExternCommands (x: Dom) : Result<Dom, exn> =
+    let externs = systemCommands @ List.map fst x.Externs
     let linkSingleCommand (op, debugInfo) =
         match op with
-        | CommandCall c -> failwith "No Impl"
+        | Text _ -> Error MustExpandTextBeforeLinkException
+        | CommandCall c -> 
+            match 
+                List.tryFind 
+                    (fun (ExternCommand (name, _)) -> 
+                        name = c.Callee) 
+                    externs with
+            | None -> 
+                Error 
+                <| ExternCommandDefinationNotFoundException 
+                    (c.Callee, debugInfo)
+            | Some (ExternCommand (_, param)) -> 
+                Macro.matchArguments debugInfo param c
+                |> Result.map (fun args -> 
+                    CommandCall { c with UnnamedArgs = []; NamedArgs = args })
         | x -> Ok x
         |> Result.map (fun x -> x, debugInfo)
 
@@ -198,10 +232,7 @@ let linkToExternCommands (x: Dom) : Result<Dom, exn> =
         List.map linkSingleCommand block |> ParserMonad.switchResultList
         |> Result.map (fun block -> sceneDef, (block: Block), debugInfo)
         
-    if x.Macros |> List.isEmpty |> not then 
-        Error MustExpandMacrosBeforeLinkException
-    else 
-        List.map linkToExternCommands x.Scenes 
-        |> ParserMonad.switchResultList
-        |> Result.map (fun scenes ->
-            { x with Scenes = scenes })
+    List.map linkToExternCommands x.Scenes 
+    |> ParserMonad.switchResultList
+    |> Result.map (fun scenes ->
+        { x with Scenes = scenes })

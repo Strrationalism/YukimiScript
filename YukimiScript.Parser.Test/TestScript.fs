@@ -4,9 +4,18 @@ open YukimiScript.Parser.Test.Utils
 open NUnit.Framework
 
 
-let private example = """
-- extern systemAPI_sleep time=1 # 在这里定义宿主命令
+[<Test>]
+let testExampleScript () =
+    testParseScript """
+- extern systemAPI_sleep_begin force  # 在这里定义宿主命令
+- extern systemAPI_sleep_end
+- extern systemAPI_sleep time=1 
+- extern systemAPI_jumpToSection target
 - extern name
+
+- macro jumpToSection target
+__diagram_link_to target
+systemAPI_jumpToSection target
 
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
@@ -48,6 +57,15 @@ y:感谢您使用由纪美脚本语言！
 
 """
 
+
 [<Test>]
-let testScript1 () =
-    testParseScript example
+let testExternLinker () =
+    testParseScript """
+        - extern system.hello arg1 arg2=1
+        - macro hello arg1 arg2
+        @system.hello arg1 arg2
+
+        - scene "main"
+        @hello 1 2
+        @system.hello 1
+    """

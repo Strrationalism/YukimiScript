@@ -45,20 +45,30 @@
 ## 概览
 
 ```
-- extern systemAPI_sleep time=1
+- extern systemAPI_sleep_begin force  # 在这里定义宿主命令
+- extern systemAPI_sleep_end
+- extern systemAPI_sleep time=1 
+- extern systemAPI_jumpToSection target
 - extern name
+
+- macro jumpToSection target
+__diagram_link_to target
+systemAPI_jumpToSection target
 
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
 
-- macro wait time=1
+- macro wait time=1 force=false
+@systemAPI_sleep_begin force    # 这里的内容将会被展开
 @systemAPI_sleep time
+@systemAPI_sleep_end
 
 - scene "场景 第一个场景"
 y:你好~我叫[name]，[wait --time 1 --force]<ani 很高兴认识你！> \
 欢迎你来我家里玩~
 @wait 3
 y:感谢您使用由纪美脚本语言！
+@wait
 
 # 以上文字内容编译为
 # @__text_begin --character y
@@ -82,6 +92,7 @@ y:感谢您使用由纪美脚本语言！
 
 - scene "场景 第一个场景 的子场景" inherit "场景 第一个场景"
 # 这个场景的状态机将会继承于"场景 第一个场景".
+
 ```
 
 ## 内置宏

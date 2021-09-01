@@ -55,10 +55,61 @@ exception ArgumentsTooMuchException of
 
 
 exception ArgumentRepeatException of 
-    MacroDefination * CommandCall * string
+    DebugInformation * CommandCall * string
 
 
-let private matchMacro x macro =
+exception ArgumentUnmatchedException of
+    DebugInformation * CommandCall * parameter: string
+
+
+let matchArguments 
+    debugInfo 
+    (x: Parameter list) 
+    (c: CommandCall) 
+    : Result<(string * Constant) list, exn> 
+    =
+    let defaultArgs =
+        x
+        |> List.choose 
+            (fun { Parameter = name; Default = x } ->
+                Option.map (fun x -> name, x) x)
+
+    let inputArgs =
+        c.UnnamedArgs
+        |> List.zip 
+            (List.map 
+                (fun x -> x.Parameter) 
+                x.[..c.UnnamedArgs.Length - 1])
+        |> List.append c.NamedArgs
+
+    // 检查是否有重复传入的参数
+    let inputArgRepeat =
+        Seq.countBy fst inputArgs
+        |> Seq.tryFind (fun (_, l) -> l > 1)
+        |> function
+            | None -> Ok ()
+            | Some (p, _) -> 
+                Error <| ArgumentRepeatException (debugInfo, c, p)
+
+    let matchArg paramName : Result<string * Constant, exn> =
+        let find = List.tryFind (fst >> (=) paramName)
+        match find inputArgs with
+        | Some x -> Ok x
+        | None -> 
+            match find defaultArgs with
+            | Some x -> Ok x
+            | None -> 
+                Error
+                <| ArgumentUnmatchedException 
+                    (debugInfo, c, paramName)
+
+    inputArgRepeat
+    |> Result.bind (fun () ->
+        List.map (fun x -> matchArg x.Parameter) x
+        |> switchResultList)
+
+
+let private matchMacro debug x macro =
     let pred (macro: MacroDefination, _) = 
         macro.Name = x.Callee
 
@@ -67,41 +118,8 @@ let private matchMacro x macro =
     | Some (macro, _) when macro.Param.Length < x.UnnamedArgs.Length ->
         Error <| ArgumentsTooMuchException (macro, x)
     | Some (macro, other) -> 
-        let defaultArgs =
-            macro.Param
-            |> List.choose 
-                (fun { Parameter = name; Default = x } ->
-                    Option.map (fun x -> name, x) x)
-
-        let inputArgs =
-            x.UnnamedArgs
-            |> List.zip 
-                (List.map 
-                    (fun x -> x.Parameter) 
-                    macro.Param.[..x.UnnamedArgs.Length - 1])
-            |> List.append x.NamedArgs
-
-        // 检查是否有重复传入的参数
-        let inputArgRepeat =
-            Seq.countBy fst inputArgs
-            |> Seq.tryFind (fun (_, l) -> l > 1)
-            |> function
-                | None -> Ok ()
-                | Some (p, _) -> 
-                    Error <| ArgumentRepeatException (macro, x, p)
-        
-        
-        let matchArg paramName =
-            let find = List.tryFind (fst >> (=) paramName)
-            find inputArgs
-            |> Option.defaultWith (fun () -> 
-                find defaultArgs
-                |> Option.defaultWith (fun () -> 
-                    paramName, Symbol "false"))
-
-        inputArgRepeat 
-        |> Result.map (fun () -> 
-            let args = List.map (fun x -> matchArg x.Parameter) macro.Param
+        matchArguments debug macro.Param x
+        |> Result.map (fun args ->
             macro, other, args)
 
         
@@ -130,7 +148,7 @@ let rec private expandSingleOperation
                 : Result<Block, exn> =
     match operation with
     | CommandCall command, debug ->
-        match matchMacro command macros with
+        match matchMacro debug command macros with
         | Error NoMacroMatchedException -> 
             Ok <| [CommandCall command, debug]
         | Error e -> Error e
