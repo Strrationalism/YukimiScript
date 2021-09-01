@@ -7,6 +7,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.Parser", "Yuki
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.Parser.Test", "YukimiScript.Parser.Test\YukimiScript.Parser.Test.fsproj", "{2FC678AF-EB04-4C3E-A30E-9A0E1C3B8B9F}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CommandLineTool", "YukimiScript.CommandLineTool\YukimiScript.CommandLineTool.fsproj", "{B0484803-4A85-42CB-B681-9E19B302DA04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,17 @@ Global
 		{2FC678AF-EB04-4C3E-A30E-9A0E1C3B8B9F}.Release|x64.Build.0 = Release|Any CPU
 		{2FC678AF-EB04-4C3E-A30E-9A0E1C3B8B9F}.Release|x86.ActiveCfg = Release|Any CPU
 		{2FC678AF-EB04-4C3E-A30E-9A0E1C3B8B9F}.Release|x86.Build.0 = Release|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Debug|x64.Build.0 = Debug|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Debug|x86.Build.0 = Debug|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Release|x64.ActiveCfg = Release|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Release|x64.Build.0 = Release|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Release|x86.ActiveCfg = Release|Any CPU
+		{B0484803-4A85-42CB-B681-9E19B302DA04}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
