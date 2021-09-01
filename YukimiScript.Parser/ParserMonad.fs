@@ -44,6 +44,13 @@ let explicit (a: Parser<'a>) : Parser<'a> =
     mapError raise a
 
 
+let switchResultList (x: Result<'a, 'b> list) : Result<'a list, 'b> =
+    (x, Ok [])
+    ||> List.foldBack (fun x state -> 
+        state |> Result.bind (fun state ->
+            x |> Result.map (fun x -> x :: state)))
+
+
 type ParserBuilder() =
     member _.Bind(x, f) = bind f x
     member _.Return(x) = return' x

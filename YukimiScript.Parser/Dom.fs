@@ -167,15 +167,11 @@ let expandTextCommands (x: Dom) : Dom =
 
 let expandUserMacros (x: Dom) =
     let macros = List.map (fun (a, b, _) -> a, b) x.Macros
-    List.foldBack 
-        (fun (sceneDef, block, debugInfo) state ->
-            Macro.expandBlock macros block
-            |> Result.bind (fun block -> 
-                state 
-                |> Result.map (fun state -> 
-                    (sceneDef, block, debugInfo) :: state)))
-        x.Scenes
-        (Ok [])
+    x.Scenes
+    |> List.map (fun (sceneDef, block, debugInfo) -> 
+        Macro.expandBlock macros block
+        |> Result.map (fun x -> sceneDef, x, debugInfo))
+    |> ParserMonad.switchResultList
     |> Result.map (fun scenes ->
         { x with Scenes = scenes; Macros = [] })
             
@@ -187,3 +183,25 @@ let expandSystemMacros (x: Dom) =
             |> List.map (fun (a, b, c) -> 
                 a, Macro.expandSystemMacros b, c) }
                 
+
+exception MustExpandMacrosBeforeLinkException
+
+
+let linkToExternCommands (x: Dom) : Result<Dom, exn> =
+    let linkSingleCommand (op, debugInfo) =
+        match op with
+        | CommandCall c -> failwith "No Impl"
+        | x -> Ok x
+        |> Result.map (fun x -> x, debugInfo)
+
+    let linkToExternCommands (sceneDef, block, debugInfo) =
+        List.map linkSingleCommand block |> ParserMonad.switchResultList
+        |> Result.map (fun block -> sceneDef, (block: Block), debugInfo)
+        
+    if x.Macros |> List.isEmpty |> not then 
+        Error MustExpandMacrosBeforeLinkException
+    else 
+        List.map linkToExternCommands x.Scenes 
+        |> ParserMonad.switchResultList
+        |> Result.map (fun scenes ->
+            { x with Scenes = scenes })

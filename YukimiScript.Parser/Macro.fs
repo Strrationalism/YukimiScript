@@ -144,28 +144,16 @@ let rec private expandSingleOperation
             |> List.map (function
                 | CommandCall call, debugInfo -> 
                     CommandCall <| replaceParamToArgs args call, debugInfo
-                | x -> x)
-            |> List.fold 
-                (fun state x -> 
-                    state
-                    |> Result.bind (fun state ->
-                        expandSingleOperation macros x 
-                        |> Result.map (fun x -> x :: state)))
-                (Ok [])
-            |> Result.map (List.rev >> List.concat)
+                | x -> x
+                >> expandSingleOperation macros)
+            |> switchResultList
+            |> Result.map List.concat
     | x -> Ok [x]
 
     
 let expandBlock macros (block: Block) =
-    List.foldBack 
-        (fun x state ->
-            expandSingleOperation macros x
-            |> Result.bind (fun r ->
-                state
-                |> Result.map (fun state -> 
-                    r :: state)))
-        block
-        (Ok [])
+    List.map (expandSingleOperation macros) block
+    |> switchResultList 
     |> Result.map List.concat
 
 
