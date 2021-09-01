@@ -148,13 +148,12 @@ signature的部分则是将除meta区块外所有区块按照先后顺序排列�
 
 ```
 type CommandCall = {
-    callee: uint32            // 被调用命令的名称在LIST symb中的编号
-    unnamedArgs: uint32       // 未命名的参数数量
-    namedArgs: uint32         // 命名的参数数量
+    callee: uint32     // 被调用命令的名称在LIST symb中的编号
+    args: uint32       // 参数数量
 };
 ```
 
-每个指令后面跟随unnamedArgs个未命名参数，如下：
+每个指令后面跟随args个未命名参数，如下：
 
 ```
 type UnnamedArgs = {
@@ -171,11 +170,5 @@ type UnnamedArgs = {
 |          3 |          4 | uint32_t       | 一个symbol，为此symbol在符号表中的编号|
 
 
-在未命名参数后面跟随namedArgs个命名参数，如下：
-```
-type NamedArgs = {
-    name: uint32            // 指示了当前参数名字在字符串池中的编号
-    arg: UnnamedArgs
-}
-```
+
 
