@@ -224,7 +224,14 @@ let linkToExternCommands (x: Dom) : Result<Dom, exn> =
             | Some (ExternCommand (_, param)) -> 
                 Macro.matchArguments debugInfo param c
                 |> Result.map (fun args -> 
-                    CommandCall { c with UnnamedArgs = []; NamedArgs = args })
+                    let args = 
+                        List.map 
+                            (fun { Parameter = param } -> 
+                                List.find (fst >> (=) param) args
+                                |> snd) 
+                            param
+
+                    CommandCall { c with UnnamedArgs = args; NamedArgs = [] })
         | x -> Ok x
         |> Result.map (fun x -> x, debugInfo)
 

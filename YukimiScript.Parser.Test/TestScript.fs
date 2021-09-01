@@ -66,6 +66,7 @@ let testExternLinker () =
         @system.hello arg1 arg2
 
         - scene "main"
-        @hello 1 2
+        @hello --arg2 2 --arg1 1
         @system.hello 1
+        @system.hello --arg2 2 --arg1 1
     """
