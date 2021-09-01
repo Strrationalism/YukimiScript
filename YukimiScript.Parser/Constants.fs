@@ -74,7 +74,7 @@ let stringParser =
         parser {
             match! predicate ((<>) '\"') anyChar with
             | '\n' -> 
-                let ex = InvalidStringCharException "<newline>"
+                let ex = InvalidStringCharException "newline"
                 raise ex
                 return! fail ex
             | '\\' -> return! secondCharParser

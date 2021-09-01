@@ -51,7 +51,7 @@ exception NoMacroMatchedException
 
 
 exception ArgumentsTooMuchException of 
-    MacroDefination * CommandCall
+    DebugInformation * MacroDefination * CommandCall
 
 
 exception ArgumentRepeatException of 
@@ -116,7 +116,7 @@ let private matchMacro debug x macro =
     match List.tryFind pred macro with
     | None -> Error NoMacroMatchedException
     | Some (macro, _) when macro.Param.Length < x.UnnamedArgs.Length ->
-        Error <| ArgumentsTooMuchException (macro, x)
+        Error <| ArgumentsTooMuchException (debug, macro, x)
     | Some (macro, other) -> 
         matchArguments debug macro.Param x
         |> Result.map (fun args ->
