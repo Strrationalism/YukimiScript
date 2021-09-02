@@ -17,15 +17,15 @@ let schinese : ErrorStringing =
     | InvalidStringCharException x -> "字符串中存在非法字符\"" + x + "\"。"
     | HangingOperationException debug -> 
         "在第" + string debug.LineNumber + "行存在悬浮操作。"
-    | SceneRepeatException (debug, scene) ->
-        "在第" + string debug.LineNumber + "行重复定义了场景" + scene + "。"
-    | MacroRepeatException (debug, macro) ->
-        "在第" + string debug.LineNumber + "行重复定义了宏" + macro + "。"
-    | ExternRepeatException (debug, ex) ->
-        "在第" + string debug.LineNumber + "行重复定义了外部元素" + ex + "。"
+    | SceneRepeatException scene ->
+        "重复定义了场景" + scene + "。"
+    | MacroRepeatException macro ->
+        "重复定义了宏" + macro + "。"
+    | ExternRepeatException ex ->
+        "重复定义了外部元素" + ex + "。"
     | MustExpandTextBeforeLinkException -> "必须先展开文本元素再连接外部元素。"
     | ExternCommandDefinationNotFoundException (ex, debug) ->
-        "在第" + string debug.LineNumber + "行发现了对外部元素" + ex + "的引用，但未找到此引用。"
+        "\b" + debug.File + ":在第" + string debug.LineNumber + "行发现了对外部元素" + ex + "的引用，但未找到此引用。"
     | ParamRepeatedException (parent, param) ->
         "在" + parent + "中发现重复定义的参数" + param + "。"
     | NoMacroMatchedException -> "没有匹配的宏。"

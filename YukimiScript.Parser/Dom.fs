@@ -36,13 +36,13 @@ exception HangingOperationException of debugInfo: DebugInformation
 exception UnknownException
 
 
-exception SceneRepeatException of debugInfo: DebugInformation * scene: string
+exception SceneRepeatException of scene: string
 
 
-exception MacroRepeatException of debugInfo: DebugInformation * macro: string
+exception MacroRepeatException of macro: string
 
 
-exception ExternRepeatException of debugInfo: DebugInformation * name: string
+exception ExternRepeatException of name: string
 
 
 let private saveCurrentBlock state =
@@ -105,15 +105,15 @@ let private analyzeFold
     | Line.Text x -> pushOperation <| Text x
     | SceneDefination scene ->
         if List.exists (fun (x, _, _) -> x.Name = scene.Name) state.Result.Scenes then
-            Error <| SceneRepeatException (debugInfo, scene.Name)
+            Error <| SceneRepeatException scene.Name
         else Ok <| setLabel state (SceneDefination scene)
     | MacroDefination macro -> 
         if List.exists (fun (x, _, _) -> x.Name = macro.Name) state.Result.Scenes then
-            Error <| SceneRepeatException (debugInfo, macro.Name)
+            Error <| MacroRepeatException macro.Name
         else Ok <| setLabel state (MacroDefination macro)
     | ExternDefination (ExternCommand (name, param)) ->
         if List.exists (fun (x, _, _) -> x.Name = name) state.Result.Scenes then
-            Error <| SceneRepeatException (debugInfo, name)
+            Error <| ExternRepeatException name
         else 
             let nextState = saveCurrentBlock state
             { nextState with
@@ -180,8 +180,8 @@ let expandTextCommands (x: Dom) : Dom =
         Macros = List.map mapBlock x.Macros }
 
 
-let expandUserMacros (x: Dom) =
-    let macros = List.map (fun (a, b, _) -> a, b) x.Macros
+let expandUserMacros (lib: Dom) (x: Dom) =
+    let macros = List.map (fun (a, b, _) -> a, b) (lib.Macros @ x.Macros)
     x.Scenes
     |> List.map (fun (sceneDef, block, debugInfo) -> 
         Macro.expandBlock macros block

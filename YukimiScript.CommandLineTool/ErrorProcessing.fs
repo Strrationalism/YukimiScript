@@ -10,17 +10,17 @@ module ErrorProcessing =
     let e2str = YukimiScript.Parser.ErrorStringing.schinese
 
 
-    let printError (fileName: string) (e: string) =
+    let private printError (fileName: string) (e: string) =
         lock stdout (fun _ ->
             Console.WriteLine(fileName + e))
 
 
-    let printErrorL (fileName: string) (lineNumber: int) (e: string) = 
+    let private printErrorL (fileName: string) (lineNumber: int) (e: string) = 
         printError fileName <| "(" + string lineNumber + "):" + e
 
     
     let printExn fileName e = 
-        printError fileName <| e2str e
+        printError fileName <| ":" + e2str e
 
 
     let printLExn fileName lineNumber e =

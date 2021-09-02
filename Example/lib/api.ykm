@@ -15,5 +15,6 @@
 @__diagram_link_to target                         # 这是一个编译器宏，用于指示流程图生成器表示当前scene可以连接到target scene
 @__system_jump target --resetStates resetStates   # 这里执行系统API，用于进行真实的跳转操作
 
+- macro jump2 reset
 
 

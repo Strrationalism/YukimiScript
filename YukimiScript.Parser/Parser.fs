@@ -42,3 +42,25 @@ let parseLine (line: string) =
         return { Line = parsed; Comment = comment }
     }
     |> run line
+
+
+let parseLines (line: string[]) : Result<Parsed list, (int * exn) list> =
+    let parsed =
+        line
+        |> Array.Parallel.map parseLine
+        |> Array.toList
+
+    let errors =
+        parsed
+        |> List.indexed
+        |> List.choose (function
+            | lineNumber, Error e -> Some (lineNumber, e)
+            | _ -> None)
+        
+    if List.isEmpty errors then 
+        match switchResultList parsed with
+        | Ok x -> Ok x
+        | _ -> failwith "Internal Error"
+    else Error errors
+
+    

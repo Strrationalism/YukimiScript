@@ -103,6 +103,9 @@ let main argv =
             0
         | Ok option ->
             try
+                if Directory.Exists option.ScriptDir |> not then
+                    raise <| DirectoryNotFoundException(option.ScriptDir + " not found!")
+
                 let project = Project.openProject option.ScriptDir
                 let libs =
                     option.LibraryDirs
@@ -112,45 +115,128 @@ let main argv =
                             "*.ykm", 
                             SearchOption.AllDirectories))
 
-                // 1. 处理Lib
-                // 1.1 加载Lib并编译为Line array
-                // 1.2 输出Line array中的Error
-                // 1.3 转换为Dom
-                // 1.4 输出转换为Dom过程中的Error
-                // 1.5 检查是否存在Scene，如果存在则报错
-                // 1.6 合并所有的Lib
-                // 1.7 检查是否存在重复的Macros和Externs
-                // 2. 处理Scenario
-                // 2.1 加载Scenario并编译为Line array
-                // 2.2 输出Line array中的Error
-                // 2.3 转换为Dom
-                // 2.4 输出转换为Dom过程中的Error
-                // 2.5 检查是否存在重复的Scenes、Macros和Externs
-                // 2.6 输出配音稿
-                // 2.7 载入Lib的内容，检查是否存在重复的Scenes、Macros和Externs
-                // 2.8 展开文本命令
-                // 2.9 展开用户宏
-                // 2.10 绘制分支图
-                // 3. 处理Program
-                // 3.1 加载Program并编译为Line array
-                // 3.2 输出Line array中的error
-                // 3.3 转换为Dom
-                // 3.4 输出转换为Dom过程中的Error
-                // 3.5 检查是否存在重复的Scenes、Macros和Externs
-                // 3.6 载入Lib内容，检查是否存在重复的Scenes、Macros和Externs
-                // 3.7 展开文本命令
-                // 3.8 展开用户宏
-                // 4. 合并以上所有内容并检查是否存在重复的Scenes、Macros和Externs
-                // 5. 展开系统宏
-                // 6. 链接外部函数
-                // 7. 生成目标代码
-                
+                let loadDoms (files: string seq) : (string * Dom.Dom) [] =
+                    files 
+                    |> Array.ofSeq
+                    |> Array.Parallel.map (fun path ->
+                        File.ReadAllLines(path)
+                        |> Parser.parseLines
+                        |> function
+                            | Ok x -> x
+                            | Error es ->
+                                es
+                                |> List.iter (fun (i, x) ->
+                                    ErrorProcessing.printLExn path i x)
+                                raise FailException
+                        |> Dom.analyze path
+                        |> function
+                            | Ok x -> path, x
+                            | Error e ->
+                                ErrorProcessing.printExn path e
+                                raise FailException)
+
+                let checkRepeat (dom: Dom.Dom) =
+                    dom.Scenes 
+                    |> Seq.countBy (fun (x, _, _) -> x.Name)
+                    |> Seq.tryFind (snd >> (<>) 1)
+                    |> function
+                        | Some (x, _) -> Error <| Dom.SceneRepeatException x
+                        | None ->
+                            dom.Externs
+                            |> Seq.countBy (fun (Elements.ExternCommand (x, _), _) -> x)
+                            |> Seq.tryFind (snd >> (<>) 1)
+                            |> function
+                                | Some (x, _) -> Error <| Dom.ExternRepeatException x
+                                | None ->
+                                    dom.Macros
+                                    |> Seq.countBy (fun (x, _, _) -> x.Name)
+                                    |> Seq.tryFind (snd >> (<>) 1)
+                                    |> function
+                                        | Some (x, _) -> Error <| Dom.MacroRepeatException x
+                                        | None -> Ok dom
+
+                let lib = 
+                    Seq.append project.Library libs
+                    |> loadDoms
+                    |> Array.map snd
+                    |> Array.fold Dom.merge Dom.empty
+                    |> checkRepeat
+                    |> function
+                        | Error x -> 
+                            ErrorProcessing.printExn "" x
+                            raise FailException
+                        | Ok x -> x
+
+                if List.isEmpty lib.Scenes |> not then
+                    lib.Scenes
+                    |> List.iter (fun (_, _, debug) ->
+                        ErrorProcessing.printLExn 
+                            debug.File
+                            debug.LineNumber
+                            Dom.CannotDefineSceneInLibException)
+                    raise FailException
+
+                let expandTextAndUserMacros x =
+                    let result = 
+                        x
+                        |> Array.Parallel.map (fun (fileName, dom) ->
+                            dom
+                            |> checkRepeat
+                            |> Result.map Dom.expandTextCommands 
+                            |> Result.bind (Dom.expandUserMacros lib)
+                            |> Result.mapError (fun x -> fileName, x))
+                    
+                    let errors =
+                        result
+                        |> Array.choose (function
+                            | Error (fileName, e) -> Some (fileName, e)
+                            | _ -> None)
+                    
+                    if Array.isEmpty errors |> not then
+                        errors
+                        |> Array.iter (fun (fileName, e) -> 
+                            ErrorProcessing.printExn fileName e)
+                        raise FailException
+
+                    result 
+                    |> Array.map (function 
+                        | Ok x -> x 
+                        | _ -> failwith "Internal Error")
+
+                let scenario = 
+                    loadDoms project.Scenario
+                    // TODO: 输出配音稿
+                    |> expandTextAndUserMacros
+                    // TODO: 绘制分支图
+
+                let program = 
+                    loadDoms project.Program
+                    |> expandTextAndUserMacros                 
+
+                seq {
+                    lib
+                    yield! scenario
+                    yield! program
+                }
+                |> Seq.fold Dom.merge Dom.empty
+                |> checkRepeat
+                |> Result.map Dom.expandSystemMacros
+                |> Result.bind Dom.linkToExternCommands
+                |> function
+                    | Error x -> 
+                        ErrorProcessing.printExn "" x
+                        raise FailException
+                    | Ok finalDom -> ()               
                     
                 0
             with 
-            | :? FailException -> 
-                Console.WriteLine()
+            | :? FailException -> -1
+            | :? AggregateException as e ->
+                match e.InnerException with
+                | :? FailException -> ()
+                | e -> 
+                    Console.WriteLine("Error:" + e.Message)
                 -1
             | e ->
-                Console.WriteLine(e.Message)
+                Console.WriteLine("Error:" + e.Message)
                 -1
