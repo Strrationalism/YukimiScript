@@ -118,12 +118,15 @@ let private analyzeFold
             |> Ok
 
 
-let analyze (x: Parsed seq) : Result<Dom, exn> = 
+let analyze (fileName: string) (x: Parsed seq) : Result<Dom, exn> = 
     let finalState =
         x
         |> Seq.indexed
         |> Seq.map (fun (lineNumber, { Line = line; Comment = comment }) ->
-                line, { LineNumber = lineNumber + 1; Comment = comment })
+                line, 
+                { LineNumber = lineNumber + 1
+                  Comment = comment
+                  File = fileName })
         |> Seq.fold 
             (fun state x -> 
                 Result.bind 

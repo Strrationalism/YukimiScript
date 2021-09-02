@@ -36,9 +36,11 @@ let testParseScript (x: string) =
                 printfn "# %s" parsed.Comment.Value
                 
             parsed)
-    |> YukimiScript.Parser.Dom.analyze
+    |> YukimiScript.Parser.Dom.analyze "Test.ykm"
     |> Result.map YukimiScript.Parser.Dom.expandTextCommands
     |> Result.bind YukimiScript.Parser.Dom.expandUserMacros
     |> Result.map YukimiScript.Parser.Dom.expandSystemMacros
     |> Result.bind YukimiScript.Parser.Dom.linkToExternCommands
     |> printfn "%A"
+
+

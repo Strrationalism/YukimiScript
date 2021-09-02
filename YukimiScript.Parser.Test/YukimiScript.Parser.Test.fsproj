@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
 
+    <OutputType>Library</OutputType>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
@@ -14,7 +15,8 @@
     <Compile Include="TestTopLevels.fs" />
     <Compile Include="TestConstants.fs" />
     <Compile Include="TestStatments.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="TestProject.fs" />
+    <Compile Include="Main.fs" />
   </ItemGroup>
 
   <ItemGroup>

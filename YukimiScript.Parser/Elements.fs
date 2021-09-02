@@ -58,7 +58,8 @@ type Line =
 
 type DebugInformation =
     { LineNumber: int
-      Comment: string option }
+      Comment: string option
+      File: string }
 
 
 type Operation =
