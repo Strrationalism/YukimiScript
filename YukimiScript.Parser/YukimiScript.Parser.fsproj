@@ -17,6 +17,7 @@
     <Compile Include="Parser.fs" />
     <Compile Include="Dom.fs" />
     <Compile Include="Project.fs" />
+    <Compile Include="ErrorStringing.fs" />
   </ItemGroup>
 
 </Project>

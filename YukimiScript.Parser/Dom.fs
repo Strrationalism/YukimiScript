@@ -11,7 +11,14 @@ type Dom =
       Scenes: (SceneDefination * Block * DebugInformation) list }
 
 
-let private empty = 
+let merge dom1 dom2 =
+    { HangingEmptyLine = dom1.HangingEmptyLine @ dom2.HangingEmptyLine
+      Externs = dom1.Externs @ dom2.Externs
+      Macros = dom1.Macros @ dom2.Macros
+      Scenes = dom1.Scenes @ dom2.Scenes }
+
+
+let empty = 
     { HangingEmptyLine = []
       Externs = []
       Macros = []
@@ -116,6 +123,9 @@ let private analyzeFold
                             (ExternCommand (name, param), debugInfo) 
                             :: nextState.Result.Externs } }
             |> Ok
+
+
+exception CannotDefineSceneInLibException
 
 
 let analyze (fileName: string) (x: Parsed seq) : Result<Dom, exn> = 

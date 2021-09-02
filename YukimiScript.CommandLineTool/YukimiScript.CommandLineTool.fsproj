@@ -20,6 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ErrorProcessing.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

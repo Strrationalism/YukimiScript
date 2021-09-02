@@ -87,9 +87,6 @@ let private optionParser =
 let printError (e: string) =
     lock stdout (fun _ ->
         Console.WriteLine("Error:" + e))
-    
-
-exception FailException
 
 
 let private e2str = ErrorStringing.schinese
