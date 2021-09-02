@@ -1,6 +1,8 @@
 open System
+open System.IO
 open YukimiScript.Parser
 open YukimiScript.Parser.ParserMonad
+open YukimiScript.Parser.Dom
 
 
 let private help () =
@@ -82,6 +84,16 @@ let private optionParser =
     }
     
 
+let printError (e: string) =
+    lock stdout (fun _ ->
+        Console.WriteLine("Error:" + e))
+    
+
+exception FailException
+
+
+let private e2str = ErrorStringing.schinese
+
 [<EntryPoint>]
 let main argv =
     argv
@@ -96,8 +108,80 @@ let main argv =
     |> fun x -> " " + x.Trim ()
     |> fun argv -> run argv optionParser
     |> function
-        | Error _ -> help ()
+        | Error _ -> 
+            help ()
+            0
         | Ok option ->
-            Console.WriteLine(option.ToString())
+            try
+                let project = Project.openProject option.ScriptDir
+                let libs =
+                    option.LibraryDirs
+                    |> Seq.collect (fun libDir ->
+                        Directory.EnumerateFiles(
+                            libDir, 
+                            "*.ykm", 
+                            SearchOption.AllDirectories))
 
-    0
+                let getDom x =
+                    x
+                    |> Array.ofSeq
+                    |> Array.Parallel.map (fun path ->
+                        let lines = 
+                            File.ReadAllLines path
+                            |> Array.Parallel.map Parser.parseLine
+                            |> Array.toList
+
+                        let errors =
+                            lines 
+                            |> List.indexed
+                            |> List.choose (fun (lineNumber, line) ->
+                                let lineNumber = lineNumber + 1
+                                match line with
+                                | Ok _ -> None
+                                | Error e ->
+                                    path + "(" + string lineNumber + "):" + e2str e
+                                    |> printError
+                                    
+                                    Some e)
+                                    
+                        if List.isEmpty errors |> not then
+                            Error errors.Head
+                        else
+                            lines
+                            |> switchResultList
+                            |> Result.bind (analyze path)
+                            |> function
+                                | Error e ->
+                                    path + ":" + e2str e
+                                    |> printError
+                                    Error e
+                                | Ok dom -> Ok dom
+                        )
+                        |> Array.toList
+                        |> switchResultList
+                        |> Result.map 
+                            (List.fold merge empty)
+                        |> function
+                            | Error _ -> raise FailException
+                            | Ok x -> x
+
+                let libDom = getDom <| Seq.append project.Library libs
+
+                if libDom.Scenes |> List.isEmpty |> not then
+                    printError <| e2str CannotDefineSceneInLibException
+                    raise FailException
+
+                let scenarioDom = getDom <| project.Scenario
+                let programDom = getDom <| project.Program
+
+                // TODO:检查最终的dom中是否存在重复的macro、scenes和externs
+                
+                    
+                0
+            with 
+            | :? FailException -> 
+                Console.WriteLine()
+                -1
+            | e ->
+                Console.WriteLine(e.Message)
+                -1
