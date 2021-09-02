@@ -27,4 +27,4 @@ jobs:
       uses: actions/upload-artifact@v2.2.4
       with:
           name: "Windows x64 ykmc"
-          path: ".\\YukimiScript.CommandLineTool\\bin\\Release\\net5.0\\win7-x64\\publish\\ykmc.exe"
+          path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
