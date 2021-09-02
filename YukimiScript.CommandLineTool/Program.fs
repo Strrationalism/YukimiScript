@@ -2,7 +2,7 @@ open System
 open System.IO
 open YukimiScript.Parser
 open YukimiScript.Parser.ParserMonad
-open YukimiScript.Parser.Dom
+open YukimiScript.CommandLineTool
 
 
 let private help () =
@@ -84,13 +84,6 @@ let private optionParser =
     }
     
 
-let printError (e: string) =
-    lock stdout (fun _ ->
-        Console.WriteLine("Error:" + e))
-
-
-let private e2str = ErrorStringing.schinese
-
 [<EntryPoint>]
 let main argv =
     argv
@@ -119,59 +112,38 @@ let main argv =
                             "*.ykm", 
                             SearchOption.AllDirectories))
 
-                let getDom x =
-                    x
-                    |> Array.ofSeq
-                    |> Array.Parallel.map (fun path ->
-                        let lines = 
-                            File.ReadAllLines path
-                            |> Array.Parallel.map Parser.parseLine
-                            |> Array.toList
-
-                        let errors =
-                            lines 
-                            |> List.indexed
-                            |> List.choose (fun (lineNumber, line) ->
-                                let lineNumber = lineNumber + 1
-                                match line with
-                                | Ok _ -> None
-                                | Error e ->
-                                    path + "(" + string lineNumber + "):" + e2str e
-                                    |> printError
-                                    
-                                    Some e)
-                                    
-                        if List.isEmpty errors |> not then
-                            Error errors.Head
-                        else
-                            lines
-                            |> switchResultList
-                            |> Result.bind (analyze path)
-                            |> function
-                                | Error e ->
-                                    path + ":" + e2str e
-                                    |> printError
-                                    Error e
-                                | Ok dom -> Ok dom
-                        )
-                        |> Array.toList
-                        |> switchResultList
-                        |> Result.map 
-                            (List.fold merge empty)
-                        |> function
-                            | Error _ -> raise FailException
-                            | Ok x -> x
-
-                let libDom = getDom <| Seq.append project.Library libs
-
-                if libDom.Scenes |> List.isEmpty |> not then
-                    printError <| e2str CannotDefineSceneInLibException
-                    raise FailException
-
-                let scenarioDom = getDom <| project.Scenario
-                let programDom = getDom <| project.Program
-
-                // TODO:检查最终的dom中是否存在重复的macro、scenes和externs
+                // 1. 处理Lib
+                // 1.1 加载Lib并编译为Line array
+                // 1.2 输出Line array中的Error
+                // 1.3 转换为Dom
+                // 1.4 输出转换为Dom过程中的Error
+                // 1.5 检查是否存在Scene，如果存在则报错
+                // 1.6 合并所有的Lib
+                // 1.7 检查是否存在重复的Macros和Externs
+                // 2. 处理Scenario
+                // 2.1 加载Scenario并编译为Line array
+                // 2.2 输出Line array中的Error
+                // 2.3 转换为Dom
+                // 2.4 输出转换为Dom过程中的Error
+                // 2.5 检查是否存在重复的Scenes、Macros和Externs
+                // 2.6 输出配音稿
+                // 2.7 载入Lib的内容，检查是否存在重复的Scenes、Macros和Externs
+                // 2.8 展开文本命令
+                // 2.9 展开用户宏
+                // 2.10 绘制分支图
+                // 3. 处理Program
+                // 3.1 加载Program并编译为Line array
+                // 3.2 输出Line array中的error
+                // 3.3 转换为Dom
+                // 3.4 输出转换为Dom过程中的Error
+                // 3.5 检查是否存在重复的Scenes、Macros和Externs
+                // 3.6 载入Lib内容，检查是否存在重复的Scenes、Macros和Externs
+                // 3.7 展开文本命令
+                // 3.8 展开用户宏
+                // 4. 合并以上所有内容并检查是否存在重复的Scenes、Macros和Externs
+                // 5. 展开系统宏
+                // 6. 链接外部函数
+                // 7. 生成目标代码
                 
                     
                 0
