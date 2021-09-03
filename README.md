@@ -13,13 +13,6 @@
 * 可以实时检查任意点状态
 * 引入的特性需要切实解决实际开发中遇到的问题
 
-## 工具链
-* 编译器
-* 运行时
-* 配音稿生成工具
-* 本地化差分脚本生成工具
-* DGML剧情线路图工具
-
 ## YukimiScript Command Line Tool
 ```
 Usage: ykmc <path-to-scripts> [options]
@@ -27,37 +20,14 @@ Usage: ykmc <path-to-scripts> [options]
 Options:
     -lib <libDir>         Add other library.
     -dgml <output>        Create the diagram.
-    -voicedoc <outDir>    Create the voice documents.
 
 Examples:
     Check the scripts:
         ykmc "./scripts" -lib "./api"
     Create the diagram from scripts:
         ykmc "./scripts" -lib "./api" -dgml "./diagram.dgml"
-    Create the voice documents:
-        ykmc "./scripts" -lib "./api" -voicedoc "./outdir"
+
 ```
-
-## 根据开发经验做出的设计
-### 空梦
-* 文本换行语法丑陋
-    - 引入了文本换行语法
-* 不支持分支跳转
-    - 给scene命名，允许在scene之间跳转
-* 需要子过程
-    - 可以定义macro
-
-### 来自krkr的启发
-* 引入了看起来像是flags和键值对调用的写法
-* 允许在文本间通过方括号嵌入对象以动态生成文本
-    
-### 来自Nova的启发
-* 通过创建翻译版本差分来进行多语言支持
-    - 需要编译器支持，不是语言设计的一部分
-
-### 来自NVLMaker的启发
-* 可以支持导出配音文档
-    - 需要工具支持，不是语言设计的一部分
 
 
 ## 概览

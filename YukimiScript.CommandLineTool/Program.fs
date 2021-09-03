@@ -14,15 +14,12 @@ let private help () =
       "Options:"
       "    -lib <libDir>         Add other library."
       "    -dgml <output>        Create the diagram."
-      "    -voicedoc <outDir>    Create the voice documents."
       ""
       "Examples:"
       "    Check the scripts:"
       "        ykmc \"./scripts\" -lib \"./api\""
       "    Create the diagram from scripts:"
       "        ykmc \"./scripts\" -lib \"./api\" -dgml \"./diagram.dgml\""
-      "    Create the voice documents:"
-      "        ykmc \"./scripts\" -lib \"./api\" -voicedoc \"./outdir\""
       "" ]
     |> Seq.iter Console.WriteLine
 
@@ -60,14 +57,6 @@ let private optionParser =
                     arg
                     |> bind (fun dgml ->
                         { cur with DiagramOutputFile = Some dgml }
-                        |> options)
-            | "-voicedoc" ->
-                if cur.VoiceDocumentOutputDir.IsSome then
-                    raise OptionErrorException
-                else
-                    arg
-                    |> bind (fun voice ->
-                        { cur with VoiceDocumentOutputDir = Some voice }
                         |> options)
             | _ -> raise OptionErrorException)
         |> zeroOrOne
@@ -206,7 +195,6 @@ let main argv =
 
                 let scenario = 
                     loadDoms project.Scenario
-                    // TODO: 输出配音稿
                     |> expandTextAndUserMacros
 
                 match option.DiagramOutputFile with
