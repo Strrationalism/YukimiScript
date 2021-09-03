@@ -50,10 +50,17 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish
+    - name: Publish Command Line Tool for macOS x64
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
-    - name: Upload Artifact
+    - name: Upload Command Line Tool for x64
       uses: actions/upload-artifact@v2.2.4
       with:
           name: "YukimiScript Command Line Tool for macOS x64"
           path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
+    - name: Publish Command Line Tool for macOS ARM64
+      run: dotnet publish YukimiScript.CommandLineTool -c Release -r osx-11.0-arm64
+    - name: Upload Command Line Tool for ARM64
+      uses: actions/upload-artifact@v2.2.4
+      with:
+          name: "YukimiScript Command Line Tool for macOS x64"
+          path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-11.0-arm64/publish/ykmc"
