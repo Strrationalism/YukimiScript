@@ -29,7 +29,7 @@ jobs:
           name: "YukimiScript Command Line Tool for Windows x64"
           path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
     - name: Publish YukimiScript.Parser
-      run: dotnet publish YukimiScript.Parser
+      run: dotnet publish YukimiScript.Parser -c Release
     - name: Upload YukimiScript.Parser Library
       uses: actions/upload-artifact@v2.2.4
       with:
