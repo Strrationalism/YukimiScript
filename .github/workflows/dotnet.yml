@@ -22,7 +22,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish YukimiScript.CommandLineTool -c Release -r win7-x64 --no-build
+      run: dotnet publish YukimiScript.CommandLineTool -c Release -r win7-x64
     - name: Upload Artifact
       uses: actions/upload-artifact@v2.2.4
       with:
@@ -30,7 +30,7 @@ jobs:
           path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
           
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
