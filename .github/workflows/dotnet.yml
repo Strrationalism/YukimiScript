@@ -36,8 +36,8 @@ jobs:
           name: "YukimiScript.Parser Library"
           path: "${{ github.workspace }}/YukimiScript.Parser/bin/Release/netstandard2.0/publish/YukimiScript.Parser.dll"
           
-  build-linux:
-    runs-on: ubuntu-16.04
+  build-macos:
+    runs-on: macos-11
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
@@ -51,9 +51,9 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish YukimiScript.CommandLineTool -c Release -r linux-x64
+      run: dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
     - name: Upload Artifact
       uses: actions/upload-artifact@v2.2.4
       with:
-          name: "YukimiScript Command Line Tool for Windows x64"
-          path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc"
+          name: "YukimiScript Command Line Tool for macOS x64"
+          path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
