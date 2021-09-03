@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="chapter1.ykm" Group="Expanded" />
+    <Node Id="第一章" />
+    <Node Id="chapter2.ykm" Group="Expanded" />
+    <Node Id="第二章 开始" />
+    <Node Id="第二章 分支A" />
+    <Node Id="第二章 分支B" />
+    <Node Id="第二章 结束" />
+  </Nodes>
+  <Links>
+    <Link Source="chapter1.ykm" Target="第一章" Category="Contains" />
+    <Link Source="chapter2.ykm" Target="第二章 开始" Category="Contains" />
+    <Link Source="chapter2.ykm" Target="第二章 分支A" Category="Contains" />
+    <Link Source="chapter2.ykm" Target="第二章 分支B" Category="Contains" />
+    <Link Source="chapter2.ykm" Target="第二章 结束" Category="Contains" />
+    <Link Source="第一章" Target="第二章 开始" />
+    <Link Source="第二章 开始" Target="第二章 分支A" />
+    <Link Source="第二章 开始" Target="第二章 分支B" />
+    <Link Source="第二章 分支A" Target="第二章 结束" />
+    <Link Source="第二章 分支B" Target="第二章 结束" />
+  </Links>
+  <Categories>
+    <Category
+      Id="Contains" 
+      Label="Contains" 
+      CanBeDataDriven="False" 
+      IncomingActionLabel="Contained By" 
+      IsContainment="True"
+      OutgoingActionLabel="Contains" />
+  </Categories>
+</DirectedGraph>

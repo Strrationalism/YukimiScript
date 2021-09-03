@@ -20,6 +20,24 @@
 * 本地化差分脚本生成工具
 * DGML剧情线路图工具
 
+## YukimiScript Command Line Tool
+```
+Usage: ykmc <path-to-scripts> [options]
+
+Options:
+    -lib <libDir>         Add other library.
+    -dgml <output>        Create the diagram.
+    -voicedoc <outDir>    Create the voice documents.
+
+Examples:
+    Check the scripts:
+        ykmc "./scripts" -lib "./api"
+    Create the diagram from scripts:
+        ykmc "./scripts" -lib "./api" -dgml "./diagram.dgml"
+    Create the voice documents:
+        ykmc "./scripts" -lib "./api" -voicedoc "./outdir"
+```
+
 ## 根据开发经验做出的设计
 ### 空梦
 * 文本换行语法丑陋
@@ -89,7 +107,6 @@ y:感谢您使用由纪美脚本语言！
 # @__text_end
 
 
-
 - scene "场景 第一个场景 的子场景" inherit "场景 第一个场景"
 # 这个场景的状态机将会继承于"场景 第一个场景".
 
@@ -109,66 +126,3 @@ y:感谢您使用由纪美脚本语言！
 | __text_pushMark | mark       | 文本标记语法          | 不展开            | 用于描述“开始一段被mark对象标记的文本”            |
 | __text_popMark  | mark       | 文本标记语法          | 不展开            | 用于描述“取消上一个标记”，同时将会指定要取消哪个标记，会严格按照出栈顺序进行弹出 |
 | __text_end   | hasMore=false | 文本语法             | 不展开            | 表示一组文本已经结束，如果末尾有换行符，则hasMore将会为true提示当前一组还有更多文本 |
-
-## 字节码
-
-字节码以小端序按照[RIFF格式](https://docs.microsoft.com/zh-cn/windows/win32/directshow/avi-riff-file-reference)进行存储。
-
-### RIFF区块
-RIFF区块中，fileType为"YKMO"，包含以下子区块：
-* meta
-* LIST symb
-* LIST str_
-* LIST scen
-
-### meta区块
-meta区块包含以下内容：
-* bytecodeVersion: uint32    
-* encoding: uint32
-* signatrue: uint32[8]
-
-其中bytecodeVersion指定了字节码版本，当前版本为0。    
-encoding指定了字符串池中字符串的编码方式：
-* 0 - UTF8
-* 1 - UCS16-LE
-
-signature的部分则是将除meta区块外所有区块按照先后顺序排列到一起后的字节进行SHA256摘要得到的结果，如果使用了数字签名，则此处存放数字签名。
-
-### LIST symb区块
-此区块为一个LIST区块，其formType为"symb"，包含数个symb区块，每个symb区块保存了一串ANSI编码的符号表，按四字节对齐，不足之处补0，末尾至少包含一个0。  
-其中第一个symb区块的编号为0，第二个symb区块的编号为1，以此类推。
-
-### LIST strp区块
-此区块为一个LIST区块，其formType为"str_"，包含数个str_区块，每个区块保存了一串以指定编码方式编码的字符串，按四字节对齐，不足之处补0，末尾至少包含一个0。
-
-### LIST scen区块
-此区块为一个LIST区块，其formType为"scen"，包含数个scen区块，每个区块保存了一个源代码中定义的scene。
-
-其中第一个uint32是当前scene名称在LIST strp区块中的编号，随后跟随一系列操作指令，对于每个指令，它都有如下形式：
-
-```
-type CommandCall = {
-    callee: uint32     // 被调用命令的名称在LIST symb中的编号
-    args: uint32       // 参数数量
-};
-```
-
-每个指令后面跟随args个未命名参数，如下：
-
-```
-type UnnamedArgs = {
-    argType: uint32          // 指示了当前参数的类型
-    arg: argType             // 参数
-}
-```
-
-| argType的值 | 大小（字节） | 类型（在C语言中） | 描述 |
-| ---------- | ---------- | -------------- | -------------------- |
-|          0 |          4 | int32_t        | 一个整数              |
-|          1 |          8 | double         | 一个浮点数             |
-|          2 |          4 | uint32_t       | 一个字符串，为此字符串在字符串池中的编号 |
-|          3 |          4 | uint32_t       | 一个symbol，为此symbol在符号表中的编号|
-
-
-
-

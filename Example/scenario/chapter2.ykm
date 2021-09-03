@@ -4,9 +4,10 @@
 @jump "第二章 分支B" --resetStates false
 
 - scene "第二章 分支A" inherit "第二章 开始"
-@jump "第二章 下" --resetStates false
+@jump "第二章 结束" --resetStates false
 
 - scene "第二章 分支B" inherit "第二章 开始"
+@jump "第二章 结束" --resetStates false
 
 # inherit用于指示当前scene的状态机继承于哪个场景
 # 仅在需要继承上一个场景的状态时使用，用于提示可视化编辑器使用某个继承来的状态

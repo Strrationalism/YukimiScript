@@ -6,6 +6,7 @@ open YukimiScript.Parser.Dom
 open YukimiScript.Parser.Macro
 open YukimiScript.Parser.ParserMonad
 open YukimiScript.Parser.TopLevels
+open YukimiScript.Parser.Diagram
 
 
 type ErrorStringing = exn -> string
@@ -45,5 +46,8 @@ let schinese : ErrorStringing =
     | ExceptSymbolException x -> "需要一个" + x + "，但并未传入。"
     | InvalidTopLevelException topLevel -> "未知的顶级定义" + topLevel + "。"
     | CannotDefineSceneInLibException -> "不能在库中定义scene。"
-        
+    | DiagramMacroErrorException d ->
+        "\b" + d.File + "(" + string d.LineNumber + "):" + "__diagram_link_to宏使用方式错误。"
+    | CannotFindSceneException x ->
+        "\b不能找到场景\"" + x + "\"的定义。"
     | e -> "未知错误" + e.Message

@@ -184,7 +184,8 @@ let main argv =
                             |> checkRepeat
                             |> Result.map Dom.expandTextCommands 
                             |> Result.bind (Dom.expandUserMacros lib)
-                            |> Result.mapError (fun x -> fileName, x))
+                            |> Result.mapError (fun x -> fileName, x)
+                            |> Result.map (fun x -> fileName, x))
                     
                     let errors =
                         result
@@ -207,7 +208,23 @@ let main argv =
                     loadDoms project.Scenario
                     // TODO: 输出配音稿
                     |> expandTextAndUserMacros
-                    // TODO: 绘制分支图
+
+                match option.DiagramOutputFile with
+                | None -> ()
+                | Some output ->
+                    scenario
+                    |> List.ofArray
+                    |> List.map (fun (fileName, x) ->
+                        let dir = Path.Combine(option.ScriptDir, "scenario")
+                        Path.GetRelativePath(dir, fileName), x)
+                    |> Diagram.analyze
+                    |> function
+                        | Error e -> 
+                            ErrorProcessing.printExn "" e
+                            raise FailException
+                        | Ok diagram ->
+                            let dgml = Diagram.exportDgml diagram
+                            File.WriteAllText(output, dgml)
 
                 let program = 
                     loadDoms project.Program
@@ -215,8 +232,8 @@ let main argv =
 
                 seq {
                     lib
-                    yield! scenario
-                    yield! program
+                    yield! Seq.map snd scenario
+                    yield! Seq.map snd program
                 }
                 |> Seq.fold Dom.merge Dom.empty
                 |> checkRepeat
