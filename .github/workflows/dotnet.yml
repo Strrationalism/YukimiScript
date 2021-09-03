@@ -21,16 +21,23 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish
+    - name: Publish Command Line Tool
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r win7-x64
-    - name: Upload Artifact
+    - name: Upload Command Line Tool for Windows x64
       uses: actions/upload-artifact@v2.2.4
       with:
           name: "YukimiScript Command Line Tool for Windows x64"
           path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
+    - name: Publish YukimiScript.Parser
+      run: dotnet publish YukimiScript.Parser
+    - name: Upload YukimiScript.Parser Library
+      uses: actions/upload-artifact@v2.2.4
+      with:
+          name: "YukimiScript.Parser Library"
+          path: "${{ github.workspace }}/YukimiScript.Parser/bin/Release/netstandard2.0/publish/YukimiScript.Parser.dll"
           
   build-linux:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-16.04
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
