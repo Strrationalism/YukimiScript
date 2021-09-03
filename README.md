@@ -29,6 +29,19 @@ Examples:
 
 ```
 
+## YukimiScript 项目布局
+```
+Example                 # 这里是项目根目录
+|- lib                  # 这里存放了YukimiScript写成的库文件，其他所有文件都可以访问在这里定义的宏和外部定义，但不能在这里定义scene
+    |- api.ykm
+|- scenario             # 这里存放了剧本，分支流程图仅描述这个文件夹下的文件
+    |- chapter1.ykm
+    |- chapter2.ykm
+|- main.ykm             # 可以存放其他的程序，也可以建立其他的文件夹
+
+Library                 # 这里是附加库，只可以定义宏和外部定义，不能定义scene，在命令行工具中可以通过-lib参数传入
+| - engine_api.ykm      # 这个目录下的文件作为库的一部分参与编译，一般来说引擎和脚本的交互API在这里定义
+```
 
 ## 概览
 
