@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-windows:
+  build-windows-linux:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
@@ -21,10 +21,16 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish ykmc
+    - name: Publish Windows x64
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r win7-x64
+    - name: Publish Linux x64
+      run: dotnet publish YukimiScript.CommandLineTool -c Release -r linux-x64
+    - name: Publish Linux x86
+      run: dotnet publish YukimiScript.CommandLineTool -c Release -r linux-x86
+    - name: Publish Linux ARM
+      run: dotnet publish YukimiScript.CommandLineTool -c Release -r linux-arm
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.4
       with:
-          name: "Windows x64 ykmc"
+          name: "YukimiScript Command Line Tool for Windows x64"
           path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
