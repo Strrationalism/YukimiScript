@@ -40,7 +40,7 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
     - name: Publish Command Line Tool for Linux
-      if: ${{ runner.os == 'macOS' }}
+      if: ${{ runner.os == 'Linux' }}
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r linux-x64
     - name: Upload Command Line Tool
       uses: actions/upload-artifact@v2.2.4
