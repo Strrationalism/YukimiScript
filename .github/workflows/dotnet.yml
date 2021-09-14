@@ -46,7 +46,7 @@ jobs:
       with:
           name: YukimiScript Command Line Tool for ${{ runner.os }}
           path: |
-            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/
-            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/
+            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish
+            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish
 
 
