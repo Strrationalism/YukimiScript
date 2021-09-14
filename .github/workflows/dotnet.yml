@@ -7,8 +7,11 @@ on:
     branches: [ main ]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest, macos-latest ]
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
@@ -21,42 +24,30 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish Command Line Tool
-      run: dotnet publish YukimiScript.CommandLineTool -c Release -r win7-x64
-    - name: Upload Command Line Tool for Windows x64
-      uses: actions/upload-artifact@v2.2.4
-      with:
-          name: "YukimiScript Command Line Tool for Windows x64"
-          path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
     - name: Publish YukimiScript.Parser
       run: dotnet publish YukimiScript.Parser -c Release
+      if: ${{ runner.os == "Windows" }}
     - name: Upload YukimiScript.Parser Library
+      if: ${{ runner.os == "Windows" }}
       uses: actions/upload-artifact@v2.2.4
       with:
           name: "YukimiScript.Parser Library"
           path: "${{ github.workspace }}/YukimiScript.Parser/bin/Release/netstandard2.0/publish/YukimiScript.Parser.dll"
-          
-  build-macos:
-    runs-on: macos-11
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-    - name: Publish Command Line Tool for macOS x64
+    - name: Publish Command Line Tool for Windows
+      if: ${{ runner.os == "Windows" }}
+      run: dotnet publish YukimiScript.CommandLineTool -c Release -r win7-x64
+    - name: Publish Command Line Tool for macOS
+      if: ${{ runner.os == "macOS" }}
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
-    - name: Strip Command Line Tool for macOS x64
-      run: "strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
-    - name: Upload Command Line Tool for x64
+    - name: Strip
+      if: ${{ runner.os != "Windows" }}
+      run: strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc
+    - name: Upload Command Line Tool
       uses: actions/upload-artifact@v2.2.4
       with:
-          name: "YukimiScript Command Line Tool for macOS x64"
-          path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
+          name: YukimiScript Command Line Tool for ${{ runner.os }}
+          path: |
+            "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
+            "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
+
 
