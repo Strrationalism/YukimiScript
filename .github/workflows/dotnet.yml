@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-latest, macos-latest, ubuntu-latest ]
+        os: [ windows-latest, macos-latest ]
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
@@ -39,9 +39,6 @@ jobs:
     - name: Publish Command Line Tool for macOS
       if: ${{ runner.os == 'macOS' }}
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
-    - name: Publish Command Line Tool for Linux
-      if: ${{ runner.os == 'Linux' }}
-      run: dotnet publish YukimiScript.CommandLineTool -c Release -r linux-x64
     - name: Upload Command Line Tool
       uses: actions/upload-artifact@v2.2.4
       with:
