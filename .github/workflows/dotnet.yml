@@ -21,9 +21,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c Release
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal -c Release
     - name: Publish YukimiScript.Parser
       run: dotnet publish YukimiScript.Parser -c Release
       if: ${{ runner.os == 'Windows' }}
@@ -38,11 +38,15 @@ jobs:
       run: dotnet publish YukimiScript.CommandLineTool -c Release -r win7-x64
     - name: Publish Command Line Tool for macOS
       if: ${{ runner.os == 'macOS' }}
-      run: dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
+      run: |
+        dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
+        strip "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
     - name: Upload Command Line Tool
       uses: actions/upload-artifact@v2.2.4
       with:
           name: YukimiScript Command Line Tool for ${{ runner.os }}
-          path: "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/"
+          path: |
+            "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
+            "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe"
 
 
