@@ -40,13 +40,13 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         dotnet publish YukimiScript.CommandLineTool -c Release -r osx-x64
-        strip "${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc"
+        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc
     - name: Upload Command Line Tool
       uses: actions/upload-artifact@v2.2.4
       with:
           name: YukimiScript Command Line Tool for ${{ runner.os }}
           path: |
-            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish
-            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish
+            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc
+            ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe
 
 
