@@ -128,7 +128,7 @@ let private analyzeFold
 exception CannotDefineSceneInLibException
 
 
-let analyze (fileName: string) (x: Parsed seq) : Result<Dom, exn> = 
+let analyze (fileName: string) (x: Parsed seq) : Result<Dom> = 
     let finalState =
         x
         |> Seq.indexed
@@ -219,7 +219,7 @@ let private systemCommands =
       parse "- extern __text_end hasMore" ]
 
 
-let linkToExternCommands (x: Dom) : Result<Dom, exn> =
+let linkToExternCommands (x: Dom) : Result<Dom> =
     let externs = systemCommands @ List.map fst x.Externs
     let linkSingleCommand (op, debugInfo) =
         match op with

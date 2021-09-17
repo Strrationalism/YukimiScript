@@ -29,7 +29,7 @@ exception DiagramMacroErrorException of DebugInformation
 exception CannotFindSceneException of string
 
 
-let analyze (files: (string * Dom) list) : Result<Diagram, exn> =
+let analyze (files: (string * Dom) list) : Result<Diagram> =
     try
         let fileNodes, arrows =
             files

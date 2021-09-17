@@ -66,7 +66,7 @@ let matchArguments
     debugInfo 
     (x: Parameter list) 
     (c: CommandCall) 
-    : Result<(string * Constant) list, exn> 
+    : Result<(string * Constant) list> 
     =
     let defaultArgs =
         x
@@ -91,7 +91,7 @@ let matchArguments
             | Some (p, _) -> 
                 Error <| ArgumentRepeatException (debugInfo, c, p)
 
-    let matchArg paramName : Result<string * Constant, exn> =
+    let matchArg paramName : Result<string * Constant> =
         let find = List.tryFind (fst >> (=) paramName)
         match find inputArgs with
         | Some x -> Ok x
@@ -145,7 +145,7 @@ let private replaceParamToArgs args macroBody =
 let rec private expandSingleOperation 
                 macros 
                 operation 
-                : Result<Block, exn> =
+                : Result<Block> =
     match operation with
     | CommandCall command, debug ->
         match matchMacro debug command macros with

@@ -1,11 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <WarnOn>3390;$(WarnOn)</WarnOn>
   </PropertyGroup>
-
   <ItemGroup>
+    <Compile Include="Types.fs" />
     <Compile Include="Elements.fs" />
     <Compile Include="ParserMonad.fs" />
     <Compile Include="Basics.fs" />
@@ -20,5 +19,4 @@
     <Compile Include="Diagram.fs" />
     <Compile Include="ErrorStringing.fs" />
   </ItemGroup>
-
 </Project>
