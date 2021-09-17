@@ -54,8 +54,8 @@ jobs:
       if: ${{ runner.os == 'Linux' }}
       run: |
         dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true
-        mv ${{ github.workspace }}YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/YukimiScript.CommandLineTool ${{ github.workspace }}YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc
-        strip ${{ github.workspace }}YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc
+        mv ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/YukimiScript.CommandLineTool ${{ github.workspace }}YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc
+        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc
 
         
     - name: Upload Command Line Tool
