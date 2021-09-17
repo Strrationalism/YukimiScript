@@ -17,6 +17,7 @@
     <Compile Include="Dom.fs" />
     <Compile Include="Project.fs" />
     <Compile Include="Diagram.fs" />
+    <Compile Include="EditorHelper.fs" />
     <Compile Include="ErrorStringing.fs" />
   </ItemGroup>
 </Project>

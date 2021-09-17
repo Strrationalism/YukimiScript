@@ -162,14 +162,8 @@ let expandTextCommands (x: Dom) : Dom =
                 | Text x, debugInfo ->
                     [ if debugInfo.Comment.IsSome then
                           EmptyLine, debugInfo
-
-                      let blockDebugInfo: DebugInformation =
-                          { debugInfo with Comment = None }
                         
-                      yield! 
-                          Text.toCommands x
-                          |> List.map (fun x -> 
-                                CommandCall x, blockDebugInfo)
+                      yield! Text.expandTextBlock x debugInfo
                     ]
                 | x -> [x]) 
                     
