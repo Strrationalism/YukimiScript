@@ -52,6 +52,16 @@ let private numberParser, integerParser =
 exception InvalidStringCharException of string
 
 
+let string2literal =
+    String.collect (function
+        | '\n' -> "\\n"
+        | '\t' -> "\\t"
+        | '\r' -> "\\r"
+        | '\'' -> "\\'"
+        | '\"' -> "\\\""
+        | '\\' -> "\\\\"
+        | x -> x.ToString())
+
 let stringParser =
     let stringChar =
         let secondCharParser =

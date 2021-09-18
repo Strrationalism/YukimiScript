@@ -18,14 +18,17 @@
 Usage: ykmc <path-to-scripts> [options]
 
 Options:
-    -lib <libDir>         Add other library.
-    -dgml <output>        Create the diagram.
+    --lib <libDir>         Add other library.
+    --dgml <output>        Create the diagram.
+    --target-lua <output>  Compile to lua source code.
 
 Examples:
     Check the scripts:
-        ykmc "./scripts" -lib "./api"
+        ykmc "./Example" --lib "./api"
     Create the diagram from scripts:
-        ykmc "./scripts" -lib "./api" -dgml "./diagram.dgml"
+        ykmc "./Example" --lib "./api" --dgml "./diagram.dgml"
+    Compiles to Lua source code:
+        ykmc "./Example" -lib "./api" --target-lua "script.lua"
 
 ```
 

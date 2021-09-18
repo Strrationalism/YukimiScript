@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\YukimiScript.Parser\YukimiScript.Parser.fsproj" />
+    <ProjectReference Include="..\YukimiScript.CodeGen.Lua\YukimiScript.CodeGen.Lua.fsproj" />
     
   </ItemGroup>
 

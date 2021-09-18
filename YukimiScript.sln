@@ -11,6 +11,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CommandLineToo
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CommandLineTool.AOT", "YukimiScript.CommandLineTool\YukimiScript.CommandLineTool.AOT.fsproj", "{2890DB99-71EB-46F2-94E5-67C0412003B7}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CodeGen.Lua", "YukimiScript.CodeGen.Lua\YukimiScript.CodeGen.Lua.fsproj", "{56FB89A5-F61B-4718-906A-A165FE42FF11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +74,17 @@ Global
 		{2890DB99-71EB-46F2-94E5-67C0412003B7}.Release|x64.Build.0 = Release|Any CPU
 		{2890DB99-71EB-46F2-94E5-67C0412003B7}.Release|x86.ActiveCfg = Release|Any CPU
 		{2890DB99-71EB-46F2-94E5-67C0412003B7}.Release|x86.Build.0 = Release|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x64.Build.0 = Debug|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x86.Build.0 = Debug|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x64.ActiveCfg = Release|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x64.Build.0 = Release|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x86.ActiveCfg = Release|Any CPU
+		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

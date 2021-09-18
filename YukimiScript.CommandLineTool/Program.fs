@@ -12,14 +12,17 @@ let private help () =
       "Usage: ykmc <path-to-scripts> [options]"
       ""
       "Options:"
-      "    -lib <libDir>         Add other library."
-      "    -dgml <output>        Create the diagram."
+      "    --lib <libDir>         Add other library."
+      "    --dgml <output>        Create the diagram."
+      "    --target-lua <output>  Compile to lua source code."
       ""
       "Examples:"
       "    Check the scripts:"
-      "        ykmc \"./scripts\" -lib \"./api\""
+      "        ykmc \"./Example\" --lib \"./api\""
       "    Create the diagram from scripts:"
-      "        ykmc \"./scripts\" -lib \"./api\" -dgml \"./diagram.dgml\""
+      "        ykmc \"./Example\" --lib \"./api\" --dgml \"./diagram.dgml\""
+      "    Compiles to Lua source code:"
+      "        ykmc \"./Example\" -lib \"./api\" --target-lua \"script.lua\""
       "" ]
     |> Seq.iter Console.WriteLine
 
@@ -28,7 +31,8 @@ type Option =
     { ScriptDir: string
       VoiceDocumentOutputDir: string option
       DiagramOutputFile: string option
-      LibraryDirs: string list }
+      LibraryDirs: string list
+      TargetLua: string option }
 
 
 exception private OptionErrorException
@@ -45,12 +49,17 @@ let private optionParser =
     let rec options cur = 
         arg
         |> bind (function
-            | "-lib" ->
+            | "--target-lua" ->
+                arg
+                |> bind (fun lua ->
+                    { cur with TargetLua = Some lua }
+                    |> options)
+            | "--lib" ->
                 arg
                 |> bind (fun lib ->
                     { cur with LibraryDirs = lib :: cur.LibraryDirs } 
                     |> options)
-            | "-dgml" ->
+            | "--dgml" ->
                 if cur.DiagramOutputFile.IsSome then
                     raise OptionErrorException
                 else 
@@ -69,6 +78,7 @@ let private optionParser =
             VoiceDocumentOutputDir = None
             DiagramOutputFile = None
             LibraryDirs = [] 
+            TargetLua = None
         }
     }
     
@@ -231,7 +241,12 @@ let main argv =
                     | Error x -> 
                         ErrorProcessing.printExn "" x
                         raise FailException
-                    | Ok finalDom -> ()               
+                    | Ok finalDom ->
+                        if option.TargetLua.IsSome then
+                            let target = option.TargetLua.Value
+                            let funcName = Path.GetFileNameWithoutExtension target
+                            let lua = YukimiScript.CodeGen.Lua.generateLua funcName finalDom
+                            IO.File.WriteAllText(target, lua)
                     
                 0
             with 
