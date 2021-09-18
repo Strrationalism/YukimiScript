@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <WarnOn>3390;$(WarnOn)</WarnOn>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ykmc</ToolCommandName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="..\YukimiScript.Parser\YukimiScript.Parser.fsproj" />
     <ProjectReference Include="..\YukimiScript.CodeGen.Lua\YukimiScript.CodeGen.Lua.fsproj" />
-    
   </ItemGroup>
 
 </Project>
