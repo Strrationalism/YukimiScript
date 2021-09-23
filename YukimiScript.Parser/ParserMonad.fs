@@ -21,11 +21,11 @@ let mapError (f: exn -> exn) (p: Parser<'a>) : Parser<'a> =
     { Run = p.Run >> Result.mapError f }
 
 
-exception ExceptSymbolException of string
+exception ExpectSymbolException of string
 
 
 let name (name: string) (a: Parser<'a>) : Parser<'a> =
-    mapError (fun _ -> ExceptSymbolException name) a
+    mapError (fun _ -> ExpectSymbolException name) a
 
 
 let fail<'a> (e: exn) : Parser<'a> =

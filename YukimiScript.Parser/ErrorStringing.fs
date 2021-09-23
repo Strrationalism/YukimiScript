@@ -43,7 +43,7 @@ let schinese : ErrorStringing =
     | NotInRangeException _ -> "不在范围内。"
     | PredicateFailedException -> "不符合条件。"
     | EndException -> "遇到结尾。"
-    | ExceptSymbolException x -> "需要一个" + x + "，但并未传入。"
+    | ExpectSymbolException x -> "需要一个" + x + "，但并未传入。"
     | InvalidTopLevelException topLevel -> "未知的顶级定义" + topLevel + "。"
     | CannotDefineSceneInLibException -> "不能在库中定义scene。"
     | DiagramMacroErrorException d ->
