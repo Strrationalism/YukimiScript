@@ -62,9 +62,9 @@ let text =
     parser {
         let! character =
             parser {
-                do! whitespace0
+                do!  whitespace0
                 let! character = symbol
-                do! literal ":"
+                do!  literal ":"
                 return character
             }
             |> zeroOrOne
@@ -113,14 +113,11 @@ let text =
 
 let toCommands (text: TextBlock) : CommandCall list =
     [ 
-        { 
-            Callee = "__text_begin"
-            UnnamedArgs = []
-            NamedArgs = [ 
-                if text.Character.IsSome then
-                    "character", Symbol text.Character.Value
-            ] 
-        }
+        { Callee = "__text_begin"
+          UnnamedArgs = []
+          NamedArgs = 
+          [ if text.Character.IsSome then
+              "character", Symbol text.Character.Value ] }
         
         let rec textSliceToCommand x =
             x
