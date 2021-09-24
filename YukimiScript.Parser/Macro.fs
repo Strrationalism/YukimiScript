@@ -138,7 +138,6 @@ let private replaceParamToArgs args macroBody =
             List.map 
                 (fun (name, arg) -> name, replaceArg arg) 
                 macroBody.NamedArgs }
-    
 
 
 let rec private expandSingleOperation 
