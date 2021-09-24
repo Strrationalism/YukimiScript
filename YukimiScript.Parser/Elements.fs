@@ -71,7 +71,6 @@ type Operation =
 
 
 module Operation =
-
     let toLine: Operation -> Line =
         function
         | Text t -> Line.Text t
@@ -91,3 +90,4 @@ module Operation =
 
 
 type Block = (Operation * DebugInformation) list
+
