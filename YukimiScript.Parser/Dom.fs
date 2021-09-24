@@ -163,8 +163,7 @@ let expandTextCommands (x: Dom) : Dom =
                     [ if debugInfo.Comment.IsSome then
                           EmptyLine, debugInfo
                         
-                      yield! Text.expandTextBlock x debugInfo
-                    ]
+                      yield! Text.expandTextBlock x debugInfo ]
                 | x -> [x]) 
                     
         defination, block, debugInfo
@@ -223,7 +222,8 @@ let linkToExternCommands (x: Dom) : Result<Dom> =
                 List.tryFind 
                     (fun (ExternCommand (name, _)) -> 
                         name = c.Callee) 
-                    externs with
+                    externs
+            with
             | None -> 
                 Error 
                 <| ExternCommandDefinationNotFoundException 
