@@ -15,7 +15,6 @@ let testParse (x: string) (case: Line) =
         Assert.Fail (sprintf "%A" ex)
 
 
-
 let testParseScript (x: string) =
     x.Replace("\r", "").Split('\n')
     |> Array.mapi (fun lineNumber line ->
@@ -42,5 +41,3 @@ let testParseScript (x: string) =
     |> Result.map YukimiScript.Parser.Dom.expandSystemMacros
     |> Result.bind YukimiScript.Parser.Dom.linkToExternCommands
     |> printfn "%A"
-
-
