@@ -21,6 +21,7 @@ Options:
     --lib <libDir>         Add other library.
     --dgml <output>        Create the diagram.
     --target-lua <output>  Compile to lua source code.
+    --charset <charset>    Generate charset file in UTF-8 text.
 
 Examples:
     Check the scripts:
@@ -28,8 +29,9 @@ Examples:
     Create the diagram from scripts:
         ykmc "./Example" --lib "./api" --dgml "./diagram.dgml"
     Compiles to Lua source code:
-        ykmc "./Example" -lib "./api" --target-lua "script.lua"
-
+        ykmc "./Example" --lib "./api" --target-lua "script.lua"
+    Create charset file:
+        ykmc "./Example" --charset "./charset.txt"
 ```
 
 ## YukimiScript 项目布局

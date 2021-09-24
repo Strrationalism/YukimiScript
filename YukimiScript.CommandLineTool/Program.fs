@@ -15,6 +15,7 @@ let private help () =
       "    --lib <libDir>         Add other library."
       "    --dgml <output>        Create the diagram."
       "    --target-lua <output>  Compile to lua source code."
+      "    --charset <charset>    Generate charset file in UTF-8 text."
       ""
       "Examples:"
       "    Check the scripts:"
@@ -22,7 +23,9 @@ let private help () =
       "    Create the diagram from scripts:"
       "        ykmc \"./Example\" --lib \"./api\" --dgml \"./diagram.dgml\""
       "    Compiles to Lua source code:"
-      "        ykmc \"./Example\" -lib \"./api\" --target-lua \"script.lua\""
+      "        ykmc \"./Example\" --lib \"./api\" --target-lua \"script.lua\""
+      "    Create charset file:"
+      "        ykmc \"./Example\" --charset \"./charset.txt\""
       "" ]
     |> Seq.iter Console.WriteLine
 
@@ -32,7 +35,8 @@ type Option =
       VoiceDocumentOutputDir: string option
       DiagramOutputFile: string option
       LibraryDirs: string list
-      TargetLua: string option }
+      TargetLua: string option
+      Charset: string option }
 
 
 exception private OptionErrorException
@@ -50,6 +54,8 @@ let private optionParser =
         arg
         |> bind (function
             | "--target-lua" ->
+                if cur.TargetLua.IsSome then
+                    raise OptionErrorException
                 arg
                 |> bind (fun lua ->
                     { cur with TargetLua = Some lua }
@@ -67,19 +73,26 @@ let private optionParser =
                     |> bind (fun dgml ->
                         { cur with DiagramOutputFile = Some dgml }
                         |> options)
+            | "--charset" ->
+                if cur.Charset.IsSome then
+                    raise OptionErrorException
+                arg
+                |> bind (fun charset ->
+                    { cur with Charset = Some charset }
+                    |> options)
             | _ -> raise OptionErrorException)
         |> zeroOrOne
         |> map (Option.defaultValue cur)
 
     parser {
         let! scriptDir = arg
-        return! options  { 
-            ScriptDir = scriptDir
-            VoiceDocumentOutputDir = None
-            DiagramOutputFile = None
-            LibraryDirs = [] 
-            TargetLua = None
-        }
+        return! options  
+            { ScriptDir = scriptDir
+              VoiceDocumentOutputDir = None
+              DiagramOutputFile = None
+              LibraryDirs = [] 
+              TargetLua = None
+              Charset = None }
     }
     
 
@@ -247,6 +260,35 @@ let main argv =
                             let funcName = Path.GetFileNameWithoutExtension target
                             let lua = YukimiScript.CodeGen.Lua.generateLua funcName finalDom
                             IO.File.WriteAllText(target, lua)
+
+                        if option.Charset.IsSome then
+                            seq { 
+                                for (_, block, _) in finalDom.Scenes -> 
+                                    seq {
+                                        for (command, _) in block ->
+                                            match command with
+                                            | Elements.Operation.EmptyLine _ -> None
+                                            |  Elements.Operation.CommandCall c ->
+                                                if c.NamedArgs.Length <> 0 then
+                                                    failwith "This construction is not supported."
+                                                c.UnnamedArgs
+                                                |> List.choose (function
+                                                    | Elements.Constant.String x -> Some x
+                                                    | _ -> None)
+                                                |> Some
+                                            | _ -> failwith "This construction is not supported."
+                                    }
+                            }
+                            |> Seq.concat
+                            |> Seq.choose id
+                            |> Seq.concat
+                            |> Seq.concat
+                            |> Set.ofSeq
+                            |> Seq.except [ ' '; '\t' ]
+                            |> Seq.map string
+                            |> fun charset ->
+                                File.WriteAllLines (option.Charset.Value, charset)
+                            
                     
                 0
             with 
