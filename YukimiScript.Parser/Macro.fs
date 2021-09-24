@@ -32,8 +32,7 @@ let parameterList parentName : Parser<Parameter list> =
     |> map (fun x ->
         match 
             Seq.countBy (fun x -> x.Parameter) x
-            |> Seq.tryFind (fun (_, x) -> x > 1) 
-        with
+            |> Seq.tryFind (fun (_, x) -> x > 1) with
         | Some (p, _) -> raise <| ParamRepeatedException (parentName, p)
         | None -> x)
 

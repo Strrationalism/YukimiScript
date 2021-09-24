@@ -94,9 +94,7 @@ let ( <||> ) (a: Parser<'a>) (b: Parser<'b>) : Parser<Choice<'a, 'b>> =
               | Error e1 -> 
                   match b.Run input with
                   | Ok (x, r) -> Ok (Choice2Of2 x, r)
-                  | Error e2 -> Error (MultiException [ e1; e2 ])
-                              
-    }
+                  | Error e2 -> Error (MultiException [ e1; e2 ]) }
 
 
 let ( <|> ) (a: Parser<'a>) (b: Parser<'a>) =

@@ -222,8 +222,7 @@ let linkToExternCommands (x: Dom) : Result<Dom> =
                 List.tryFind 
                     (fun (ExternCommand (name, _)) -> 
                         name = c.Callee) 
-                    externs
-            with
+                    externs with
             | None -> 
                 Error 
                 <| ExternCommandDefinationNotFoundException 

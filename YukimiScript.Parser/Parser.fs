@@ -8,14 +8,13 @@ open Basics
 let private lineComment: Parser<string> =
     parser {
         do! literal "#"
-
         let commentChar = 
             predicate 
                 (fun x -> x <> '\r' && x <> '\n')
                 anyChar
 
         let! comment = zeroOrMore commentChar
-
+        
         return toStringTrim comment
     }
     |> name "comment"
