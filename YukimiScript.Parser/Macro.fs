@@ -33,7 +33,7 @@ let parameterList parentName : Parser<Parameter list> =
         match 
             Seq.countBy (fun x -> x.Parameter) x
             |> Seq.tryFind (fun (_, x) -> x > 1) 
-            with
+        with
         | Some (p, _) -> raise <| ParamRepeatedException (parentName, p)
         | None -> x)
 
@@ -42,7 +42,6 @@ let macroDefinationParser =
     parser {
         let! macroName = explicit symbol
         let! param = parameterList macroName
-
         return { Name = macroName; Param = param }
     }
 
