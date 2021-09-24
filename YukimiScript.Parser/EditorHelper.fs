@@ -33,10 +33,8 @@ let dispatch (dispatcher: CommandCall -> Runner<'State>) : Runner<'State> =
 
 
 type RunnerWrapper<'TState> (init: 'TState, mainRunner: Runner<'TState>) =
-
     member _.Run(state: 'TState, ops: Block) : Result<'TState> =
         run state mainRunner ops
-
 
     member x.Run(ops: Block) : Result<'TState> =
         x.Run(init, ops)
