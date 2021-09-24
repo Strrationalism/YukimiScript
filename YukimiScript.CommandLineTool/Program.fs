@@ -101,8 +101,7 @@ let main argv =
     argv
     |> Array.map (fun x -> 
         match x.Trim() with
-        | x when x.StartsWith "\"" && x.EndsWith "\"" ->
-            x
+        | x when x.StartsWith "\"" && x.EndsWith "\"" -> x
         | x when x.StartsWith "\"" -> x + "\""
         | x when x.EndsWith "\"" -> "\"" + x
         | x -> "\"" + x + "\"")
@@ -288,9 +287,9 @@ let main argv =
                             |> Seq.map string
                             |> fun charset ->
                                 File.WriteAllLines (option.Charset.Value, charset)
-                            
-                    
+                                
                 0
+                
             with 
             | :? FailException -> -1
             | :? AggregateException as e ->
