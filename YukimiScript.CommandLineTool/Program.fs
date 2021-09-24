@@ -42,72 +42,51 @@ type Option =
 exception private OptionErrorException
 
 
-let private optionParser =
-    let arg = 
-        parser {
-            do! Basics.whitespace1
-            return! Constants.stringParser
-        }
-        |> name "command line arg"
-
-    let rec options cur = 
-        arg
-        |> bind (function
-            | "--target-lua" ->
-                if cur.TargetLua.IsSome then
-                    raise OptionErrorException
-                arg
-                |> bind (fun lua ->
-                    { cur with TargetLua = Some lua }
-                    |> options)
-            | "--lib" ->
-                arg
-                |> bind (fun lib ->
-                    { cur with LibraryDirs = lib :: cur.LibraryDirs } 
-                    |> options)
-            | "--dgml" ->
-                if cur.DiagramOutputFile.IsSome then
-                    raise OptionErrorException
-                else 
-                    arg
-                    |> bind (fun dgml ->
-                        { cur with DiagramOutputFile = Some dgml }
-                        |> options)
-            | "--charset" ->
-                if cur.Charset.IsSome then
-                    raise OptionErrorException
-                arg
-                |> bind (fun charset ->
-                    { cur with Charset = Some charset }
-                    |> options)
-            | _ -> raise OptionErrorException)
-        |> zeroOrOne
-        |> map (Option.defaultValue cur)
-
-    parser {
-        let! scriptDir = arg
-        return! options  
-            { ScriptDir = scriptDir
-              VoiceDocumentOutputDir = None
-              DiagramOutputFile = None
-              LibraryDirs = [] 
-              TargetLua = None
-              Charset = None }
-    }
+let defaultOption scriptDir =
+    { ScriptDir = scriptDir
+      VoiceDocumentOutputDir = None
+      DiagramOutputFile = None
+      LibraryDirs = [] 
+      TargetLua = None
+      Charset = None }
     
+
+let rec parseOption prev =
+    function
+    | [] -> Ok prev
+    | "--lib" :: lib :: other ->
+        parseOption
+            { prev with LibraryDirs = lib :: prev.LibraryDirs}
+            other
+
+    | "--dgml" :: dgml :: other ->
+        if prev.DiagramOutputFile.IsSome then
+            failwith "--dgml is already given."
+        parseOption { prev with DiagramOutputFile = Some dgml } other
+
+    | "--target-lua" :: lua :: other ->
+        if prev.TargetLua.IsSome then
+            failwith "--target-lua is already given."
+        parseOption { prev with  TargetLua = Some lua } other
+
+    | "--charset" :: charset :: other ->
+        if prev.Charset.IsSome then
+            failwith "--charset is already given."
+        parseOption { prev with Charset = Some charset } other
+
+    | _ -> Error ()
+
 
 [<EntryPoint>]
 let main argv =
     argv
-    |> Array.map (fun x -> 
-        match x.Trim() with
-        | x when x.StartsWith "\"" && x.EndsWith "\"" -> x
-        | x when x.StartsWith "\"" -> x + "\""
-        | x when x.EndsWith "\"" -> "\"" + x
-        | x -> "\"" + x + "\"")
-    |> Array.fold (fun a b -> a + " " + b) ""
-    |> fun x -> " " + x.Trim ()
-    |> fun argv -> run argv optionParser
+    |> Array.toList
+    |> function 
+        | scriptDir :: other ->
+            parseOption 
+                (defaultOption scriptDir)
+                other
+        | _ -> Error ()
     |> function
         | Error _ -> 
             help ()
