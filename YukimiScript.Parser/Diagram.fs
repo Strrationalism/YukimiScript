@@ -3,6 +3,7 @@ module YukimiScript.Parser.Diagram
 open YukimiScript.Parser.Elements
 open YukimiScript.Parser.Dom
 open YukimiScript.Parser.Macro
+open System.IO
 
 
 type SceneNode =
@@ -53,7 +54,8 @@ let analyze (files: (string * Dom) list) : Result<Diagram> =
                         { Name = scene.Name }, linkTo
                     )
                 
-                { Name = fileName; Scenes = List.map fst scenes },
+                { Name = Path.GetFileNameWithoutExtension fileName
+                  Scenes = List.map fst scenes },
                 scenes)
             |> List.unzip
 
