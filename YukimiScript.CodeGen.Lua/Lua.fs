@@ -62,6 +62,6 @@ let generateLua (functionName: string) (x: Dom) : string =
         sb.AppendLine("  },") |> ignore
     )
 
-    sb.AppendLine("} end") |> ignore
-    sb.ToString()
+    sb  .AppendLine("} end")
+        .ToString()
     
