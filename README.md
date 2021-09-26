@@ -48,8 +48,8 @@ Examples:
 - extern name
 
 - macro jumpToSection target
-__diagram_link_to target
-systemAPI_jumpToSection target
+@__diagram_link_to target
+@systemAPI_jumpToSection target
 
 - scene "entrypoint"
 @jumpToSection "场景 第一个场景"
