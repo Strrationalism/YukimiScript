@@ -31,7 +31,7 @@ Options:
     --lib <LIB_DIR>    Include external libraries.
 
 Targets:
-    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT
+    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)
 
 Example:
     ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/

@@ -20,7 +20,7 @@ let help () =
       "    --lib <LIB_DIR>    Include external libraries."
       ""
       "Targets:"
-      "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT"
+      "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
       ""
       "Example:"
       "    ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
@@ -102,7 +102,7 @@ let doAction errStringing =
         |> List.iter (function
             | Lua output -> 
                 let functionName = Path.GetFileNameWithoutExtension inputFile
-                let lua = YukimiScript.CodeGen.Lua.generateLua functionName dom
+                let lua = YukimiScript.CodeGen.Lua.generateLua dom
                 File.WriteAllText(output, lua, Text.Encoding.UTF8))
         
     | Dgml (inputDir, outDgml, options) -> 
@@ -118,7 +118,7 @@ let doAction errStringing =
         |> fun dgml -> File.WriteAllText(outDgml, dgml, Text.Encoding.UTF8)
 
     | Charset (inputDir, outCharset, options) ->
-        let lib = loadLibs errStringing options.Lib     // 注意！！多次导入了lib！！！
+        let lib = loadLibs errStringing options.Lib
         getYkmFiles inputDir
         |> Array.map (fun filePath ->
             loadSrc errStringing lib filePath

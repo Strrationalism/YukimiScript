@@ -5,15 +5,13 @@ open YukimiScript.Parser.Dom
 open YukimiScript.Parser.Elements
 
 
-let generateLua (functionName: string) (x: Dom) : string =
+let generateLua (x: Dom) : string =
     let luaCall (x: string) =
         let i = x.LastIndexOf '.'
         x.[..i-1] + ":" + x.[i+1..]
 
     let sb = System.Text.StringBuilder ()
-    sb  .Append("function ")
-        .Append(functionName)
-        .AppendLine("(api) return {") |> ignore
+    sb.Append("return function(api) return {") |> ignore
 
     x.Scenes
     |> List.iter (fun (defination, block, debugInfo) ->
