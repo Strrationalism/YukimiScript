@@ -1,282 +1,159 @@
 open System
 open System.IO
+open YukimiScript.CommandLineTool.Compile
 open YukimiScript.Parser
-open YukimiScript.Parser.ParserMonad
-open YukimiScript.CommandLineTool
 
 
-let private help () =
-    [ "Yukimi Script Command Tool"
+let help () =
+    [ "YukimiScript Command Line Tool"
       "by Strrationalism Studio 2021"
       ""
-      "Usage: ykmc <path-to-scripts> [options]"
+      "Usage:"
+      "    Compile YukimiScript to Lua:"
+      "        ykmc <INPUT_FILE> [--target-<TARGET> <OUTPUT_FILE>] [OPTIONS...]"
+      "    Create diagram:"
+      "        ykmc dgml <INPUT_DIR> <OUTPUT_DGML_FILE> [OPTIONS...]"
+      "    Create charset file:"
+      "        ykmc charset <INPUT_DIR> <OUTPUT_CHARSET_FILE> [OPTIONS...]"
       ""
       "Options:"
-      "    --lib <libDir>         Add other library."
-      "    --dgml <output>        Create the diagram."
-      "    --target-lua <output>  Compile to lua source code."
-      "    --charset <charset>    Generate charset file in UTF-8 text."
+      "    --lib <LIB_DIR>    Include external libraries."
       ""
-      "Examples:"
-      "    Check the scripts:"
-      "        ykmc \"./Example\" --lib \"./api\""
-      "    Create the diagram from scripts:"
-      "        ykmc \"./Example\" --lib \"./api\" --dgml \"./diagram.dgml\""
-      "    Compiles to Lua source code:"
-      "        ykmc \"./Example\" --lib \"./api\" --target-lua \"script.lua\""
-      "    Create charset file:"
-      "        ykmc \"./Example\" --charset \"./charset.txt\""
+      "Targets:"
+      "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT"
+      ""
+      "Example:"
+      "        ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
+      "        ykmc dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
+      "        ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib"
       "" ]
-    |> Seq.iter Console.WriteLine
+    |> List.iter Console.WriteLine
+   
+
+type Options = 
+    { Lib: string list }
 
 
-type Option =
-    { ScriptDir: string
-      VoiceDocumentOutputDir: string option
-      DiagramOutputFile: string option
-      LibraryDirs: string list
-      TargetLua: string option
-      Charset: string option }
+let defaultOptions = 
+    { Lib = [] }
 
 
-exception private OptionErrorException
+type TargetOption =
+    | Lua of outputFile: string
 
 
-let defaultOption scriptDir =
-    { ScriptDir = scriptDir
-      VoiceDocumentOutputDir = None
-      DiagramOutputFile = None
-      LibraryDirs = [] 
-      TargetLua = None
-      Charset = None }
-    
+type CmdArg =
+    | Dgml of inputDir: string * outputDgml: string * Options
+    | Charset of inputDir: string * outputCharsetFile: string * Options
+    | Compile of inputFile: string * TargetOption list * Options
 
-let rec parseOption prev =
+
+let rec parseOptions prev =
     function
     | [] -> Ok prev
-    | "--lib" :: lib :: other ->
-        parseOption
-            { prev with LibraryDirs = lib :: prev.LibraryDirs}
-            other
+    | "--lib" :: libDir :: next ->
+        parseOptions { prev with Lib = libDir :: prev.Lib } next
+    | _ -> Error ()
 
-    | "--dgml" :: dgml :: other ->
-        if prev.DiagramOutputFile.IsSome then
-            failwith "--dgml is already given."
-        parseOption { prev with DiagramOutputFile = Some dgml } other
 
-    | "--target-lua" :: lua :: other ->
-        if prev.TargetLua.IsSome then
-            failwith "--target-lua is already given."
-        parseOption { prev with  TargetLua = Some lua } other
+let rec parseTargetsAndOptions =
+    function
+    | "--target-lua" :: luaOut :: next ->
+        parseTargetsAndOptions next
+        |> Result.map (fun (nextTargets, options) ->
+            Lua luaOut :: nextTargets, options)
+    | options -> 
+        parseOptions defaultOptions options 
+        |> Result.map (fun options -> [], options)
 
-    | "--charset" :: charset :: other ->
-        if prev.Charset.IsSome then
-            failwith "--charset is already given."
-        parseOption { prev with Charset = Some charset } other
+
+let parseArgs =
+    function
+    | "dgml" :: inputDir :: outputDgml :: options -> 
+        parseOptions defaultOptions options
+        |> Result.map (fun options -> 
+            Dgml (inputDir, outputDgml, options))
+
+    | "charset" :: inputDir :: charsetFile :: options ->
+        parseOptions defaultOptions options
+        |> Result.map (fun options -> 
+            Charset (inputDir, charsetFile, options))
+
+    | inputSrc :: targetsAndOptions ->
+        parseTargetsAndOptions targetsAndOptions
+        |> Result.map (fun (targets, options) ->
+            Compile (inputSrc, targets, options))
 
     | _ -> Error ()
 
 
+let doAction errStringing =
+    function
+    | Compile (inputFile, targets, options) -> 
+        let dom =
+            loadSrc 
+                errStringing 
+                (loadLibs errStringing options.Lib) 
+                inputFile
+            |> checkRepeat errStringing
+            |> prepareCodegen errStringing
+
+        targets
+        |> List.iter (function
+            | Lua output -> 
+                let functionName = Path.GetFileNameWithoutExtension inputFile
+                let lua = YukimiScript.CodeGen.Lua.generateLua functionName dom
+                File.WriteAllText(output, lua, Text.Encoding.UTF8))
+        
+    | Dgml (inputDir, outDgml, options) -> 
+        let lib = loadLibs errStringing options.Lib
+        getYkmFiles inputDir
+        |> Array.map (fun path -> 
+            Path.GetRelativePath(inputDir, path), 
+            loadSrc errStringing lib path |> checkRepeat errStringing)
+        |> List.ofArray
+        |> Diagram.analyze
+        |> unwrapDomException errStringing
+        |> Diagram.exportDgml
+        |> fun dgml -> File.WriteAllText(outDgml, dgml, Text.Encoding.UTF8)
+
+    | Charset (inputDir, outCharset, options) ->
+        let lib = loadLibs errStringing options.Lib     // 注意！！多次导入了lib！！！
+        getYkmFiles inputDir
+        |> Array.map (fun filePath ->
+            loadSrc errStringing lib filePath
+            |> checkRepeat errStringing
+            |> prepareCodegen errStringing)
+        |> Array.fold Dom.merge Dom.empty
+        |> (fun x -> Seq.map (fun (_, block, _) -> block) x.Scenes)
+        |> Seq.collect (Seq.map fst)
+        |> Seq.collect (function
+            | Elements.Operation.CommandCall c -> 
+                c.UnnamedArgs
+                |> Seq.collect (function
+                    | Elements.Constant.String x -> x
+                    | _ -> "")
+            | _ -> Seq.empty)
+        |> Set.ofSeq
+        |> Set.remove ' '
+        |> Array.ofSeq
+        |> Array.map string
+        |> fun x -> IO.File.WriteAllLines(outCharset, x, Text.Encoding.UTF8)
+
+
 [<EntryPoint>]
-let main argv =
+let main argv = 
     argv
     |> Array.toList
-    |> function 
-        | scriptDir :: other ->
-            parseOption 
-                (defaultOption scriptDir)
-                other
-        | _ -> Error ()
+    |> parseArgs
     |> function
-        | Error _ -> 
+        | Error () -> 
             help ()
             0
-        | Ok option ->
+        | Ok x ->
             try
-                if Directory.Exists option.ScriptDir |> not then
-                    raise <| DirectoryNotFoundException(option.ScriptDir + " not found!")
-
-                let project = Project.openProject option.ScriptDir
-                let libs =
-                    option.LibraryDirs
-                    |> Seq.collect (fun libDir ->
-                        Directory.EnumerateFiles(
-                            libDir, 
-                            "*.ykm", 
-                            SearchOption.AllDirectories))
-
-                let loadDoms (files: string seq) : (string * Dom.Dom) [] =
-                    files 
-                    |> Array.ofSeq
-                    |> Array.Parallel.map (fun path ->
-                        File.ReadAllLines(path)
-                        |> Parser.parseLines
-                        |> function
-                            | Ok x -> x
-                            | Error es ->
-                                es
-                                |> List.iter (fun (i, x) ->
-                                    ErrorProcessing.printLExn path i x)
-                                raise FailException
-                        |> Dom.analyze path
-                        |> function
-                            | Ok x -> path, x
-                            | Error e ->
-                                ErrorProcessing.printExn path e
-                                raise FailException)
-
-                let checkRepeat (dom: Dom.Dom) =
-                    dom.Scenes 
-                    |> Seq.countBy (fun (x, _, _) -> x.Name)
-                    |> Seq.tryFind (snd >> (<>) 1)
-                    |> function
-                        | Some (x, _) -> Error <| Dom.SceneRepeatException x
-                        | None ->
-                            dom.Externs
-                            |> Seq.countBy (fun (Elements.ExternCommand (x, _), _) -> x)
-                            |> Seq.tryFind (snd >> (<>) 1)
-                            |> function
-                                | Some (x, _) -> Error <| Dom.ExternRepeatException x
-                                | None ->
-                                    dom.Macros
-                                    |> Seq.countBy (fun (x, _, _) -> x.Name)
-                                    |> Seq.tryFind (snd >> (<>) 1)
-                                    |> function
-                                        | Some (x, _) -> Error <| Dom.MacroRepeatException x
-                                        | None -> Ok dom
-
-                let lib = 
-                    Seq.append project.Library libs
-                    |> loadDoms
-                    |> Array.map snd
-                    |> Array.fold Dom.merge Dom.empty
-                    |> checkRepeat
-                    |> function
-                        | Error x -> 
-                            ErrorProcessing.printExn "" x
-                            raise FailException
-                        | Ok x -> x
-
-                if List.isEmpty lib.Scenes |> not then
-                    lib.Scenes
-                    |> List.iter (fun (_, _, debug) ->
-                        ErrorProcessing.printLExn 
-                            debug.File
-                            debug.LineNumber
-                            Dom.CannotDefineSceneInLibException)
-                    raise FailException
-
-                let expandTextAndUserMacros x =
-                    let result = 
-                        x
-                        |> Array.Parallel.map (fun (fileName, dom) ->
-                            dom
-                            |> checkRepeat
-                            |> Result.map Dom.expandTextCommands 
-                            |> Result.bind (Dom.expandUserMacros lib)
-                            |> Result.mapError (fun x -> fileName, x)
-                            |> Result.map (fun x -> fileName, x))
-                    
-                    let errors =
-                        result
-                        |> Array.choose (function
-                            | Error (fileName, e) -> Some (fileName, e)
-                            | _ -> None)
-                    
-                    if Array.isEmpty errors |> not then
-                        errors
-                        |> Array.iter (fun (fileName, e) -> 
-                            ErrorProcessing.printExn fileName e)
-                        raise FailException
-
-                    result 
-                    |> Array.map (function 
-                        | Ok x -> x 
-                        | _ -> failwith "Internal Error")
-
-                let scenario = 
-                    loadDoms project.Scenario
-                    |> expandTextAndUserMacros
-
-                match option.DiagramOutputFile with
-                | None -> ()
-                | Some output ->
-                    scenario
-                    |> List.ofArray
-                    |> List.map (fun (fileName, x) ->
-                        let dir = Path.Combine(option.ScriptDir, "scenario")
-                        Path.GetRelativePath(dir, fileName), x)
-                    |> Diagram.analyze
-                    |> function
-                        | Error e -> 
-                            ErrorProcessing.printExn "" e
-                            raise FailException
-                        | Ok diagram ->
-                            let dgml = Diagram.exportDgml diagram
-                            File.WriteAllText(output, dgml)
-
-                let program = 
-                    loadDoms project.Program
-                    |> expandTextAndUserMacros                 
-
-                seq {
-                    lib
-                    yield! Seq.map snd scenario
-                    yield! Seq.map snd program
-                }
-                |> Seq.fold Dom.merge Dom.empty
-                |> checkRepeat
-                |> Result.map Dom.expandSystemMacros
-                |> Result.bind Dom.linkToExternCommands
-                |> function
-                    | Error x -> 
-                        ErrorProcessing.printExn "" x
-                        raise FailException
-                    | Ok finalDom ->
-                        if option.TargetLua.IsSome then
-                            let target = option.TargetLua.Value
-                            let funcName = Path.GetFileNameWithoutExtension target
-                            let lua = YukimiScript.CodeGen.Lua.generateLua funcName finalDom
-                            IO.File.WriteAllText(target, lua)
-
-                        if option.Charset.IsSome then
-                            seq { 
-                                for (_, block, _) in finalDom.Scenes -> 
-                                    seq {
-                                        for (command, _) in block ->
-                                            match command with
-                                            | Elements.Operation.EmptyLine _ -> None
-                                            |  Elements.Operation.CommandCall c ->
-                                                if c.NamedArgs.Length <> 0 then
-                                                    failwith "This construction is not supported."
-                                                c.UnnamedArgs
-                                                |> List.choose (function
-                                                    | Elements.Constant.String x -> Some x
-                                                    | _ -> None)
-                                                |> Some
-                                            | _ -> failwith "This construction is not supported."
-                                    }
-                            }
-                            |> Seq.concat
-                            |> Seq.choose id
-                            |> Seq.concat
-                            |> Seq.concat
-                            |> Set.ofSeq
-                            |> Seq.except [ ' '; '\t' ]
-                            |> Seq.map string
-                            |> fun charset ->
-                                File.WriteAllLines (option.Charset.Value, charset)
-                                
+                doAction ErrorStringing.schinese x
                 0
-                
-            with 
-            | :? FailException -> -1
-            | :? AggregateException as e ->
-                match e.InnerException with
-                | :? FailException -> ()
-                | e -> 
-                    Console.WriteLine("Error:" + e.Message)
-                -1
-            | e ->
-                Console.WriteLine("Error:" + e.Message)
-                -1
+            with
+            | FailException -> -1
+

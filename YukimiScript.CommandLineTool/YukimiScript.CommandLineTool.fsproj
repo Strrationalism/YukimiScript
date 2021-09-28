@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="ErrorProcessing.fs" />
+    <Compile Include="Compile.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

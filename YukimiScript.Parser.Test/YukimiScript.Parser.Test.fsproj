@@ -15,7 +15,6 @@
     <Compile Include="TestTopLevels.fs" />
     <Compile Include="TestConstants.fs" />
     <Compile Include="TestStatments.fs" />
-    <Compile Include="TestProject.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 

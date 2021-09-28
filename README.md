@@ -17,24 +17,26 @@
 
 
 ## YukimiScript Command Line Tool
+
 ```
-Usage: ykmc <path-to-scripts> [options]
+Usage:
+    Compile YukimiScript to Lua:
+        ykmc <INPUT_FILE> [--target-<TARGET> <OUTPUT_FILE>] [OPTIONS...]
+    Create diagram:
+        ykmc dgml <INPUT_DIR> <OUTPUT_DGML_FILE> [OPTIONS...]
+    Create charset file:
+        ykmc charset <INPUT_DIR> <OUTPUT_CHARSET_FILE> [OPTIONS...]
 
 Options:
-    --lib <libDir>         Add other library.
-    --dgml <output>        Create the diagram.
-    --target-lua <output>  Compile to lua source code.
-    --charset <charset>    Generate charset file in UTF-8 text.
+    --lib <LIB_DIR>    Include external libraries.
 
-Examples:
-    Check the scripts:
-        ykmc "./Example" --lib "./api"
-    Create the diagram from scripts:
-        ykmc "./Example" --lib "./api" --dgml "./diagram.dgml"
-    Compiles to Lua source code:
-        ykmc "./Example" --lib "./api" --target-lua "script.lua"
-    Create charset file:
-        ykmc "./Example" --charset "./charset.txt"
+Targets:
+    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT
+
+Example:
+        ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/
+        ykmc dgml ./Example/scenario ./Example.dgml --lib ./Example/lib
+        ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib
 ```
 
 

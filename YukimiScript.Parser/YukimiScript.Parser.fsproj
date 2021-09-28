@@ -15,7 +15,6 @@
     <Compile Include="Text.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="Dom.fs" />
-    <Compile Include="Project.fs" />
     <Compile Include="Diagram.fs" />
     <Compile Include="EditorHelper.fs" />
     <Compile Include="ErrorStringing.fs" />

@@ -36,13 +36,13 @@ exception HangingOperationException of debugInfo: DebugInformation
 exception UnknownException
 
 
-exception SceneRepeatException of scene: string
+exception SceneRepeatException of scene: string * debugInfo: DebugInformation seq
 
 
-exception MacroRepeatException of macro: string
+exception MacroRepeatException of macro: string * debugInfo: DebugInformation seq
 
 
-exception ExternRepeatException of name: string
+exception ExternRepeatException of name: string * debugInfo: DebugInformation seq
 
 
 let private saveCurrentBlock state =
@@ -104,28 +104,21 @@ let private analyzeFold
     | Line.CommandCall x -> pushOperation <| CommandCall x
     | Line.Text x -> pushOperation <| Text x
     | SceneDefination scene ->
-        if List.exists (fun (x, _, _) -> x.Name = scene.Name) state.Result.Scenes then
-            Error <| SceneRepeatException scene.Name
-        else Ok <| setLabel state (SceneDefination scene)
+        Ok <| setLabel state (SceneDefination scene)
     | MacroDefination macro -> 
-        if List.exists (fun (x, _, _) -> x.Name = macro.Name) state.Result.Scenes then
-            Error <| MacroRepeatException macro.Name
-        else Ok <| setLabel state (MacroDefination macro)
+        Ok <| setLabel state (MacroDefination macro)
     | ExternDefination (ExternCommand (name, param)) ->
-        if List.exists (fun (x, _, _) -> x.Name = name) state.Result.Scenes then
-            Error <| ExternRepeatException name
-        else 
-            let nextState = saveCurrentBlock state
-            { nextState with
-                Result = 
-                    { nextState.Result with 
-                        Externs = 
-                            (ExternCommand (name, param), debugInfo) 
-                            :: nextState.Result.Externs } }
-            |> Ok
+        let nextState = saveCurrentBlock state
+        { nextState with
+            Result = 
+                { nextState.Result with 
+                    Externs = 
+                        (ExternCommand (name, param), debugInfo) 
+                        :: nextState.Result.Externs } }
+        |> Ok
 
 
-exception CannotDefineSceneInLibException
+exception CannotDefineSceneInLibException of string
 
 
 let analyze (fileName: string) (x: Parsed seq) : Result<Dom> = 
