@@ -23,9 +23,9 @@ let help () =
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT"
       ""
       "Example:"
-      "        ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
-      "        ykmc dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
-      "        ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib"
+      "    ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
+      "    ykmc dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
+      "    ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib"
       "" ]
     |> List.iter Console.WriteLine
    
