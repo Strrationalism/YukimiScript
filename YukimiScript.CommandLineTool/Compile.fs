@@ -111,7 +111,7 @@ let loadLibs errStringing libPaths =
 let loadSrc errStringing (lib: Dom.Dom) srcPath =
     Dom.merge lib (loadDom errStringing srcPath)
     |> Dom.expandTextCommands
-    |> Dom.expandUserMacros lib
+    |> Dom.expandUserMacros
     |> unwrapDomException errStringing
 
 

@@ -37,7 +37,7 @@ let testParseScript (x: string) =
             parsed)
     |> YukimiScript.Parser.Dom.analyze "Test.ykm"
     |> Result.map YukimiScript.Parser.Dom.expandTextCommands
-    |> Result.bind (YukimiScript.Parser.Dom.expandUserMacros YukimiScript.Parser.Dom.empty)
+    |> Result.bind YukimiScript.Parser.Dom.expandUserMacros
     |> Result.map YukimiScript.Parser.Dom.expandSystemMacros
     |> Result.bind YukimiScript.Parser.Dom.linkToExternCommands
     |> printfn "%A"
