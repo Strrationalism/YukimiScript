@@ -34,18 +34,21 @@ let generateLua (x: Dom) : string =
                     .Append(luaCall <| "api." + c.Callee)
                     .Append("(") |> ignore
 
-                c.UnnamedArgs
-                |> List.map (function
-                    | Symbol "true" -> "true"
-                    | Symbol "false" -> "false"
-                    | Symbol "null" | Symbol "nil" -> "nil"
-                    | Symbol x -> luaCall <| "api." + x
-                    | Integer x -> string x
-                    | Number x -> string x
-                    | String x -> "\"" + Constants.string2literal x + "\"")
-                |> List.reduce (fun a b -> a + ", " + b)
-                |> sb.Append
-                |> ignore
+                let args =
+                    c.UnnamedArgs
+                    |> List.map (function
+                        | Symbol "true" -> "true"
+                        | Symbol "false" -> "false"
+                        | Symbol "null" | Symbol "nil" -> "nil"
+                        | Symbol x -> luaCall <| "api." + x
+                        | Integer x -> string x
+                        | Number x -> string x
+                        | String x -> "\"" + Constants.string2literal x + "\"")
+                        
+                if not <| List.isEmpty args then
+                    |> List.reduce (fun a b -> a + ", " + b)
+                    |> sb.Append
+                    |> ignore
 
                 sb.Append(") end,") |> ignore
 
