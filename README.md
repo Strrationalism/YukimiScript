@@ -4,6 +4,11 @@
 
 参见[Github Wiki页面](https://github.com/Strrationalism/YukimiScript/wiki)。
 
+## 适用于
+* 视觉小说
+* 文字类游戏
+* 需要对话演出的游戏
+
 ## 特点
 * 类似krkr的键值对传参和flags传参语法。
 * 按行Parse，便于分析。
