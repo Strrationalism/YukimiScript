@@ -54,7 +54,7 @@ let analyze (files: (string * Dom) list) : Result<Diagram> =
                         { Name = scene.Name }, linkTo
                     )
                 
-                { Name = Path.GetFileNameWithoutExtension fileName
+                { Name = Path.GetFileName fileName
                   Scenes = List.map fst scenes },
                 scenes)
             |> List.unzip
