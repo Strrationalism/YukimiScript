@@ -11,7 +11,7 @@
 
 ## 应用实例
 
-* [空梦](https://store.steampowered.com/app/1059850/)
+* [弦语蝶梦游戏工作室 - 空梦](https://store.steampowered.com/app/1059850/)
 
 ## 设计原则
 * 按行Parse
