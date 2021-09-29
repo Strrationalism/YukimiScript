@@ -46,6 +46,7 @@ let generateLua (x: Dom) : string =
                         | String x -> "\"" + Constants.string2literal x + "\"")
                         
                 if not <| List.isEmpty args then
+                    args
                     |> List.reduce (fun a b -> a + ", " + b)
                     |> sb.Append
                     |> ignore
