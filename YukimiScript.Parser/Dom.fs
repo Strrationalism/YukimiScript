@@ -166,8 +166,8 @@ let expandTextCommands (x: Dom) : Dom =
         Macros = List.map mapBlock x.Macros }
 
 
-let expandUserMacros (lib: Dom) (x: Dom) =
-    let macros = List.map (fun (a, b, _) -> a, b) (lib.Macros @ x.Macros)
+let expandUserMacros (x: Dom) =
+    let macros = List.map (fun (a, b, _) -> a, b) x.Macros
     x.Scenes
     |> List.map (fun (sceneDef, block, debugInfo) -> 
         Macro.expandBlock macros block
