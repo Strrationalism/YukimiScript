@@ -23,6 +23,7 @@ module Intermediate =
                     | CommandCall c -> Some c
                     | a -> 
                         failwithf "Not support in intermediate: %A" a)
+                        
             IntermediateScene (scene, commands))
         |> Intermediate
 
