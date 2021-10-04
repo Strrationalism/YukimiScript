@@ -1,7 +1,6 @@
 module YukimiScript.Parser.Diagram
 
 open YukimiScript.Parser.Elements
-open YukimiScript.Parser.Dom
 open YukimiScript.Parser.Macro
 open System.IO
 

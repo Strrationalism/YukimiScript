@@ -43,7 +43,7 @@ let private findRepeat (items: (string * Elements.DebugInformation) seq) =
         else Some (key, matches |> Seq.map snd))
 
  
-let checkRepeat errStringing (dom: Dom.Dom) =
+let checkRepeat errStringing (dom: Dom) =
     dom.Externs 
     |> Seq.map (fun (Elements.ExternCommand (cmd, _), dbg) -> cmd, dbg)
     |> findRepeat 
@@ -108,7 +108,7 @@ let loadLibs errStringing libPaths =
     |> List.fold Dom.merge Dom.empty
 
 
-let loadSrc errStringing (lib: Dom.Dom) srcPath =
+let loadSrc errStringing (lib: Dom) srcPath =
     Dom.merge lib (loadDom errStringing srcPath)
     |> Dom.expandTextCommands
     |> Dom.expandUserMacros

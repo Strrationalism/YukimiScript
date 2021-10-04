@@ -101,8 +101,7 @@ let doAction errStringing =
         targets
         |> List.iter (function
             | Lua output -> 
-                let functionName = Path.GetFileNameWithoutExtension inputFile
-                let lua = YukimiScript.CodeGen.Lua.generateLua dom
+                let lua = YukimiScript.CodeGen.Lua.generateLua <| Intermediate.ofDom dom
                 File.WriteAllText(output, lua, Text.Encoding.UTF8))
         
     | Dgml (inputDir, outDgml, options) -> 
