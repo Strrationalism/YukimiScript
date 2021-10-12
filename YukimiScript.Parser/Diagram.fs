@@ -83,29 +83,36 @@ let exportDgml (diagram: Diagram) : string =
         .AppendLine("""<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">""")
         .AppendLine("""  <Nodes>""") |> ignore
 
+    let fileNodeOnlyContainsOneScene file =
+        Seq.tryExactlyOne file.Scenes
+        |> Option.filter (fun x -> x.Name = Path.GetFileNameWithoutExtension file.Name)
+        |> Option.isSome
+
     for file in diagram.Files do
-        sb  .Append("    <Node Id=\"")
-            .Append(file.Name)
-            .Append("\" Group=\"Expanded\" />")
-            .AppendLine() |> ignore
-        
+        if not <| fileNodeOnlyContainsOneScene file then
+            sb  .Append("    <Node Id=\"")
+                .Append(file.Name)
+                .Append("\" Group=\"Expanded\" />")
+                .AppendLine() |> ignore
+            
         for scene in file.Scenes do
             sb  .Append("    <Node Id=\"")
                 .Append(scene.Name)
                 .Append("\" />")
                 .AppendLine() |> ignore
-    
+
     sb  .AppendLine("  </Nodes>")
         .AppendLine("  <Links>") |> ignore
 
     for file in diagram.Files do
-        for scene in file.Scenes do
-            sb  .Append("    <Link Source=\"")
-                .Append(file.Name)
-                .Append("\" Target=\"")
-                .Append(scene.Name)
-                .Append("\" Category=\"Contains\" />")
-                .AppendLine () |> ignore
+        if not <| fileNodeOnlyContainsOneScene file then
+            for scene in file.Scenes do
+                sb  .Append("    <Link Source=\"")
+                    .Append(file.Name)
+                    .Append("\" Target=\"")
+                    .Append(scene.Name)
+                    .Append("\" Category=\"Contains\" />")
+                    .AppendLine () |> ignore
 
     for arrows in diagram.Arrows do
         sb  .Append("    <Link Source=\"")

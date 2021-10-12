@@ -32,19 +32,23 @@ Usage:
     Compile YukimiScript to Lua:
         ykmc <INPUT_FILE> [--target-<TARGET> <OUTPUT_FILE>] [OPTIONS...]
     Create diagram:
-        ykmc dgml <INPUT_DIR> <OUTPUT_DGML_FILE> [OPTIONS...]
+        ykmc diagram <DIAGRAM_TYPE> <INPUT_DIR> <OUTPUT_FILE> [OPTIONS...]
     Create charset file:
         ykmc charset <INPUT_DIR> <OUTPUT_CHARSET_FILE> [OPTIONS...]
 
 Options:
     --lib <LIB_DIR>    Include external libraries.
 
+Diagram Types:
+    dgml               Visual Studio Directed Graph Markup Language.
+    mermaid            Flowchart in Mermaid.
+
 Targets:
     lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)
 
 Example:
     ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/
-    ykmc dgml ./Example/scenario ./Example.dgml --lib ./Example/lib
+    ykmc diagram dgml ./Example/scenario ./Example.dgml --lib ./Example/lib
     ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib
 ```
 

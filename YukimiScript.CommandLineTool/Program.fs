@@ -12,19 +12,23 @@ let help () =
       "    Compile YukimiScript to Lua:"
       "        ykmc <INPUT_FILE> [--target-<TARGET> <OUTPUT_FILE>] [OPTIONS...]"
       "    Create diagram:"
-      "        ykmc dgml <INPUT_DIR> <OUTPUT_DGML_FILE> [OPTIONS...]"
+      "        ykmc diagram <DIAGRAM_TYPE> <INPUT_DIR> <OUTPUT_FILE> [OPTIONS...]"
       "    Create charset file:"
       "        ykmc charset <INPUT_DIR> <OUTPUT_CHARSET_FILE> [OPTIONS...]"
       ""
       "Options:"
       "    --lib <LIB_DIR>    Include external libraries."
       ""
+      "Diagram Types:"
+      "    dgml               Visual Studio Directed Graph Markup Language."
+      "    mermaid            Flowchart in Mermaid."
+      ""
       "Targets:"
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
       ""
       "Example:"
       "    ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
-      "    ykmc dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
+      "    ykmc diagram dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
       "    ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib"
       "" ]
     |> List.iter Console.WriteLine
@@ -42,8 +46,13 @@ type TargetOption =
     | Lua of outputFile: string
 
 
+type DiagramType =
+    | Dgml
+    | Mermaid
+
+
 type CmdArg =
-    | Dgml of inputDir: string * outputDgml: string * Options
+    | Diagram of DiagramType * inputDir: string * output: string * Options
     | Charset of inputDir: string * outputCharsetFile: string * Options
     | Compile of inputFile: string * TargetOption list * Options
 
@@ -67,12 +76,21 @@ let rec parseTargetsAndOptions =
         |> Result.map (fun options -> [], options)
 
 
+let parseDiagramType = 
+    function
+    | "dgml" -> Ok Dgml
+    | "mermaid" -> Ok Mermaid
+    | _ -> Error ()
+
+
 let parseArgs =
     function
-    | "dgml" :: inputDir :: outputDgml :: options -> 
-        parseOptions defaultOptions options
-        |> Result.map (fun options -> 
-            Dgml (inputDir, outputDgml, options))
+    | "diagram" :: diagramType :: inputDir :: output :: options -> 
+        parseDiagramType diagramType
+        |> Result.bind (fun diagramType -> 
+            parseOptions defaultOptions options
+            |> Result.map (fun options -> 
+                Diagram (diagramType, inputDir, output, options)))
 
     | "charset" :: inputDir :: charsetFile :: options ->
         parseOptions defaultOptions options
@@ -104,7 +122,12 @@ let doAction errStringing =
                 let lua = YukimiScript.CodeGen.Lua.generateLua <| Intermediate.ofDom dom
                 File.WriteAllText(output, lua, Text.Encoding.UTF8))
         
-    | Dgml (inputDir, outDgml, options) -> 
+    | Diagram (diagramType, inputDir, out, options) -> 
+        let diagramExporter =
+            match diagramType with
+            | Dgml -> Diagram.exportDgml
+            | _ -> failwith ""
+
         let lib = loadLibs errStringing options.Lib
         getYkmFiles inputDir
         |> Array.map (fun path -> 
@@ -113,8 +136,8 @@ let doAction errStringing =
         |> List.ofArray
         |> Diagram.analyze
         |> unwrapDomException errStringing
-        |> Diagram.exportDgml
-        |> fun dgml -> File.WriteAllText(outDgml, dgml, Text.Encoding.UTF8)
+        |> diagramExporter
+        |> fun diagram -> File.WriteAllText(out, diagram, Text.Encoding.UTF8)
 
     | Charset (inputDir, outCharset, options) ->
         let lib = loadLibs errStringing options.Lib

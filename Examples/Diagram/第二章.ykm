@@ -1,0 +1,13 @@
+- scene "第二章 开始"
+@__diagram_link_to "第二章 选择支A"
+@__diagram_link_to "第二章 选择支B"
+
+- scene "第二章 选择支A"
+@__diagram_link_to "第二章 结尾"
+
+- scene "第二章 选择支B"
+@__diagram_link_to "第二章 结尾"
+
+- scene "第二章 结尾"
+@__diagram_link_to "第三章"
+
