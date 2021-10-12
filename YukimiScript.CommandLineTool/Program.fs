@@ -126,7 +126,7 @@ let doAction errStringing =
         let diagramExporter =
             match diagramType with
             | Dgml -> Diagram.exportDgml
-            | _ -> failwith ""
+            | _ -> Diagram.exportMermaid
 
         let lib = loadLibs errStringing options.Lib
         getYkmFiles inputDir

@@ -6,7 +6,8 @@ open System.IO
 
 
 type SceneNode =
-    { Name: string }
+    { Name: string
+      FileName: string }
 
 
 type FileNode =
@@ -50,10 +51,10 @@ let analyze (files: (string * Dom) list) : Result<Diagram> =
                                         | Error e -> raise e
                                         | _ -> raise <| DiagramMacroErrorException debug
                                 | _ -> None)
-                        { Name = scene.Name }, linkTo
+                        { Name = scene.Name; FileName = fileName }, linkTo
                     )
                 
-                { Name = Path.GetFileName fileName
+                { Name = fileName
                   Scenes = List.map fst scenes },
                 scenes)
             |> List.unzip
@@ -134,3 +135,56 @@ let exportDgml (diagram: Diagram) : string =
         .AppendLine("  </Categories>")
         .AppendLine("</DirectedGraph>")
         .ToString()
+
+
+let exportMermaid (diagram: Diagram) : string = 
+    let arrowInSameFile, anotherArrows =
+        diagram.Arrows
+        |> List.partition (fun { From = from; Target = target } -> 
+            from.FileName = target.FileName)
+
+    let arrowInSameFile =
+        arrowInSameFile |> List.groupBy (fun x -> x.From.FileName)
+
+    let sb = System.Text.StringBuilder ()
+    sb.AppendLine("flowchart LR") |> ignore
+
+    let fileIds = 
+        diagram.Files
+        |> List.mapi (fun i x -> x.Name, $"f{i}")
+        |> Map.ofList
+
+    let sceneIds =
+        diagram.Files
+        |> List.collect (fun x -> x.Scenes)
+        |> List.mapi (fun i x -> x, $"n{i}")
+        |> Map.ofList
+
+    let processArrows arrows =
+        for arr in arrows do
+            sb  .Append("    ")
+                .Append(sceneIds.[arr.From])
+                .Append("(\"")
+                .Append(arr.From.Name)
+                .Append("\")")
+                .Append("-->")
+                .Append(sceneIds.[arr.Target])
+                .Append("(\"")
+                .Append(arr.Target.Name)
+                .AppendLine("\")") |> ignore
+
+    for (file, arrows) in arrowInSameFile do
+        sb  .Append("    subgraph ")
+            .Append(fileIds.[file])
+            .Append("[\"")
+            .Append(file)
+            .AppendLine("\"]") |> ignore
+
+        processArrows arrows
+
+        sb  .AppendLine("    end")
+            .AppendLine() |> ignore
+
+    processArrows anotherArrows
+
+    sb.ToString ()
