@@ -19,19 +19,15 @@ type CommandCall =
 type TextSlice =
     | Text of string
     | CommandCall of CommandCall
-    | Marked of 
-        mark: string *
-        inner: TextSlice list
+    | Marked of mark: string * inner: TextSlice list
 
 
-type Parameter = 
+type Parameter =
     { Parameter: string
       Default: Constant option }
 
 
-type MacroDefination =
-    { Name: string
-      Param: Parameter list }
+type MacroDefination = { Name: string; Param: Parameter list }
 
 
 type SceneDefination =
@@ -45,8 +41,7 @@ type TextBlock =
       HasMore: bool }
 
 
-type ExternDefination =
-    | ExternCommand of string * Parameter list
+type ExternDefination = ExternCommand of string * Parameter list
 
 
 type Line =
@@ -90,4 +85,3 @@ module Operation =
 
 
 type Block = (Operation * DebugInformation) list
-

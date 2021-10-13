@@ -8,13 +8,12 @@ open Basics
 let private lineComment: Parser<string> =
     parser {
         do! literal "#"
-        let commentChar = 
-            predicate 
-                (fun x -> x <> '\r' && x <> '\n')
-                anyChar
+
+        let commentChar =
+            predicate (fun x -> x <> '\r' && x <> '\n') anyChar
 
         let! comment = zeroOrMore commentChar
-        
+
         return toStringTrim comment
     }
     |> name "comment"
@@ -27,23 +26,22 @@ type Parsed =
 
 let parseLine (line: string) =
     parser {
-        do!  whitespace0
+        do! whitespace0
+
         let! parsed =
-            choices [
-                TopLevels.topLevels
-                Statment.statment
-                Text.text
-                return' Line.EmptyLine 
-            ]
-            
-        do!  whitespace0
+            choices [ TopLevels.topLevels
+                      Statment.statment
+                      Text.text
+                      return' Line.EmptyLine ]
+
+        do! whitespace0
         let! comment = zeroOrOne lineComment
         return { Line = parsed; Comment = comment }
     }
     |> run line
 
 
-let parseLines (line: string[]) : Result<Parsed list, (int * exn) list> =
+let parseLines (line: string []) : Result<Parsed list, (int * exn) list> =
     let parsed =
         line
         |> Array.Parallel.map parseLine
@@ -52,14 +50,14 @@ let parseLines (line: string[]) : Result<Parsed list, (int * exn) list> =
     let errors =
         parsed
         |> List.indexed
-        |> List.choose (function
-            | lineNumber, Error e -> Some (lineNumber, e)
+        |> List.choose
+            (function
+            | lineNumber, Error e -> Some(lineNumber, e)
             | _ -> None)
-        
-    if List.isEmpty errors then 
+
+    if List.isEmpty errors then
         match switchResultList parsed with
         | Ok x -> Ok x
         | _ -> failwith "Internal Error"
-    else Error errors
-
-    
+    else
+        Error errors

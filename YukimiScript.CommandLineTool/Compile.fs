@@ -11,10 +11,15 @@ let unwrapParseException (errStringing: ErrorStringing.ErrorStringing) fileName 
     function
     | Ok x -> x
     | Error ls ->
-        ls 
-        |> List.iter (fun (lineNumber, err) ->
-            Path.GetFileName(fileName: string) + "(" + string lineNumber + "):" + errStringing err
-            |> stderr.WriteLine)
+        ls
+        |> List.iter
+            (fun (lineNumber, err) ->
+                Path.GetFileName(fileName: string)
+                + "("
+                + string lineNumber
+                + "):"
+                + errStringing err
+                |> stderr.WriteLine)
 
         raise FailException
 
@@ -23,8 +28,7 @@ let unwrapDomException (errorStringing: ErrorStringing.ErrorStringing) =
     function
     | Ok x -> x
     | Error err ->
-        errorStringing err
-        |> stderr.WriteLine
+        errorStringing err |> stderr.WriteLine
         raise FailException
 
 
@@ -38,41 +42,44 @@ let private loadDom errStringing src =
 
 let private findRepeat (items: (string * Elements.DebugInformation) seq) =
     Seq.groupBy fst items
-    |> Seq.choose (fun (key, matches) ->
-        if Seq.length matches <= 1 then None
-        else Some (key, matches |> Seq.map snd))
+    |> Seq.choose
+        (fun (key, matches) ->
+            if Seq.length matches <= 1 then
+                None
+            else
+                Some(key, matches |> Seq.map snd))
 
- 
+
 let checkRepeat errStringing (dom: Dom) =
-    dom.Externs 
+    dom.Externs
     |> Seq.map (fun (Elements.ExternCommand (cmd, _), dbg) -> cmd, dbg)
-    |> findRepeat 
+    |> findRepeat
     |> Seq.tryHead
     |> function
         | None -> ()
-        | Some x -> 
+        | Some x ->
             Dom.ExternRepeatException x
             |> Error
             |> unwrapDomException errStringing
 
-    dom.Scenes 
+    dom.Scenes
     |> Seq.map (fun (s, _, dbg) -> s.Name, dbg)
-    |> findRepeat 
+    |> findRepeat
     |> Seq.tryHead
     |> function
         | None -> ()
-        | Some x -> 
+        | Some x ->
             Dom.SceneRepeatException x
             |> Error
             |> unwrapDomException errStringing
 
-    dom.Macros 
+    dom.Macros
     |> Seq.map (fun (s, _, dbg) -> s.Name, dbg)
-    |> findRepeat 
+    |> findRepeat
     |> Seq.tryHead
     |> function
         | None -> ()
-        | Some x -> 
+        | Some x ->
             Dom.MacroRepeatException x
             |> Error
             |> unwrapDomException errStringing
@@ -88,14 +95,14 @@ let getYkmFiles (dir: string) =
 let loadLib errStringing libPath =
     let doms =
         getYkmFiles libPath
-        |> Array.map (fun srcPath -> 
-            srcPath, loadDom errStringing srcPath)
+        |> Array.map (fun srcPath -> srcPath, loadDom errStringing srcPath)
 
-    doms 
-    |> Array.iter (fun (fileName, dom) ->
-        if Seq.isEmpty dom.Scenes |> not then
-            unwrapDomException errStringing 
-            <| Error (Dom.CannotDefineSceneInLibException fileName))
+    doms
+    |> Array.iter
+        (fun (fileName, dom) ->
+            if Seq.isEmpty dom.Scenes |> not then
+                unwrapDomException errStringing
+                <| Error(Dom.CannotDefineSceneInLibException fileName))
 
     doms
     |> Array.map snd
@@ -119,4 +126,3 @@ let prepareCodegen errStringing dom =
     Dom.expandSystemMacros dom
     |> Dom.linkToExternCommands
     |> unwrapDomException errStringing
-

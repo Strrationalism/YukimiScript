@@ -8,10 +8,10 @@ open Constants
 
 let commandCall =
     parser {
-        do!  whitespace0
+        do! whitespace0
         let! command = symbol
-        
-        let! unnamedArgs = 
+
+        let! unnamedArgs =
             parser {
                 do! whitespace1
                 return! constantParser
@@ -22,9 +22,10 @@ let commandCall =
             parser {
                 do! whitespace1
                 do! literal "--"
+
                 let! param = explicit symbol
 
-                let arg = 
+                let arg =
                     parser {
                         do! whitespace1
                         return! constantParser
@@ -36,7 +37,7 @@ let commandCall =
             }
             |> zeroOrMore
 
-        return 
+        return
             { Callee = command
               UnnamedArgs = unnamedArgs
               NamedArgs = namedArgs }
@@ -47,7 +48,5 @@ let commandCall =
 let statment =
     parser {
         do! literal "@"
-        return! 
-            commandCall 
-            |> map Line.CommandCall
+        return! commandCall |> map Line.CommandCall
     }

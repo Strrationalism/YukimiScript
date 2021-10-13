@@ -4,7 +4,7 @@ open YukimiScript.Parser.Parser
 open YukimiScript.Parser.Elements
 
 
-type Dom = 
+type Dom =
     { HangingEmptyLine: DebugInformation list
       Externs: (ExternDefination * DebugInformation) list
       Macros: (MacroDefination * Block * DebugInformation) list
@@ -19,7 +19,7 @@ module Dom =
           Scenes = dom1.Scenes @ dom2.Scenes }
 
 
-    let empty = 
+    let empty =
         { HangingEmptyLine = []
           Externs = []
           Macros = []
@@ -51,139 +51,130 @@ module Dom =
         | None -> state
         | Some (label, debugInfo, block) ->
             { CurrentBlock = None
-              Result = 
+              Result =
                   { state.Result with
-                      Macros = 
-                          match label with
-                          | MacroDefination x ->
-                              (x, List.rev block, debugInfo) :: state.Result.Macros 
-                          | SceneDefination _ -> state.Result.Macros
-                          | _ -> raise UnknownException 
-                      Scenes =
-                          match label with
-                          | MacroDefination _ -> state.Result.Scenes
-                          | SceneDefination x -> 
-                              (x, List.rev block, debugInfo) :: state.Result.Scenes 
-                          | _ -> raise UnknownException } }
+                        Macros =
+                            match label with
+                            | MacroDefination x ->
+                                (x, List.rev block, debugInfo)
+                                :: state.Result.Macros
+                            | SceneDefination _ -> state.Result.Macros
+                            | _ -> raise UnknownException
+                        Scenes =
+                            match label with
+                            | MacroDefination _ -> state.Result.Scenes
+                            | SceneDefination x ->
+                                (x, List.rev block, debugInfo)
+                                :: state.Result.Scenes
+                            | _ -> raise UnknownException } }
 
 
-    let private analyzeFold 
-                state 
-                (line, debugInfo) 
-                =
+    let private analyzeFold state (line, debugInfo) =
 
         let pushOperation x =
             match state.CurrentBlock with
             | None -> Error <| HangingOperationException debugInfo
-            | Some (line, labelDbgInfo, block) -> 
+            | Some (line, labelDbgInfo, block) ->
                 { state with
-                    CurrentBlock = 
-                        Some (
-                            line,
-                            labelDbgInfo,
-                            (x, debugInfo) :: block
-                        ) 
-                }
+                      CurrentBlock = Some(line, labelDbgInfo, (x, debugInfo) :: block) }
                 |> Ok
 
         let setLabel state line =
             { saveCurrentBlock state with
-                CurrentBlock = Some (line, debugInfo, []) }
+                  CurrentBlock = Some(line, debugInfo, []) }
 
         match line with
-        | Line.EmptyLine -> 
+        | Line.EmptyLine ->
             match state.CurrentBlock with
             | Some _ -> pushOperation EmptyLine
-            | None -> 
-                { state with 
-                    Result = 
-                        { state.Result with 
-                            HangingEmptyLine = 
-                                debugInfo :: state.Result.HangingEmptyLine } }
+            | None ->
+                { state with
+                      Result =
+                          { state.Result with
+                                HangingEmptyLine = debugInfo :: state.Result.HangingEmptyLine } }
                 |> Ok
 
         | Line.CommandCall x -> pushOperation <| CommandCall x
         | Line.Text x -> pushOperation <| Text x
-        | SceneDefination scene ->
-            Ok <| setLabel state (SceneDefination scene)
-        | MacroDefination macro -> 
-            Ok <| setLabel state (MacroDefination macro)
+        | SceneDefination scene -> Ok <| setLabel state (SceneDefination scene)
+        | MacroDefination macro -> Ok <| setLabel state (MacroDefination macro)
         | ExternDefination (ExternCommand (name, param)) ->
             let nextState = saveCurrentBlock state
+
             { nextState with
-                Result = 
-                    { nextState.Result with 
-                        Externs = 
-                            (ExternCommand (name, param), debugInfo) 
-                            :: nextState.Result.Externs } }
+                  Result =
+                      { nextState.Result with
+                            Externs =
+                                (ExternCommand(name, param), debugInfo)
+                                :: nextState.Result.Externs } }
             |> Ok
 
 
     exception CannotDefineSceneInLibException of string
 
 
-    let analyze (fileName: string) (x: Parsed seq) : Result<Dom> = 
+    let analyze (fileName: string) (x: Parsed seq) : Result<Dom> =
         let finalState =
             x
             |> Seq.indexed
-            |> Seq.map (fun (lineNumber, { Line = line; Comment = comment }) ->
-                    line, 
+            |> Seq.map
+                (fun (lineNumber, { Line = line; Comment = comment }) ->
+                    line,
                     { LineNumber = lineNumber + 1
                       Comment = comment
                       File = fileName })
-            |> Seq.fold 
-                (fun state x -> 
-                    Result.bind 
-                        (fun state -> analyzeFold state x) 
-                        state)
-                (Ok { Result = empty
-                      CurrentBlock = None })
+            |> Seq.fold
+                (fun state x -> Result.bind (fun state -> analyzeFold state x) state)
+                (Ok { Result = empty; CurrentBlock = None })
             |> Result.map saveCurrentBlock
-        
-        finalState 
-        |> Result.map (fun x -> 
-            { Scenes = List.rev x.Result.Scenes
-              Macros = List.rev x.Result.Macros
-              Externs = List.rev x.Result.Externs
-              HangingEmptyLine = List.rev x.Result.HangingEmptyLine })
+
+        finalState
+        |> Result.map
+            (fun x ->
+                { Scenes = List.rev x.Result.Scenes
+                  Macros = List.rev x.Result.Macros
+                  Externs = List.rev x.Result.Externs
+                  HangingEmptyLine = List.rev x.Result.HangingEmptyLine })
 
 
     let expandTextCommands (x: Dom) : Dom =
         let mapBlock (defination, block, debugInfo) =
-            let block = 
+            let block =
                 block
-                |> List.collect (function
+                |> List.collect
+                    (function
                     | Text x, debugInfo ->
                         [ if debugInfo.Comment.IsSome then
                               EmptyLine, debugInfo
-                            
+
                           yield! Text.expandTextBlock x debugInfo ]
-                    | x -> [x]) 
-                        
+                    | x -> [ x ])
+
             defination, block, debugInfo
 
-        { x with 
-            Scenes = List.map mapBlock x.Scenes
-            Macros = List.map mapBlock x.Macros }
+        { x with
+              Scenes = List.map mapBlock x.Scenes
+              Macros = List.map mapBlock x.Macros }
 
 
     let expandUserMacros (x: Dom) =
-        let macros = List.map (fun (a, b, _) -> a, b) x.Macros
+        let macros =
+            List.map (fun (a, b, _) -> a, b) x.Macros
+
         x.Scenes
-        |> List.map (fun (sceneDef, block, debugInfo) -> 
-            Macro.expandBlock macros block
-            |> Result.map (fun x -> sceneDef, x, debugInfo))
+        |> List.map
+            (fun (sceneDef, block, debugInfo) ->
+                Macro.expandBlock macros block
+                |> Result.map (fun x -> sceneDef, x, debugInfo))
         |> ParserMonad.switchResultList
-        |> Result.map (fun scenes ->
-            { x with Scenes = scenes })
-                
-     
+        |> Result.map (fun scenes -> { x with Scenes = scenes })
+
+
     let expandSystemMacros (x: Dom) =
-        { x with 
-            Scenes = 
-                x.Scenes 
-                |> List.map (fun (a, b, c) -> 
-                    a, Macro.expandSystemMacros b, c) }
+        { x with
+              Scenes =
+                  x.Scenes
+                  |> List.map (fun (a, b, c) -> a, Macro.expandSystemMacros b, c) }
 
 
     exception MustExpandTextBeforeLinkException
@@ -192,13 +183,14 @@ module Dom =
     exception ExternCommandDefinationNotFoundException of string * DebugInformation
 
 
-    let private systemCommands =  
+    let private systemCommands =
         let parse str =
-            TopLevels.topLevels |> ParserMonad.run str
+            TopLevels.topLevels
+            |> ParserMonad.run str
             |> function
                 | Ok (ExternDefination x) -> x
                 | _ -> failwith "Bug here!"
-        
+
         [ parse "- extern __text_begin character=null"
           parse "- extern __text_type text"
           parse "- extern __text_pushMark mark"
@@ -208,39 +200,34 @@ module Dom =
 
     let linkToExternCommands (x: Dom) : Result<Dom> =
         let externs = systemCommands @ List.map fst x.Externs
+
         let linkSingleCommand (op, debugInfo) =
             match op with
             | Text _ -> Error MustExpandTextBeforeLinkException
-            | CommandCall c -> 
-                match 
-                    List.tryFind 
-                        (fun (ExternCommand (name, _)) -> 
-                            name = c.Callee) 
-                        externs with
-                | None -> 
-                    Error 
-                    <| ExternCommandDefinationNotFoundException 
-                        (c.Callee, debugInfo)
-                | Some (ExternCommand (_, param)) -> 
+            | CommandCall c ->
+                match List.tryFind (fun (ExternCommand (name, _)) -> name = c.Callee) externs with
+                | None ->
+                    Error
+                    <| ExternCommandDefinationNotFoundException(c.Callee, debugInfo)
+                | Some (ExternCommand (_, param)) ->
                     Macro.matchArguments debugInfo param c
-                    |> Result.map (fun args -> 
-                        let args = 
-                            List.map 
-                                (fun { Parameter = param } -> 
-                                    List.find (fst >> (=) param) args
-                                    |> snd) 
-                                param
+                    |> Result.map
+                        (fun args ->
+                            let args =
+                                List.map (fun { Parameter = param } -> List.find (fst >> (=) param) args |> snd) param
 
-                        CommandCall { c with UnnamedArgs = args; NamedArgs = [] })
+                            CommandCall
+                                { c with
+                                      UnnamedArgs = args
+                                      NamedArgs = [] })
             | x -> Ok x
             |> Result.map (fun x -> x, debugInfo)
 
         let linkToExternCommands (sceneDef, block, debugInfo) =
-            List.map linkSingleCommand block |> ParserMonad.switchResultList
+            List.map linkSingleCommand block
+            |> ParserMonad.switchResultList
             |> Result.map (fun block -> sceneDef, (block: Block), debugInfo)
-            
-        List.map linkToExternCommands x.Scenes 
-        |> ParserMonad.switchResultList
-        |> Result.map (fun scenes ->
-            { x with Scenes = scenes })
 
+        List.map linkToExternCommands x.Scenes
+        |> ParserMonad.switchResultList
+        |> Result.map (fun scenes -> { x with Scenes = scenes })

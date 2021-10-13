@@ -5,22 +5,18 @@ open YukimiScript.Parser.Macro
 open System.IO
 
 
-type SceneNode =
-    { Name: string
-      FileName: string }
+type SceneNode = { Name: string; FileName: string }
 
 
 type FileNode =
     { Name: string
       Scenes: SceneNode list }
 
- 
-type SceneArrow =
-    { From: SceneNode
-      Target: SceneNode }
+
+type SceneArrow = { From: SceneNode; Target: SceneNode }
 
 
-type Diagram = 
+type Diagram =
     { Files: FileNode list
       Arrows: SceneArrow list }
 
@@ -35,54 +31,66 @@ let analyze (files: (string * Dom) list) : Result<Diagram> =
     try
         let fileNodes, arrows =
             files
-            |> List.map (fun (fileName, dom) ->
-                let scenes = 
-                    dom.Scenes
-                    |> List.map (fun (scene, block, _) ->
-                        let linkTo = 
-                            block
-                            |> List.choose (function
-                                | CommandCall c, debug when c.Callee = "__diagram_link_to" ->
-                                    let p = { Parameter = "target"; Default = None }
-                                    matchArguments debug [p] c
-                                    |> function
-                                        | Ok [ "target", (String target) ] -> 
-                                            Some target
-                                        | Error e -> raise e
-                                        | _ -> raise <| DiagramMacroErrorException debug
-                                | _ -> None)
-                        { Name = scene.Name; FileName = fileName }, linkTo
-                    )
-                
-                { Name = fileName
-                  Scenes = List.map fst scenes },
-                scenes)
+            |> List.map
+                (fun (fileName, dom) ->
+                    let scenes =
+                        dom.Scenes
+                        |> List.map
+                            (fun (scene, block, _) ->
+                                let linkTo =
+                                    block
+                                    |> List.choose
+                                        (function
+                                        | CommandCall c, debug when c.Callee = "__diagram_link_to" ->
+                                            let p = { Parameter = "target"; Default = None }
+
+                                            matchArguments debug [ p ] c
+                                            |> function
+                                                | Ok [ "target", (String target) ] -> Some target
+                                                | Error e -> raise e
+                                                | _ -> raise <| DiagramMacroErrorException debug
+                                        | _ -> None)
+
+                                { Name = scene.Name
+                                  FileName = fileName },
+                                linkTo)
+
+                    { Name = fileName
+                      Scenes = List.map fst scenes },
+                    scenes)
             |> List.unzip
 
         let arrows =
-            let scenes = Seq.collect (fun x -> x.Scenes) fileNodes
+            let scenes =
+                Seq.collect (fun x -> x.Scenes) fileNodes
+
             arrows
             |> List.concat
-            |> List.collect (fun (src, dst) ->
-                dst
-                |> List.map (fun dst ->
-                    scenes
-                    |> Seq.tryFind (fun x -> x.Name = dst)
-                    |> function
-                        | None -> raise <| CannotFindSceneException dst
-                        | Some x -> src, x))
+            |> List.collect
+                (fun (src, dst) ->
+                    dst
+                    |> List.map
+                        (fun dst ->
+                            scenes
+                            |> Seq.tryFind (fun x -> x.Name = dst)
+                            |> function
+                                | None -> raise <| CannotFindSceneException dst
+                                | Some x -> src, x))
             |> List.map (fun (a, b) -> { From = a; Target = b })
 
         Ok { Files = fileNodes; Arrows = arrows }
-    with e -> Error e
+    with
+    | e -> Error e
 
 
 let exportDgml (diagram: Diagram) : string =
-    let sb = System.Text.StringBuilder ()
+    let sb = System.Text.StringBuilder()
 
-    sb  .AppendLine("""<?xml version="1.0" encoding="utf-8"?>""")
+    sb
+        .AppendLine("""<?xml version="1.0" encoding="utf-8"?>""")
         .AppendLine("""<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">""")
-        .AppendLine("""  <Nodes>""") |> ignore
+        .AppendLine("""  <Nodes>""")
+    |> ignore
 
     let fileNodeOnlyContainsOneScene file =
         Seq.tryExactlyOne file.Scenes
@@ -91,39 +99,50 @@ let exportDgml (diagram: Diagram) : string =
 
     for file in diagram.Files do
         if not <| fileNodeOnlyContainsOneScene file then
-            sb  .Append("    <Node Id=\"")
+            sb
+                .Append("    <Node Id=\"")
                 .Append(file.Name)
                 .Append("\" Group=\"Expanded\" />")
-                .AppendLine() |> ignore
-            
+                .AppendLine()
+            |> ignore
+
         for scene in file.Scenes do
-            sb  .Append("    <Node Id=\"")
+            sb
+                .Append("    <Node Id=\"")
                 .Append(scene.Name)
                 .Append("\" />")
-                .AppendLine() |> ignore
+                .AppendLine()
+            |> ignore
 
-    sb  .AppendLine("  </Nodes>")
-        .AppendLine("  <Links>") |> ignore
+    sb
+        .AppendLine("  </Nodes>")
+        .AppendLine("  <Links>")
+    |> ignore
 
     for file in diagram.Files do
         if not <| fileNodeOnlyContainsOneScene file then
             for scene in file.Scenes do
-                sb  .Append("    <Link Source=\"")
+                sb
+                    .Append("    <Link Source=\"")
                     .Append(file.Name)
                     .Append("\" Target=\"")
                     .Append(scene.Name)
                     .Append("\" Category=\"Contains\" />")
-                    .AppendLine () |> ignore
+                    .AppendLine()
+                |> ignore
 
     for arrows in diagram.Arrows do
-        sb  .Append("    <Link Source=\"")
+        sb
+            .Append("    <Link Source=\"")
             .Append(arrows.From.Name)
             .Append("\" Target=\"")
             .Append(arrows.Target.Name)
             .Append("\" />")
-            .AppendLine() |> ignore
-    
-    sb  .AppendLine("  </Links>")
+            .AppendLine()
+        |> ignore
+
+    sb
+        .AppendLine("  </Links>")
         .AppendLine("  <Categories>")
         .AppendLine("    <Category")
         .AppendLine("      Id=\"Contains\" ")
@@ -137,19 +156,19 @@ let exportDgml (diagram: Diagram) : string =
         .ToString()
 
 
-let exportMermaid (diagram: Diagram) : string = 
+let exportMermaid (diagram: Diagram) : string =
     let arrowInSameFile, anotherArrows =
         diagram.Arrows
-        |> List.partition (fun { From = from; Target = target } -> 
-            from.FileName = target.FileName)
+        |> List.partition (fun { From = from; Target = target } -> from.FileName = target.FileName)
 
     let arrowInSameFile =
-        arrowInSameFile |> List.groupBy (fun x -> x.From.FileName)
+        arrowInSameFile
+        |> List.groupBy (fun x -> x.From.FileName)
 
-    let sb = System.Text.StringBuilder ()
+    let sb = System.Text.StringBuilder()
     sb.AppendLine("flowchart LR") |> ignore
 
-    let fileIds = 
+    let fileIds =
         diagram.Files
         |> List.mapi (fun i x -> x.Name, $"f{i}")
         |> Map.ofList
@@ -162,7 +181,8 @@ let exportMermaid (diagram: Diagram) : string =
 
     let processArrows arrows =
         for arr in arrows do
-            sb  .Append("    ")
+            sb
+                .Append("    ")
                 .Append(sceneIds.[arr.From])
                 .Append("(\"")
                 .Append(arr.From.Name)
@@ -171,20 +191,22 @@ let exportMermaid (diagram: Diagram) : string =
                 .Append(sceneIds.[arr.Target])
                 .Append("(\"")
                 .Append(arr.Target.Name)
-                .AppendLine("\")") |> ignore
+                .AppendLine("\")")
+            |> ignore
 
     for (file, arrows) in arrowInSameFile do
-        sb  .Append("    subgraph ")
+        sb
+            .Append("    subgraph ")
             .Append(fileIds.[file])
             .Append("[\"")
             .Append(file)
-            .AppendLine("\"]") |> ignore
+            .AppendLine("\"]")
+        |> ignore
 
         processArrows arrows
 
-        sb  .AppendLine("    end")
-            .AppendLine() |> ignore
+        sb.AppendLine("    end").AppendLine() |> ignore
 
     processArrows anotherArrows
 
-    sb.ToString ()
+    sb.ToString()

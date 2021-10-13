@@ -7,11 +7,13 @@ open NUnit.Framework
 
 [<Test>]
 let testCommandCall () =
-    testParse " @  bg.play Black \"C1\" -256 --effect a --camera -2.0" <|
-        Line.CommandCall
-            { Callee = "bg.play"
-              UnnamedArgs = [ Symbol "Black"; String "C1"; Integer -256 ]
-              NamedArgs = 
-                [ "effect", Symbol "a"
-                  "camera", Number -2.0 ] }
-
+    testParse " @  bg.play Black \"C1\" -256 --effect a --camera -2.0"
+    <| Line.CommandCall
+        { Callee = "bg.play"
+          UnnamedArgs =
+              [ Symbol "Black"
+                String "C1"
+                Integer -256 ]
+          NamedArgs =
+              [ "effect", Symbol "a"
+                "camera", Number -2.0 ] }

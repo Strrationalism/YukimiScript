@@ -7,18 +7,19 @@ open NUnit.Framework
 
 let testConstant (x: string) case =
     ParserMonad.run x Constants.constantParser
-    |> function 
+    |> function
         | Ok x -> Assert.AreEqual(case, x)
         | Error x -> Assert.Fail(x.ToString())
 
 
 [<Test>]
 let testIntegers () =
-    let rnd = System.Random ()
-    for _ in 0..16 do
+    let rnd = System.Random()
+
+    for _ in 0 .. 16 do
         let i = rnd.Next()
         testConstant (string i) <| Integer i
-        let j = -rnd.Next()
+        let j = - rnd.Next()
         testConstant (string j) <| Integer j
 
     testConstant "-  1674" <| Integer -1674
@@ -26,8 +27,9 @@ let testIntegers () =
 
 [<Test>]
 let testNumbers () =
-    let rnd = System.Random ()
-    for _ in 0..16 do
+    let rnd = System.Random()
+
+    for _ in 0 .. 16 do
         let i = float (rnd.Next()) + rnd.NextDouble()
         testConstant (string i) <| Number i
         let j = -(float (rnd.Next()) + rnd.NextDouble())
@@ -47,8 +49,9 @@ let testStrings () =
                 .Replace("\"", "\\\"")
                 .Replace("\'", @"\'")
                 .Replace("\r", @"\r")
-                
-        testConstant ("\"" + parserInput + "\"") <| String str
+
+        testConstant ("\"" + parserInput + "\"")
+        <| String str
 
     t "中文测试"
     t "english test  "

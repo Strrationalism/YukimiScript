@@ -6,8 +6,7 @@ open ParserMonad
 
 
 let private numberParser, integerParser =
-    let numberChar = 
-        inRange <| seq { '0' .. '9' }
+    let numberChar = inRange <| seq { '0' .. '9' }
 
     let unsignedIntegerString =
         parser {
@@ -16,19 +15,22 @@ let private numberParser, integerParser =
         }
         |> name "digit"
 
-    let sign = 
+    let sign =
         parser {
             let! sign = zeroOrOne (literal "-")
-            if sign.IsSome then return "-"
-            else return ""
+
+            if sign.IsSome then
+                return "-"
+            else
+                return ""
         }
 
     let numberParser =
         parser {
             let! sign = sign
-            do!  whitespace0
+            do! whitespace0
             let! a = unsignedIntegerString
-            do!  literal "."
+            do! literal "."
             let! b = unsignedIntegerString
 
             return Number <| float (sign + a + "." + b)
@@ -38,22 +40,22 @@ let private numberParser, integerParser =
     let integerParser =
         parser {
             let! sign = sign
-            do!  whitespace0
+            do! whitespace0
             let! i = unsignedIntegerString
             return Integer <| int (sign + i)
         }
-        |> name "integer" 
+        |> name "integer"
 
-    numberParser,
-    integerParser 
-        
+    numberParser, integerParser
+
 
 
 exception InvalidStringCharException of string
 
 
 let string2literal =
-    String.collect (function
+    String.collect
+        (function
         | '\n' -> "\\n"
         | '\t' -> "\\t"
         | '\r' -> "\\r"
@@ -73,17 +75,17 @@ let stringParser =
                 | 'r' -> return '\r'
                 | '\'' -> return '\''
                 | '\"' -> return '\"'
-                | x -> 
-                    let ex = 
-                        InvalidStringCharException 
-                        <| "\\" + string x
+                | x ->
+                    let ex =
+                        InvalidStringCharException <| "\\" + string x
+
                     raise ex
                     return! fail ex
             }
 
         parser {
             match! predicate ((<>) '\"') anyChar with
-            | '\n' -> 
+            | '\n' ->
                 let ex = InvalidStringCharException "newline"
                 raise ex
                 return! fail ex
@@ -92,16 +94,15 @@ let stringParser =
         }
 
     parser {
-        do!  literal "\""
+        do! literal "\""
         let! chars = zeroOrMore stringChar
-        do!  literal "\""
+        do! literal "\""
         return toString chars
     }
     |> name "string"
 
 
-let private stringConstant =
-    map String stringParser
+let private stringConstant = map String stringParser
 
 
 let constantParser =

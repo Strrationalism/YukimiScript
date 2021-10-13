@@ -8,21 +8,20 @@ open Constants
 
 let private sceneDefaintion =
     parser {
-        let! sceneName = 
-            explicit 
-            <| name "scene name" stringParser
+        let! sceneName = explicit <| name "scene name" stringParser
 
         let! inheritScene =
             parser {
                 do! whitespace0
                 do! literal "inherit"
                 do! whitespace0
-                return! explicit <| 
-                    name "inherit scene name" stringParser
+                return! explicit <| name "inherit scene name" stringParser
             }
             |> zeroOrOne
 
-        return { Name = sceneName; Inherit = inheritScene }
+        return
+            { Name = sceneName
+              Inherit = inheritScene }
     }
     |> name "scene defination"
 
@@ -34,17 +33,18 @@ let private externDefination =
     parser {
         let! externName = explicit symbol
         let! param = Macro.parameterList externName
-        return ExternCommand (externName, param)
+        return ExternCommand(externName, param)
     }
 
 let topLevels =
     parser {
-        do!  literal "-"
-        do!  whitespace0
+        do! literal "-"
+        do! whitespace0
+
         let! symbol = explicit symbol
-        do!  whitespace0
-        
-        match symbol  with
+        do! whitespace0
+
+        match symbol with
         | "macro" -> return! map MacroDefination Macro.macroDefinationParser
         | "scene" -> return! map SceneDefination sceneDefaintion
         | "extern" -> return! map ExternDefination externDefination

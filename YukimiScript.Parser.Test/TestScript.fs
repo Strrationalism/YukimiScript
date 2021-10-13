@@ -6,10 +6,11 @@ open NUnit.Framework
 
 [<Test>]
 let testExampleScript () =
-    testParseScript """
+    testParseScript
+        """
 - extern systemAPI_sleep_begin force  # 在这里定义宿主命令
 - extern systemAPI_sleep_end
-- extern systemAPI_sleep time=1 
+- extern systemAPI_sleep time=1
 - extern systemAPI_jumpToSection target
 - extern name
 
@@ -60,7 +61,8 @@ y:感谢您使用由纪美脚本语言！
 
 [<Test>]
 let testExternLinker () =
-    testParseScript """
+    testParseScript
+        """
         - extern system.hello arg1 arg2=1
         - macro hello arg1 arg2
         @system.hello arg1 arg2
