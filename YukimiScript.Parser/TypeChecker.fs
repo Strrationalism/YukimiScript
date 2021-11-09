@@ -43,54 +43,79 @@ let matchType d i (ParameterType (t, types)) (argType: SimpleType) : Result<unit
     else Error <| TypeCheckFailedException (d, i, (ParameterType (t, types)), argType)
 
 
-let matchCallTypes d (pars: ParameterType list) (argType: SimpleType list) =
-    List.zip pars argType |> List.mapi (fun i (a, b) -> matchType d i a b)
-    |> ParserMonad.sequenceRL |> Result.map ignore
-
-
-let matchCall d (pars: ParameterType list) (argType: Constant list) =
-    argType |> List.map checkType |> matchCallTypes d pars
-
-
 exception IsNotAType of string
 
 
 type BlockParamTypes = (string * ParameterType) list
 
 
+let checkApplyTypeCorrect d (paramTypes: BlockParamTypes) (args: (string * Constant) list) =
+    paramTypes
+    |> List.mapi (fun i (paramName, paramType) ->
+        args
+        |> List.find (fst >> ((=) paramName))
+        |> snd
+        |> checkType
+        |> matchType d i paramType)
+    |> ParserMonad.sequenceRL
+    |> Result.map (fun _ -> args)
+
+
+exception CannotGetParameterException of (string * DebugInformation) list
+
+
 let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParamTypes, exn> =
     let typeMacroParams = 
         [ { Parameter = "param"; Default = None }
           { Parameter = "type"; Default = None } ]
+
+    let typeMacroParamsTypes =
+        [ "param", Types.symbol
+          "type", Types.symbol ]
     
     List.choose (function
         | CommandCall c, d when c.Callee = "__type" -> Some (c, d)
         | _ -> None) b
-    |> List.map (fun (c, d) -> Macro.matchArguments d typeMacroParams c)
+    |> List.map (fun (c, d) -> 
+        Macro.matchArguments d typeMacroParams c
+        |> Result.bind (checkApplyTypeCorrect d typeMacroParamsTypes)
+        |> Result.map (fun x -> x, d))
     |> ParserMonad.sequenceRL
     |> Result.bind (fun x ->
         let paramTypePairs =
-            List.map (readOnlyDict >> fun x ->
+            List.map (fun (x, d) ->
+                x
+                |> readOnlyDict 
+                |> fun x ->
                 match x.["param"], x.["type"] with
-                | Symbol par, Symbol t -> par, t
+                | Symbol par, Symbol t -> par, t, d
                 | _ -> failwith "parametersTypeFromBlock: failed!") x
-                
-        par
-        |> List.map (fun { Parameter = name; Default = _ } -> 
+
+        let dummy =
             paramTypePairs
-            |> List.filter (fst >> (=) name)
-            |> List.map snd
-            |> function
-                | [] -> Ok (name, Types.any)
-                | types -> 
-                    types
-                    |> List.map (fun typeName -> 
-                        Types.all
-                        |> List.tryFind (fun (ParameterType (n, _)) -> n = typeName)
-                        |> function
-                            | Some x -> Ok x
-                            | None -> Error <| IsNotAType typeName)
-                    |> ParserMonad.sequenceRL
-                    |> Result.map (fun t -> 
-                        name, List.reduce sumParameterType t))
-        |> ParserMonad.sequenceRL)
+            |> List.filter (not << fun (n, _, d) -> 
+                List.exists (fun p -> p.Parameter = n) par)
+            |> List.map (fun (n, _, d) -> n, d)
+
+        if List.length dummy = 0
+        then
+            par
+            |> List.map (fun { Parameter = name; Default = _ } -> 
+                paramTypePairs
+                |> List.filter ((=) name << fun (n, _, _) -> n)
+                |> List.map (fun (_, t, d) -> t, d)
+                |> function
+                    | [] -> Ok (name, Types.any)
+                    | types -> 
+                        types
+                        |> List.map (fun (typeName, d) -> 
+                            Types.all
+                            |> List.tryFind (fun (ParameterType (n, _)) -> n = typeName)
+                            |> function
+                                | Some x -> Ok x
+                                | None -> Error <| IsNotAType typeName)
+                        |> ParserMonad.sequenceRL
+                        |> Result.map (fun t -> 
+                            name, List.reduce sumParameterType t))
+            |> ParserMonad.sequenceRL
+        else Error <| CannotGetParameterException dummy)

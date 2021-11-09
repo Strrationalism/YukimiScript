@@ -7,6 +7,7 @@ open YukimiScript.Parser.Macro
 open YukimiScript.Parser.ParserMonad
 open YukimiScript.Parser.TopLevels
 open YukimiScript.Parser.Diagram
+open YukimiScript.Parser.TypeChecker
 open System.IO
 
 
@@ -21,6 +22,15 @@ let header (debug: Elements.DebugInformation) =
 
 let schinese: ErrorStringing =
     function
+    | TypeChecker.TypeCheckFailedException (d, i, ParameterType (name, _), a) ->
+        header d 
+        + "第" + string (i + 1) + "个参数的类型应当为" + name + "，但传入了" +
+        match a with
+        | Int' -> "int"
+        | Real' -> "real"
+        | String' -> "string"
+        | Symbol' -> "symbol"
+        + "。"
     | InvalidSymbolException -> "非法符号。"
     | InvalidStringCharException x -> "字符串中存在非法字符\"" + x + "\"。"
     | HangingOperationException debug -> header debug + "存在悬浮操作。"

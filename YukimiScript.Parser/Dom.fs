@@ -124,27 +124,29 @@ module Dom =
 
 
     let analyze (fileName: string) (x: Parsed seq) : Result<Dom, exn> =
-        let finalState =
-            x
-            |> Seq.indexed
-            |> Seq.map
-                (fun (lineNumber, { Line = line; Comment = comment }) ->
-                    line,
-                    { LineNumber = lineNumber + 1
-                      Comment = comment
-                      File = fileName })
-            |> Seq.fold
-                (fun state x -> Result.bind (fun state -> analyzeFold state x) state)
-                (Ok { Result = empty; CurrentBlock = None })
-            |> Result.map saveCurrentBlock
+        try
+            let finalState =
+                x
+                |> Seq.indexed
+                |> Seq.map
+                    (fun (lineNumber, { Line = line; Comment = comment }) ->
+                        line,
+                        { LineNumber = lineNumber + 1
+                          Comment = comment
+                          File = fileName })
+                |> Seq.fold
+                    (fun state x -> Result.bind (fun state -> analyzeFold state x) state)
+                    (Ok { Result = empty; CurrentBlock = None })
+                |> Result.map saveCurrentBlock
 
-        finalState
-        |> Result.map
-            (fun x ->
-                { Scenes = List.rev x.Result.Scenes
-                  Macros = List.rev x.Result.Macros
-                  Externs = List.rev x.Result.Externs
-                  HangingEmptyLine = List.rev x.Result.HangingEmptyLine })
+            finalState
+            |> Result.map
+                (fun x ->
+                    { Scenes = List.rev x.Result.Scenes
+                      Macros = List.rev x.Result.Macros
+                      Externs = List.rev x.Result.Externs
+                      HangingEmptyLine = List.rev x.Result.HangingEmptyLine })
+        with e -> Error e
 
 
     let expandTextCommands (x: Dom) : Dom =
