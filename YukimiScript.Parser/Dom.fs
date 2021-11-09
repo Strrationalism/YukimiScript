@@ -2,12 +2,13 @@ namespace YukimiScript.Parser
 
 open YukimiScript.Parser.Parser
 open YukimiScript.Parser.Elements
+open YukimiScript.Parser.TypeChecker
 
 
 type Dom =
     { HangingEmptyLine: DebugInformation list
-      Externs: (ExternDefination * DebugInformation) list
-      Macros: (MacroDefination * Block * DebugInformation) list
+      Externs: (ExternDefination * BlockParamTypes * DebugInformation) list
+      Macros: (MacroDefination * BlockParamTypes * Block * DebugInformation) list
       Scenes: (SceneDefination * Block * DebugInformation) list }
 
 
@@ -46,6 +47,9 @@ module Dom =
     exception ExternRepeatException of name: string * debugInfo: DebugInformation seq
 
 
+    exception ExternCannotHasContentException of name: string * DebugInformation
+
+
     let private saveCurrentBlock state =
         match state.CurrentBlock with
         | None -> state
@@ -56,17 +60,32 @@ module Dom =
                         Macros =
                             match label with
                             | MacroDefination x ->
-                                (x, List.rev block, debugInfo)
-                                :: state.Result.Macros
-                            | SceneDefination _ -> state.Result.Macros
-                            | _ -> raise UnknownException
+                                let block = List.rev block
+                                match parametersTypeFromBlock x.Param block with
+                                | Ok t -> (x, t, block, debugInfo) :: state.Result.Macros
+                                | Error e -> raise e
+                            | _ -> state.Result.Macros
                         Scenes =
                             match label with
-                            | MacroDefination _ -> state.Result.Scenes
                             | SceneDefination x ->
                                 (x, List.rev block, debugInfo)
                                 :: state.Result.Scenes
-                            | _ -> raise UnknownException } }
+                            | _ -> state.Result.Scenes
+                        Externs =
+                            match label with
+                            | ExternDefination (ExternCommand (n, p)) ->
+                                if
+                                    List.forall (fst >> function
+                                        | CommandCall c when c.Callee = "__type" -> true
+                                        | _ -> false) block
+                                then
+                                    match parametersTypeFromBlock p block with
+                                    | Ok t -> 
+                                        (ExternCommand (n, p), t, debugInfo) 
+                                        :: state.Result.Externs
+                                    | Error e -> raise e
+                                else raise <| ExternCannotHasContentException (n, debugInfo)
+                            | _ -> state.Result.Externs} }
 
 
     let private analyzeFold state (line, debugInfo) =
@@ -98,16 +117,7 @@ module Dom =
         | Line.Text x -> pushOperation <| Text x
         | SceneDefination scene -> Ok <| setLabel state (SceneDefination scene)
         | MacroDefination macro -> Ok <| setLabel state (MacroDefination macro)
-        | ExternDefination (ExternCommand (name, param)) ->
-            let nextState = saveCurrentBlock state
-
-            { nextState with
-                  Result =
-                      { nextState.Result with
-                            Externs =
-                                (ExternCommand(name, param), debugInfo)
-                                :: nextState.Result.Externs } }
-            |> Ok
+        | ExternDefination extern' ->  Ok <| setLabel state (ExternDefination extern')
 
 
     exception CannotDefineSceneInLibException of string
@@ -138,28 +148,23 @@ module Dom =
 
 
     let expandTextCommands (x: Dom) : Dom =
-        let mapBlock (defination, block, debugInfo) =
-            let block =
-                block
-                |> List.collect
-                    (function
-                    | Text x, debugInfo ->
-                        [ if debugInfo.Comment.IsSome then
-                              EmptyLine, debugInfo
+        let mapBlock =
+            List.collect (function
+                | Text x, debugInfo ->
+                    [ if debugInfo.Comment.IsSome then
+                            EmptyLine, debugInfo
 
-                          yield! Text.expandTextBlock x debugInfo ]
-                    | x -> [ x ])
-
-            defination, block, debugInfo
+                      yield! Text.expandTextBlock x debugInfo ]
+                | x -> [ x ])
 
         { x with
-              Scenes = List.map mapBlock x.Scenes
-              Macros = List.map mapBlock x.Macros }
+              Scenes = List.map (fun (def, block, d) -> def, mapBlock block, d) x.Scenes
+              Macros = List.map (fun (def, t, b, d) -> def, t, mapBlock b, d) x.Macros }
 
 
     let expandUserMacros (x: Dom) =
         let macros =
-            List.map (fun (a, b, _) -> a, b) x.Macros
+            List.map (fun (a, _, b, _) -> a, b) x.Macros
 
         x.Scenes
         |> List.map
@@ -199,7 +204,7 @@ module Dom =
 
 
     let linkToExternCommands (x: Dom) : Result<Dom, exn> =
-        let externs = systemCommands @ List.map fst x.Externs
+        let externs = systemCommands @ List.map (fun (x, _, _) -> x) x.Externs
 
         let linkSingleCommand (op, debugInfo) =
             match op with

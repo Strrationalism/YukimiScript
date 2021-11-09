@@ -19,8 +19,7 @@ module Types =
     let number = ParameterType ("number", set [ Int'; Real' ])
     let real = ParameterType ("real", set [ Real' ])
     let symbol = ParameterType ("symbol", set [ Symbol' ])
-    let void' = ParameterType ("void", set [])
-    let all = [ any; int; number; real; symbol; void' ]
+    let all = [ any; int; number; real; symbol ]
 
 
 let sumParameterType (ParameterType (n1, s1)) (ParameterType (n2, s2)) =
@@ -56,7 +55,10 @@ let matchCall d (pars: ParameterType list) (argType: Constant list) =
 exception IsNotAType of string
 
 
-let parametersTypeFromBlock (par: Parameter list) (b: Block) =
+type BlockParamTypes = (string * ParameterType) list
+
+
+let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParamTypes, exn> =
     let typeMacroParams = 
         [ { Parameter = "param"; Default = None }
           { Parameter = "type"; Default = None } ]
@@ -79,7 +81,7 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) =
             |> List.filter (fst >> (=) name)
             |> List.map snd
             |> function
-                | [] -> Ok Types.any
+                | [] -> Ok (name, Types.any)
                 | types -> 
                     types
                     |> List.map (fun typeName -> 
@@ -89,5 +91,6 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) =
                             | Some x -> Ok x
                             | None -> Error <| IsNotAType typeName)
                     |> ParserMonad.sequenceRL
-                    |> Result.map (List.reduce sumParameterType))
+                    |> Result.map (fun t -> 
+                        name, List.reduce sumParameterType t))
         |> ParserMonad.sequenceRL)
