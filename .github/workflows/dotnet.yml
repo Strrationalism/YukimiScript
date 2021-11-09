@@ -51,7 +51,7 @@ jobs:
     - name: Publish Command Line Tool for macOS
       if: ${{ runner.os == 'macOS' }}
       run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r osx-x64
+        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r osx-x64 --self-contained
         strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/osx-x64/publish/ykmc
         
     - name: Publish Command Line Tool for Linux
