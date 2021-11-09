@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-latest, macos-latest, ubuntu-latest ]
+        os: [ windows-latest, ubuntu-latest ]
     steps:
     - uses: actions/checkout@v2
     
@@ -51,7 +51,7 @@ jobs:
     - name: Publish Command Line Tool for macOS
       if: ${{ runner.os == 'macOS' }}
       run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r osx-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true
+        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r osx-x64
         strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/osx-x64/publish/ykmc
         
     - name: Publish Command Line Tool for Linux
