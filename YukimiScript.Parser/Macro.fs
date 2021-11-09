@@ -92,7 +92,7 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
     |> Result.bind
         (fun () ->
             List.map (fun x -> matchArg x.Parameter) x
-            |> switchResultList)
+            |> sequenceRL)
 
 
 let private matchMacro debug x macro =
@@ -140,19 +140,19 @@ let rec private expandSingleOperation macros operation : Result<Block, exn> =
                 | x -> x
                 >> expandSingleOperation macros
             )
-            |> switchResultList
+            |> sequenceRL
             |> Result.map List.concat
     | x -> Ok [ x ]
 
 
 let expandBlock macros (block: Block) =
     List.map (expandSingleOperation macros) block
-    |> switchResultList
+    |> sequenceRL
     |> Result.map List.concat
 
 
 let expandSystemMacros (block: Block) =
-    let systemMacros = [ "__diagram_link_to" ]
+    let systemMacros = [ "__diagram_link_to"; "__type" ]
 
     block
     |> List.map

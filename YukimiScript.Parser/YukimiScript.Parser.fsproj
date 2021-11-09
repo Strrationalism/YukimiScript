@@ -9,6 +9,7 @@
     <Compile Include="Basics.fs" />
     <Compile Include="Constants.fs" />
     <Compile Include="Macro.fs" />
+    <Compile Include="TypeChecker.fs" />
     <Compile Include="TopLevels.fs" />
     <Compile Include="Statment.fs" />
     <Compile Include="Text.fs" />

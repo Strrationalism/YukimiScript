@@ -39,7 +39,7 @@ let tryWith (f: exn -> Parser<'a>) (a: Parser<'a>) : Parser<'a> =
 let explicit (a: Parser<'a>) : Parser<'a> = mapError raise a
 
 
-let switchResultList (x: Result<'a, 'b> list) : Result<'a list, 'b> =
+let sequenceRL (x: Result<'a, 'b> list) : Result<'a list, 'b> =
     (x, Ok [])
     ||> List.foldBack
             (fun x state ->

@@ -31,11 +31,11 @@ let testNumbers () =
 
     for _ in 0 .. 16 do
         let i = float (rnd.Next()) + rnd.NextDouble()
-        testConstant (string i) <| Number i
+        testConstant (string i) <| Real i
         let j = -(float (rnd.Next()) + rnd.NextDouble())
-        testConstant (string j) <| Number j
+        testConstant (string j) <| Real j
 
-    testConstant "- 176.00" <| Number -176.0
+    testConstant "- 176.00" <| Real -176.0
 
 
 [<Test>]

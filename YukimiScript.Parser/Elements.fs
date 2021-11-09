@@ -3,7 +3,7 @@
 
 type Constant =
     | String of string
-    | Number of float
+    | Real of float
     | Integer of int32
     | Symbol of string
 

@@ -16,4 +16,4 @@ let testCommandCall () =
                 Integer -256 ]
           NamedArgs =
               [ "effect", Symbol "a"
-                "camera", Number -2.0 ] }
+                "camera", Real -2.0 ] }

@@ -166,7 +166,7 @@ module Dom =
             (fun (sceneDef, block, debugInfo) ->
                 Macro.expandBlock macros block
                 |> Result.map (fun x -> sceneDef, x, debugInfo))
-        |> ParserMonad.switchResultList
+        |> ParserMonad.sequenceRL
         |> Result.map (fun scenes -> { x with Scenes = scenes })
 
 
@@ -225,9 +225,9 @@ module Dom =
 
         let linkToExternCommands (sceneDef, block, debugInfo) =
             List.map linkSingleCommand block
-            |> ParserMonad.switchResultList
+            |> ParserMonad.sequenceRL
             |> Result.map (fun block -> sceneDef, (block: Block), debugInfo)
 
         List.map linkToExternCommands x.Scenes
-        |> ParserMonad.switchResultList
+        |> ParserMonad.sequenceRL
         |> Result.map (fun scenes -> { x with Scenes = scenes })
