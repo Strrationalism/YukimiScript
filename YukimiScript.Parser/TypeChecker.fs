@@ -69,7 +69,7 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) =
     |> Result.bind (fun x ->
         let paramTypePairs =
             List.map (readOnlyDict >> fun x ->
-                match x["param"], x["type"] with
+                match x.["param"], x.["type"] with
                 | Symbol par, Symbol t -> par, t
                 | _ -> failwith "parametersTypeFromBlock: failed!") x
                 
