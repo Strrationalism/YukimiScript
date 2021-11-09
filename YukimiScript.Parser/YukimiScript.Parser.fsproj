@@ -4,7 +4,6 @@
     <WarnOn>3390;$(WarnOn)</WarnOn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Types.fs" />
     <Compile Include="Elements.fs" />
     <Compile Include="ParserMonad.fs" />
     <Compile Include="Basics.fs" />

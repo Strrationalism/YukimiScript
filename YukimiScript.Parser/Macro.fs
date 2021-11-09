@@ -58,7 +58,7 @@ exception ArgumentRepeatException of DebugInformation * CommandCall * string
 exception ArgumentUnmatchedException of DebugInformation * CommandCall * parameter: string
 
 
-let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(string * Constant) list> =
+let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(string * Constant) list, exn> =
     let defaultArgs =
         x
         |> List.choose (fun { Parameter = name; Default = x } -> Option.map (fun x -> name, x) x)
@@ -76,7 +76,7 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
             | None -> Ok()
             | Some (p, _) -> Error <| ArgumentRepeatException(debugInfo, c, p)
 
-    let matchArg paramName : Result<string * Constant> =
+    let matchArg paramName : Result<string * Constant, exn> =
         let find = List.tryFind (fst >> (=) paramName)
 
         match find inputArgs with
@@ -122,7 +122,7 @@ let private replaceParamToArgs args macroBody =
           NamedArgs = List.map (fun (name, arg) -> name, replaceArg arg) macroBody.NamedArgs }
 
 
-let rec private expandSingleOperation macros operation : Result<Block> =
+let rec private expandSingleOperation macros operation : Result<Block, exn> =
     match operation with
     | CommandCall command, debug ->
         match matchMacro debug command macros with

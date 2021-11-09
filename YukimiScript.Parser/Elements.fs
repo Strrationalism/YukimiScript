@@ -1,7 +1,5 @@
 ﻿namespace YukimiScript.Parser.Elements
 
-open YukimiScript.Parser
-
 
 type Constant =
     | String of string
@@ -76,12 +74,12 @@ module Operation =
     exception CanNotConvertToOperationException of Line
 
 
-    let ofLine: Line -> Result<Operation> =
+    let ofLine: Line -> Operation =
         function
-        | Line.Text t -> Ok <| Text t
-        | Line.CommandCall c -> Ok <| CommandCall c
-        | Line.EmptyLine -> Ok <| EmptyLine
-        | x -> Error <| CanNotConvertToOperationException x
+        | Line.Text t -> Text t
+        | Line.CommandCall c -> CommandCall c
+        | Line.EmptyLine -> EmptyLine
+        | x -> raise <| CanNotConvertToOperationException x
 
 
 type Block = (Operation * DebugInformation) list
