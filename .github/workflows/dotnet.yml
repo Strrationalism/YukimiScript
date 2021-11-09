@@ -46,7 +46,7 @@ jobs:
 
     - name: Publish Command Line Tool for Windows
       if: ${{ runner.os == 'Windows' }}
-      run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r win7-x64
+      run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r win7-x64 --no-self-contained
     
     - name: Publish Command Line Tool for macOS
       if: ${{ runner.os == 'macOS' }}
@@ -57,7 +57,7 @@ jobs:
     - name: Publish Command Line Tool for Linux
       if: ${{ runner.os == 'Linux' }}
       run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true
+        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained
         mv ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/linux-x64/publish/YukimiScript.CommandLineTool ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/linux-x64/publish/ykmc
         strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/linux-x64/publish/ykmc
         
