@@ -4,10 +4,10 @@ open YukimiScript.Parser
 open YukimiScript.Parser.Elements
 
 
-type Runner<'State> = 'State -> CommandCall -> Result<'State>
+type Runner<'State> = 'State -> CommandCall -> Result<'State, exn>
 
 
-let rec run (state: 'State) (runner: Runner<'State>) (ops: Block) : Result<'State> =
+let rec run (state: 'State) (runner: Runner<'State>) (ops: Block) : Result<'State, exn> =
     match Seq.tryHead ops with
     | None -> Ok state
     | Some (EmptyLine, _) -> run state runner <| List.tail ops
@@ -30,6 +30,6 @@ let dispatch (dispatcher: CommandCall -> Runner<'State>) : Runner<'State> = fun 
 
 
 type RunnerWrapper<'TState>(init: 'TState, mainRunner: Runner<'TState>) =
-    member _.Run(state: 'TState, ops: Block) : Result<'TState> = run state mainRunner ops
+    member _.Run(state: 'TState, ops: Block) : Result<'TState, exn> = run state mainRunner ops
 
-    member x.Run(ops: Block) : Result<'TState> = x.Run(init, ops)
+    member x.Run(ops: Block) : Result<'TState, exn> = x.Run(init, ops)

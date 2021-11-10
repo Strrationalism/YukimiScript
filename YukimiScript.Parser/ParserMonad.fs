@@ -2,7 +2,7 @@ module YukimiScript.Parser.ParserMonad
 
 
 type Parser<'a> =
-    { Run: char list -> Result<'a * char list> }
+    { Run: char list -> Result<'a * char list, exn> }
 
 
 let bind (f: 'a -> Parser<'b>) (p: Parser<'a>) : Parser<'b> =
@@ -39,7 +39,7 @@ let tryWith (f: exn -> Parser<'a>) (a: Parser<'a>) : Parser<'a> =
 let explicit (a: Parser<'a>) : Parser<'a> = mapError raise a
 
 
-let switchResultList (x: Result<'a, 'b> list) : Result<'a list, 'b> =
+let sequenceRL (x: Result<'a, 'b> list) : Result<'a list, 'b> =
     (x, Ok [])
     ||> List.foldBack
             (fun x state ->
@@ -164,7 +164,7 @@ let rec literal (x: string) : Parser<unit> =
 exception ParseUnfinishedException of string
 
 
-let run (line: string) (parser: Parser<'a>) : Result<'a> =
+let run (line: string) (parser: Parser<'a>) : Result<'a, exn> =
     try
         parser.Run(Seq.toList line)
         |> Result.bind

@@ -27,7 +27,7 @@ exception DiagramMacroErrorException of DebugInformation
 exception CannotFindSceneException of string
 
 
-let analyze (files: (string * Dom) list) : Result<Diagram> =
+let analyze (files: (string * Dom) list) : Result<Diagram, exn> =
     try
         let fileNodes, arrows =
             files
@@ -45,6 +45,10 @@ let analyze (files: (string * Dom) list) : Result<Diagram> =
                                             let p = { Parameter = "target"; Default = None }
 
                                             matchArguments debug [ p ] c
+                                            |> Result.bind (
+                                                TypeChecker.checkApplyTypeCorrect
+                                                    debug
+                                                    [ "target", TypeChecker.Types.string ])
                                             |> function
                                                 | Ok [ "target", (String target) ] -> Some target
                                                 | Error e -> raise e

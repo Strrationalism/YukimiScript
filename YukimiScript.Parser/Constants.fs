@@ -33,7 +33,7 @@ let private numberParser, integerParser =
             do! literal "."
             let! b = unsignedIntegerString
 
-            return Number <| float (sign + a + "." + b)
+            return Real <| float (sign + a + "." + b)
         }
         |> name "number"
 

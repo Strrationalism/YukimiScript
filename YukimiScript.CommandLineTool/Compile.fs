@@ -52,7 +52,7 @@ let private findRepeat (items: (string * Elements.DebugInformation) seq) =
 
 let checkRepeat errStringing (dom: Dom) =
     dom.Externs
-    |> Seq.map (fun (Elements.ExternCommand (cmd, _), dbg) -> cmd, dbg)
+    |> Seq.map (fun (Elements.ExternCommand (cmd, _), _, dbg) -> cmd, dbg)
     |> findRepeat
     |> Seq.tryHead
     |> function
@@ -74,7 +74,7 @@ let checkRepeat errStringing (dom: Dom) =
             |> unwrapDomException errStringing
 
     dom.Macros
-    |> Seq.map (fun (s, _, dbg) -> s.Name, dbg)
+    |> Seq.map (fun (s, _, _, dbg) -> s.Name, dbg)
     |> findRepeat
     |> Seq.tryHead
     |> function

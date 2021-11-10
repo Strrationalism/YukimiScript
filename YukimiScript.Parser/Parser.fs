@@ -56,7 +56,7 @@ let parseLines (line: string []) : Result<Parsed list, (int * exn) list> =
             | _ -> None)
 
     if List.isEmpty errors then
-        match switchResultList parsed with
+        match sequenceRL parsed with
         | Ok x -> Ok x
         | _ -> failwith "Internal Error"
     else

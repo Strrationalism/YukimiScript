@@ -44,7 +44,7 @@ let generateLua (Intermediate scenes) : string =
                             | Symbol "nil" -> "nil"
                             | Symbol x -> "api." + x
                             | Integer x -> string x
-                            | Number x -> string x
+                            | Real x -> string x
                             | String x -> "\"" + Constants.string2literal x + "\"")
 
                     if not <| List.isEmpty args then

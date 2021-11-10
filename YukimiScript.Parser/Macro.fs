@@ -1,6 +1,7 @@
 module internal YukimiScript.Parser.Macro
 
 open YukimiScript.Parser.Elements
+open TypeChecker
 open ParserMonad
 open Basics
 open Constants
@@ -58,7 +59,7 @@ exception ArgumentRepeatException of DebugInformation * CommandCall * string
 exception ArgumentUnmatchedException of DebugInformation * CommandCall * parameter: string
 
 
-let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(string * Constant) list> =
+let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(string * Constant) list, exn> =
     let defaultArgs =
         x
         |> List.choose (fun { Parameter = name; Default = x } -> Option.map (fun x -> name, x) x)
@@ -76,7 +77,7 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
             | None -> Ok()
             | Some (p, _) -> Error <| ArgumentRepeatException(debugInfo, c, p)
 
-    let matchArg paramName : Result<string * Constant> =
+    let matchArg paramName : Result<string * Constant, exn> =
         let find = List.tryFind (fst >> (=) paramName)
 
         match find inputArgs with
@@ -92,20 +93,22 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
     |> Result.bind
         (fun () ->
             List.map (fun x -> matchArg x.Parameter) x
-            |> switchResultList)
+            |> sequenceRL)
 
 
 let private matchMacro debug x macro =
-    let pred (macro: MacroDefination, _) = macro.Name = x.Callee
+    let pred (macro: MacroDefination, _, _) = macro.Name = x.Callee
 
     match List.tryFind pred macro with
     | None -> Error NoMacroMatchedException
-    | Some (macro, _) when macro.Param.Length < x.UnnamedArgs.Length ->
+    | Some (macro, _, _) when macro.Param.Length < x.UnnamedArgs.Length ->
         Error
         <| ArgumentsTooMuchException(debug, macro, x)
-    | Some (macro, other) ->
+    | Some (macro, t, other) ->
         matchArguments debug macro.Param x
+        |> Result.bind (checkApplyTypeCorrect debug t)
         |> Result.map (fun args -> macro, other, args)
+        
 
 
 let private replaceParamToArgs args macroBody =
@@ -122,7 +125,7 @@ let private replaceParamToArgs args macroBody =
           NamedArgs = List.map (fun (name, arg) -> name, replaceArg arg) macroBody.NamedArgs }
 
 
-let rec private expandSingleOperation macros operation : Result<Block> =
+let rec private expandSingleOperation macros operation : Result<Block, exn> =
     match operation with
     | CommandCall command, debug ->
         match matchMacro debug command macros with
@@ -131,7 +134,7 @@ let rec private expandSingleOperation macros operation : Result<Block> =
         | Ok (macro, macroBody: Block, args) ->
             let macros =
                 macros
-                |> List.filter (fun (x, _) -> x.Name <> macro.Name)
+                |> List.filter (fun (x, _, _) -> x.Name <> macro.Name)
 
             macroBody
             |> List.map (
@@ -140,22 +143,79 @@ let rec private expandSingleOperation macros operation : Result<Block> =
                 | x -> x
                 >> expandSingleOperation macros
             )
-            |> switchResultList
+            |> sequenceRL
             |> Result.map List.concat
     | x -> Ok [ x ]
 
 
 let expandBlock macros (block: Block) =
     List.map (expandSingleOperation macros) block
-    |> switchResultList
+    |> sequenceRL
     |> Result.map List.concat
 
 
 let expandSystemMacros (block: Block) =
-    let systemMacros = [ "__diagram_link_to" ]
+    let systemMacros = [ "__diagram_link_to"; "__type" ]
 
     block
     |> List.map
         (function
         | CommandCall cmdCall, dbg when List.exists ((=) cmdCall.Callee) systemMacros -> EmptyLine, dbg
         | x -> x)
+
+
+let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParamTypes, exn> =
+    let typeMacroParams = 
+        [ { Parameter = "param"; Default = None }
+          { Parameter = "type"; Default = None } ]
+
+    let typeMacroParamsTypes =
+        [ "param", Types.symbol
+          "type", Types.symbol ]
+    
+    List.choose (function
+        | CommandCall c, d when c.Callee = "__type" -> Some (c, d)
+        | _ -> None) b
+    |> List.map (fun (c, d) -> 
+        matchArguments d typeMacroParams c
+        |> Result.bind (checkApplyTypeCorrect d typeMacroParamsTypes)
+        |> Result.map (fun x -> x, d))
+    |> sequenceRL
+    |> Result.bind (fun x ->
+        let paramTypePairs =
+            List.map (fun (x, d) ->
+                x
+                |> readOnlyDict 
+                |> fun x ->
+                match x.["param"], x.["type"] with
+                | Symbol par, Symbol t -> par, t, d
+                | _ -> failwith "parametersTypeFromBlock: failed!") x
+
+        let dummy =
+            paramTypePairs
+            |> List.filter (not << fun (n, _, d) -> 
+                List.exists (fun p -> p.Parameter = n) par)
+            |> List.map (fun (n, _, d) -> n, d)
+
+        if List.length dummy = 0
+        then
+            par
+            |> List.map (fun { Parameter = name; Default = _ } -> 
+                paramTypePairs
+                |> List.filter ((=) name << fun (n, _, _) -> n)
+                |> List.map (fun (_, t, d) -> t, d)
+                |> function
+                    | [] -> Ok (name, Types.any)
+                    | types -> 
+                        types
+                        |> List.map (fun (typeName, d) -> 
+                            Types.all
+                            |> List.tryFind (fun (ParameterType (n, _)) -> n = typeName)
+                            |> function
+                                | Some x -> Ok x
+                                | None -> Error <| IsNotAType typeName)
+                        |> sequenceRL
+                        |> Result.map (fun t -> 
+                            name, List.reduce sumParameterType t))
+            |> sequenceRL
+        else Error <| CannotGetParameterException dummy)
