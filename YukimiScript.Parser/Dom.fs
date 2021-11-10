@@ -61,7 +61,7 @@ module Dom =
                             match label with
                             | MacroDefination x ->
                                 let block = List.rev block
-                                match parametersTypeFromBlock x.Param block with
+                                match Macro.parametersTypeFromBlock x.Param block with
                                 | Ok t -> (x, t, block, debugInfo) :: state.Result.Macros
                                 | Error e -> raise e
                             | _ -> state.Result.Macros
@@ -77,9 +77,10 @@ module Dom =
                                 if
                                     List.forall (fst >> function
                                         | CommandCall c when c.Callee = "__type" -> true
+                                        | EmptyLine -> true
                                         | _ -> false) block
                                 then
-                                    match parametersTypeFromBlock p block with
+                                    match Macro.parametersTypeFromBlock p block with
                                     | Ok t -> 
                                         (ExternCommand (n, p), t, debugInfo) 
                                         :: state.Result.Externs
@@ -148,7 +149,6 @@ module Dom =
                       HangingEmptyLine = List.rev x.Result.HangingEmptyLine })
         with e -> Error e
 
-
     let expandTextCommands (x: Dom) : Dom =
         let mapBlock =
             List.collect (function
@@ -166,7 +166,7 @@ module Dom =
 
     let expandUserMacros (x: Dom) =
         let macros =
-            List.map (fun (a, _, b, _) -> a, b) x.Macros
+            List.map (fun (a, t, b, _) -> a, t, b) x.Macros
 
         x.Scenes
         |> List.map
@@ -190,7 +190,7 @@ module Dom =
     exception ExternCommandDefinationNotFoundException of string * DebugInformation
 
 
-    let private systemCommands =
+    let private systemCommands : (ExternDefination * BlockParamTypes) list =
         let parse str =
             TopLevels.topLevels
             |> ParserMonad.run str
@@ -198,26 +198,27 @@ module Dom =
                 | Ok (ExternDefination x) -> x
                 | _ -> failwith "Bug here!"
 
-        [ parse "- extern __text_begin character=null"
-          parse "- extern __text_type text"
-          parse "- extern __text_pushMark mark"
-          parse "- extern __text_popMark mark"
-          parse "- extern __text_end hasMore" ]
+        [ parse "- extern __text_begin character=null", [ "character", Types.symbol ]
+          parse "- extern __text_type text", [ "text", Types.string ]
+          parse "- extern __text_pushMark mark", [ "mark", Types.symbol ]
+          parse "- extern __text_popMark mark", [ "mark", Types.symbol ]
+          parse "- extern __text_end hasMore", [ "hasMore", Types.symbol] ]
 
 
     let linkToExternCommands (x: Dom) : Result<Dom, exn> =
-        let externs = systemCommands @ List.map (fun (x, _, _) -> x) x.Externs
-
+        let externs = systemCommands @ List.map (fun (x, t, _) -> x, t) x.Externs
+            
         let linkSingleCommand (op, debugInfo) =
             match op with
             | Text _ -> Error MustExpandTextBeforeLinkException
             | CommandCall c ->
-                match List.tryFind (fun (ExternCommand (name, _)) -> name = c.Callee) externs with
+                match List.tryFind (fun (ExternCommand (name, _), _) -> name = c.Callee) externs with
                 | None ->
                     Error
                     <| ExternCommandDefinationNotFoundException(c.Callee, debugInfo)
-                | Some (ExternCommand (_, param)) ->
+                | Some (ExternCommand (_, param), t) ->
                     Macro.matchArguments debugInfo param c
+                    |> Result.bind (checkApplyTypeCorrect debugInfo t)
                     |> Result.map
                         (fun args ->
                             let args =
@@ -225,8 +226,8 @@ module Dom =
 
                             CommandCall
                                 { c with
-                                      UnnamedArgs = args
-                                      NamedArgs = [] })
+                                        UnnamedArgs = args
+                                        NamedArgs = [] })
             | x -> Ok x
             |> Result.map (fun x -> x, debugInfo)
 
