@@ -67,7 +67,7 @@ dotnet tool install -g YukimiScript.CommandLineTool
 ### 在.NET项目中引用YukimiScript Parser
 
 ```shell
-dotnet add reference YukimiScript.Parser
+dotnet add package YukimiScript.Parser
 ```
 
 
