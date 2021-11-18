@@ -1,7 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <WarnOn>3390;$(WarnOn)</WarnOn>
+    <Version>0.8.0</Version>
+    <Authors>Seng Jik</Authors>
+    <Company>Strrationalism</Company>
+    <Description>YukimiScript parser.</Description>
+    <PackageProjectUrl>https://github.com/Strrationalism/YukimiScript</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Strrationalism/YukimiScript</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Title>YukimiScript.Parser</Title>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Elements.fs" />

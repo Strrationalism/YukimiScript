@@ -6,11 +6,22 @@
     <WarnOn>3390;$(WarnOn)</WarnOn>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ykmc</ToolCommandName>
+    <Version>0.8.0</Version>
+    <Authors>Seng Jik</Authors>
+    <Company>Strrationalism</Company>
+    <Product>YukimiScript</Product>
+    <Description>YukimiScript command line tool.</Description>
+    <PackageProjectUrl>https://github.com/Strrationalism/YukimiScript</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Strrationalism/YukimiScript</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Title>YukimiScript.CommandLineTool</Title>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Compile.fs" />
     <Compile Include="Program.fs" />
+    <Content Include="../LICENSE" />
   </ItemGroup>
 
   <ItemGroup>

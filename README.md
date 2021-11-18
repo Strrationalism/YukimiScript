@@ -52,6 +52,24 @@ Example:
     ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib
 ```
 
+## 安装
+
+### 在.NET中通过NuGet安装YukimiScript命令行工具
+
+```shell
+dotnet tool install -g YukimiScript.CommandLineTool
+```
+
+### 手动安装不依赖.NET运行时的YukimiScript命令行工具
+
+在[Release页面](https://github.com/Strrationalism/YukimiScript/releases)下载对应平台的可执行文件并将其拷贝到可被命令行环境访问的目录中。
+
+### 在.NET项目中引用YukimiScript Parser
+
+```shell
+dotnet add reference YukimiScript.Parser
+```
+
 
 ## 概览
 
