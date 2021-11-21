@@ -18,7 +18,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 5.0.x
         
     - name: Restore dependencies
       run: dotnet restore
@@ -52,22 +52,22 @@ jobs:
       if: ${{ runner.os == 'macOS' }}
       run: |
         dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r osx-x64
-        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/osx-x64/publish/ykmc
+        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc
         
     - name: Publish Command Line Tool for Linux
       if: ${{ runner.os == 'Linux' }}
       run: |
         dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true
-        mv ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/linux-x64/publish/YukimiScript.CommandLineTool ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/linux-x64/publish/ykmc
-        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/linux-x64/publish/ykmc
+        mv ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/YukimiScript.CommandLineTool ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc
+        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc
         
     - name: Test Executable File for Windows
       if: ${{ runner.os == 'Windows' }}
-      run: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/win7-x64/publish/ykmc.exe
+      run: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe
       
     - name: Test Executable File for macOS
       if: ${{ runner.os == 'macOS' }}
-      run:  ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/osx-x64/publish/ykmc
+      run:  ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc
 
     - name: Upload Command Line Tool for DotNetTool
       uses: actions/upload-artifact@v2.2.4
@@ -80,19 +80,19 @@ jobs:
       uses: actions/upload-artifact@v2.2.4
       with:
           name: YukimiScript Command Line Tool for Windows x64
-          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/win7-x64/publish/ykmc.exe
+          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/win7-x64/publish/ykmc.exe
       if: ${{ runner.os == 'Windows' }}
      
     - name: Upload Command Line Tool for macOS
       uses: actions/upload-artifact@v2.2.4
       with:
           name: YukimiScript Command Line Tool for macOS x64
-          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/osx-x64/publish/ykmc
+          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/osx-x64/publish/ykmc
       if: ${{ runner.os == 'macOS' }}
 
     - name: Upload Command Line Tool for Linux
       uses: actions/upload-artifact@v2.2.4
       with:
           name: YukimiScript Command Line Tool for Linux x64
-          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net6.0/linux-x64/publish/ykmc
+          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net5.0/linux-x64/publish/ykmc
       if: ${{ runner.os == 'Linux' }}
