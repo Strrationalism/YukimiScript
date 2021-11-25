@@ -14,9 +14,9 @@
 * 按行Parse，便于分析。
 * 以可用性为优先。
 
-## 应用实例
+## 谁在使用？
 
-* [弦语蝶梦游戏工作室 - 《空梦》](https://store.steampowered.com/app/1059850/)
+[![弦语蝶梦游戏工作室 - 《空梦》](https://cdn.cloudflare.steamstatic.com/steam/apps/1059850/header_schinese.jpg?t=1629427718)](https://store.steampowered.com/app/1059850/)
 
 ## 设计原则
 * 按行Parse
