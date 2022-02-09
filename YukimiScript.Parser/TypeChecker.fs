@@ -8,6 +8,7 @@ type SimpleType =
     | Real'
     | String'
     | Symbol'
+    | ExplicitSymbol' of string
 
 
 type ParameterType = ParameterType of name: string * Set<SimpleType>
@@ -20,7 +21,9 @@ module Types =
     let real = ParameterType ("real", set [ Real' ])
     let symbol = ParameterType ("symbol", set [ Symbol' ])
     let string = ParameterType ("string", set [ String' ])
-    let all = [ any; int; number; real; symbol ]
+    let bool = ParameterType ("bool", set [ ExplicitSymbol' "true"; ExplicitSymbol' "false"])
+    let ``null`` = ParameterType ("null", set [ ExplicitSymbol' "null"])
+    let all = [ any; int; number; real; symbol; string; bool; ``null`` ]
 
 
 let sumParameterType (ParameterType (n1, s1)) (ParameterType (n2, s2)) =
@@ -32,16 +35,23 @@ let checkType =
     | String _ -> String'
     | Integer _ -> Int'
     | Real _ -> Real'
-    | Symbol _ -> Symbol'
+    | Symbol x -> ExplicitSymbol' x
 
-    
+
+let unify src dst =
+    match (src, dst) with
+    | (a, b) when a = b -> Some a
+    | (ExplicitSymbol' _, Symbol') -> Some Symbol'
+    | _ -> None
+
+
 exception TypeCheckFailedException of DebugInformation * int * ParameterType * SimpleType
 
 
-let matchType d i (ParameterType (t, types)) (argType: SimpleType) : Result<unit, exn> =
-    if Set.contains argType types
+let matchType d i (ParameterType (t, paramTypes)) (argType: SimpleType) : Result<unit, exn> =
+    if Set.exists (fun paramType -> unify argType paramType |> Option.isSome) paramTypes
     then Ok ()
-    else Error <| TypeCheckFailedException (d, i, (ParameterType (t, types)), argType)
+    else Error <| TypeCheckFailedException (d, i, (ParameterType (t, paramTypes)), argType)
 
 
 exception IsNotAType of string

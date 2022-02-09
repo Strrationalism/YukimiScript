@@ -29,7 +29,7 @@ let schinese: ErrorStringing =
         | Int' -> "int"
         | Real' -> "real"
         | String' -> "string"
-        | Symbol' -> "symbol"
+        | ExplicitSymbol' _ | Symbol' -> "symbol"
         + "。"
     | InvalidSymbolException -> "非法符号。"
     | InvalidStringCharException x -> "字符串中存在非法字符\"" + x + "\"。"
