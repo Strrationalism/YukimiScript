@@ -174,46 +174,51 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParam
           "type", Types.symbol ]
     
     List.choose (function
-        | CommandCall c, d when c.Callee = "__type" -> Some (c, d)
+        | CommandCall c, d when c.Callee = "__type" || c.Callee = "__type_symbol" -> Some (c, d)
         | _ -> None) b
     |> List.map (fun (c, d) -> 
         matchArguments d typeMacroParams c
         |> Result.bind (checkApplyTypeCorrect d typeMacroParamsTypes)
-        |> Result.map (fun x -> x, d))
+        |> Result.map (fun x -> c.Callee, x, d))
     |> sequenceRL
     |> Result.bind (fun x ->
         let paramTypePairs =
-            List.map (fun (x, d) ->
+            List.map (fun (macroName, x, d) ->
                 x
                 |> readOnlyDict 
                 |> fun x ->
                 match x.["param"], x.["type"] with
-                | Symbol par, Symbol t -> par, t, d
+                | Symbol par, Symbol t -> macroName, par, t, d
                 | _ -> failwith "parametersTypeFromBlock: failed!") x
 
         let dummy =
             paramTypePairs
-            |> List.filter (not << fun (n, _, d) -> 
+            |> List.filter (not << fun (_, n, _, _) -> 
                 List.exists (fun p -> p.Parameter = n) par)
-            |> List.map (fun (n, _, d) -> n, d)
+            |> List.map (fun (_, n, _, d) -> n, d)
 
         if List.length dummy = 0
         then
             par
             |> List.map (fun { Parameter = name; Default = _ } -> 
                 paramTypePairs
-                |> List.filter ((=) name << fun (n, _, _) -> n)
-                |> List.map (fun (_, t, d) -> t, d)
+                |> List.filter ((=) name << fun (_, n, _, _) -> n)
+                |> List.map (fun (macroName, _, t, d) -> macroName, t, d)
                 |> function
                     | [] -> Ok (name, Types.any)
                     | types -> 
                         types
-                        |> List.map (fun (typeName, d) -> 
-                            Types.all
-                            |> List.tryFind (fun (ParameterType (n, _)) -> n = typeName)
-                            |> function
-                                | Some x -> Ok x
-                                | None -> Error <| IsNotAType typeName)
+                        |> List.map (fun (macroName, typeName, _) -> 
+                            match macroName with
+                            | "__type" -> 
+                                Types.all
+                                |> List.tryFind (fun (ParameterType (n, _)) -> n = typeName)
+                                |> function
+                                    | Some x -> Ok x
+                                    | None -> Error <| IsNotAType typeName
+                            | "__type_symbol" ->
+                                Ok <| ParameterType ($"^{typeName}", set [ExplicitSymbol' typeName])
+                            | _ -> failwith "?")
                         |> sequenceRL
                         |> Result.map (fun t -> 
                             name, List.reduce sumParameterType t))
