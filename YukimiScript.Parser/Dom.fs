@@ -76,7 +76,7 @@ module Dom =
                             | ExternDefination (ExternCommand (n, p)) ->
                                 if
                                     List.forall (fst >> function
-                                        | CommandCall c when c.Callee = "__type" -> true
+                                        | CommandCall c when c.Callee = "__type" || c.Callee = "__type_symbol" -> true
                                         | EmptyLine -> true
                                         | _ -> false) block
                                 then

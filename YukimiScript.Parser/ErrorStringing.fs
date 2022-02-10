@@ -20,7 +20,7 @@ let header (debug: Elements.DebugInformation) =
     + string debug.LineNumber
     + "):"
 
-let schinese: ErrorStringing =
+let rec schinese: ErrorStringing =
     function
     | TypeChecker.TypeCheckFailedException (d, i, ParameterType (name, _), a) ->
         header d 
@@ -90,4 +90,11 @@ let schinese: ErrorStringing =
     | CannotDefineSceneInLibException debug -> debug + ":不能在lib中定义scene。"
     | DiagramMacroErrorException d -> header d + "__diagram_link_to宏使用方式错误。"
     | CannotFindSceneException x -> "不能找到场景\"" + x + "\"的定义。"
+    | MacroInnerException (debugInfo, x) ->
+        header debugInfo + "在展开宏时遇到以下错误：" + System.Environment.NewLine +
+        begin 
+            (schinese x).Split '\n' 
+            |> Array.map (fun x -> "    " + x.Trim('\r')) 
+            |> Array.reduce (fun a b -> a + System.Environment.NewLine + b)
+        end
     | e -> "未知错误" + e.Message

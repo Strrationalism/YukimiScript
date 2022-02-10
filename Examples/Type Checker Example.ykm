@@ -1,0 +1,16 @@
+- macro checkTypeCharacterName name
+@__type_symbol name a
+@__type_symbol name b
+@__type_symbol name c
+@__type_symbol name d
+
+- macro sayFromCharacter name text
+@checkTypeCharacterName name
+@__type text string
+
+- scene "test"
+@sayFromCharacter a "Hello"
+@sayFromCharacter b "Hello"
+@sayFromCharacter c "Hello"
+@sayFromCharacter d "Hello"
+

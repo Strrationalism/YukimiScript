@@ -125,6 +125,9 @@ let private replaceParamToArgs args macroBody =
           NamedArgs = List.map (fun (name, arg) -> name, replaceArg arg) macroBody.NamedArgs }
 
 
+exception MacroInnerException of DebugInformation * exn
+
+
 let rec private expandSingleOperation macros operation : Result<Block, exn> =
     match operation with
     | CommandCall command, debug ->
@@ -146,6 +149,7 @@ let rec private expandSingleOperation macros operation : Result<Block, exn> =
             |> sequenceRL
             |> Result.map List.concat
     | x -> Ok [ x ]
+    |> Result.mapError (fun err -> MacroInnerException (snd operation, err))
 
 
 let expandBlock macros (block: Block) =
@@ -155,7 +159,7 @@ let expandBlock macros (block: Block) =
 
 
 let expandSystemMacros (block: Block) =
-    let systemMacros = [ "__diagram_link_to"; "__type" ]
+    let systemMacros = [ "__diagram_link_to"; "__type"; "__type_symbol" ]
 
     block
     |> List.map
@@ -217,7 +221,7 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParam
                                     | Some x -> Ok x
                                     | None -> Error <| IsNotAType typeName
                             | "__type_symbol" ->
-                                Ok <| ParameterType ($"^{typeName}", set [ExplicitSymbol' typeName])
+                                Ok <| ParameterType ($"{typeName}", set [ExplicitSymbol' typeName])
                             | _ -> failwith "?")
                         |> sequenceRL
                         |> Result.map (fun t -> 
