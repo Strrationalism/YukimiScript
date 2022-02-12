@@ -54,7 +54,7 @@ let matchType d i (ParameterType (t, paramTypes)) (argType: SimpleType) : Result
     else Error <| TypeCheckFailedException (d, i, (ParameterType (t, paramTypes)), argType)
 
 
-exception IsNotAType of string
+exception IsNotAType of string * DebugInformation
 
 
 type BlockParamTypes = (string * ParameterType) list

@@ -212,14 +212,14 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParam
                     | [] -> Ok (name, Types.any)
                     | types -> 
                         types
-                        |> List.map (fun (macroName, typeName, _) -> 
+                        |> List.map (fun (macroName, typeName, d) -> 
                             match macroName with
                             | "__type" -> 
                                 Types.all
                                 |> List.tryFind (fun (ParameterType (n, _)) -> n = typeName)
                                 |> function
                                     | Some x -> Ok x
-                                    | None -> Error <| IsNotAType typeName
+                                    | None -> Error <| IsNotAType (typeName, d)
                             | "__type_symbol" ->
                                 Ok <| ParameterType ($"{typeName}", set [ExplicitSymbol' typeName])
                             | _ -> failwith "?")
