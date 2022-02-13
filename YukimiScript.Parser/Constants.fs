@@ -37,7 +37,7 @@ let private numberParser, integerParser =
         }
         |> name "number"
 
-    let integerParser =
+    let integerParserDec =
         parser {
             let! sign = sign
             do! whitespace0
@@ -45,6 +45,19 @@ let private numberParser, integerParser =
             return Integer <| int (sign + i)
         }
         |> name "integer"
+
+    let integerParserHex =
+        parser {
+            let! sign = sign
+            do! whitespace0
+            do! literal "0x"
+            let aToF = inRange <| Seq.append (seq { 'a' .. 'f' }) (seq { 'A' .. 'F' })
+            let! hexStrLs = (numberChar <|> aToF) |> oneOrMore
+            let hexStr = sign + toStringTrim hexStrLs
+            return Integer <| System.Convert.ToInt32(hexStr, 16)
+        }
+
+    let integerParser = integerParserHex <|> integerParserDec
 
     numberParser, integerParser
 
