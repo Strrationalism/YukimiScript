@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.Parser", "YukimiScript.Parser\YukimiScript.Parser.fsproj", "{A13293A1-9DA4-4552-ACEB-39C98BAC73B0}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "YukimiScript.Parser", "YukimiScript.Parser\YukimiScript.Parser.fsproj", "{A13293A1-9DA4-4552-ACEB-39C98BAC73B0}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.Parser.Test", "YukimiScript.Parser.Test\YukimiScript.Parser.Test.fsproj", "{AECFB897-2393-4A15-BCD5-5A042630F7E0}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "YukimiScript.Parser.Test", "YukimiScript.Parser.Test\YukimiScript.Parser.Test.fsproj", "{AECFB897-2393-4A15-BCD5-5A042630F7E0}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CommandLineTool", "YukimiScript.CommandLineTool\YukimiScript.CommandLineTool.fsproj", "{F9F99EBD-36D4-462C-822E-6B5B55BDF736}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "YukimiScript.CommandLineTool", "YukimiScript.CommandLineTool\YukimiScript.CommandLineTool.fsproj", "{F9F99EBD-36D4-462C-822E-6B5B55BDF736}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CommandLineTool.AOT", "YukimiScript.CommandLineTool\YukimiScript.CommandLineTool.AOT.fsproj", "{2890DB99-71EB-46F2-94E5-67C0412003B7}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "YukimiScript.CommandLineTool.AOT", "YukimiScript.CommandLineTool\YukimiScript.CommandLineTool.AOT.fsproj", "{2890DB99-71EB-46F2-94E5-67C0412003B7}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CodeGen.Lua", "YukimiScript.CodeGen.Lua\YukimiScript.CodeGen.Lua.fsproj", "{56FB89A5-F61B-4718-906A-A165FE42FF11}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "YukimiScript.CodeGen", "YukimiScript.CodeGen\YukimiScript.CodeGen.fsproj", "{D3806F86-4B20-4728-A13D-87BC678369F6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +21,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A13293A1-9DA4-4552-ACEB-39C98BAC73B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -74,17 +71,23 @@ Global
 		{2890DB99-71EB-46F2-94E5-67C0412003B7}.Release|x64.Build.0 = Release|Any CPU
 		{2890DB99-71EB-46F2-94E5-67C0412003B7}.Release|x86.ActiveCfg = Release|Any CPU
 		{2890DB99-71EB-46F2-94E5-67C0412003B7}.Release|x86.Build.0 = Release|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x64.Build.0 = Debug|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Debug|x86.Build.0 = Debug|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|Any CPU.Build.0 = Release|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x64.ActiveCfg = Release|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x64.Build.0 = Release|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x86.ActiveCfg = Release|Any CPU
-		{56FB89A5-F61B-4718-906A-A165FE42FF11}.Release|x86.Build.0 = Release|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Debug|x64.Build.0 = Debug|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Debug|x86.Build.0 = Debug|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Release|x64.ActiveCfg = Release|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Release|x64.Build.0 = Release|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Release|x86.ActiveCfg = Release|Any CPU
+		{D3806F86-4B20-4728-A13D-87BC678369F6}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4EA87EBC-967B-4146-A04B-F04EA7134324}
 	EndGlobalSection
 EndGlobal
