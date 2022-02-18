@@ -191,7 +191,7 @@ let private genCommand
             Ok context
 
         | "__text_begin" -> 
-            match call.Arguments[0] with
+            match call.Arguments.[0] with
             | Symbol "null" as n -> Ok { context with CurrentComplexCommand = Some (sayCommand, [n])}
             | Symbol x -> 
                 match Map.tryFind x context.Characters with
