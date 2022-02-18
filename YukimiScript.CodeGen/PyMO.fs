@@ -58,8 +58,8 @@ let private gen'Untyped c = genArgsUntyped >> (+) ("#" + c + " ")
 let private sayCommand = 
     ComplexCommand 
         ("__text_type", "__text_end", fun m _ -> 
-            let character = match m[0] with | Symbol "null" -> None | x -> Some <| genArgUntyped x
-            let text = m[1..] |> List.map genArgUntyped |> List.fold (+) ""
+            let character = match m.[0] with | Symbol "null" -> None | x -> Some <| genArgUntyped x
+            let text = m.[1..] |> List.map genArgUntyped |> List.fold (+) ""
             "#say " + (match character with | None -> "" | Some x -> x + ",") + text)
 
 
@@ -72,7 +72,7 @@ let private complexCommands =
       "chara_quake_multi", "chara_quake_multi_do", gen "chara_quake"
       "chara_down_multi", "chara_down_multi_do", gen "chara_down"
       "chara_up_multi", "chara_up_multi_do", gen "chara_up"
-      "chara_y_multi", "chara_y_multi_do", fun multi d -> d[0] :: multi @ [d[1]] |> gen' "chara_y"
+      "chara_y_multi", "chara_y_multi_do", fun multi d -> d.[0] :: multi @ [d.[1]] |> gen' "chara_y"
       "chara_anime", "chara_anime_do", fun multi d -> d @ multi |> gen' "chara_anime"
       "sel", "sel_do", fun multi d -> 
         let firstLine = "#sel " + genArgs (Integer (List.length multi) :: d)
@@ -80,7 +80,7 @@ let private complexCommands =
         allLines |> List.reduce (fun a b -> a + "\n" + b)
       "select_text", "select_text_do", genSel "select_text" 1
       "select_var", "select_var_do", genSel "select_var" 2
-      "select_img", "select_img_do", fun m d -> genSel "select_img" 3 (d[0] :: m) d.[1..]
+      "select_img", "select_img_do", fun m d -> genSel "select_img" 3 (d.[0] :: m) d.[1..]
       "select_imgs", "select_imgs_do", genSel "select_imgs" 4
       (let (ComplexCommand (x, y, z)) = sayCommand in x, y, z) ]
     |> Seq.map (fun x -> (let (k, _, _) = x in k), ComplexCommand x)
@@ -150,8 +150,8 @@ let private genCommand
     match context.CurrentComplexCommand with
     | Some (ComplexCommand (openCmd, closeCmd, gen) as cc, args) -> 
         match call.Callee with
-        | "__text_begin" when openCmd = "__text_type" && call.Arguments[0] = Symbol "null" -> Ok context
-        | "__text_end" when openCmd = "__text_type" && call.Arguments[0] = Symbol "true" -> 
+        | "__text_begin" when openCmd = "__text_type" && call.Arguments.[0] = Symbol "null" -> Ok context
+        | "__text_end" when openCmd = "__text_type" && call.Arguments.[0] = Symbol "true" -> 
             Ok { context with CurrentComplexCommand = Some (cc, args @ [Constant.String "\\n"]) }
         | c when c = openCmd -> 
             Ok { context with CurrentComplexCommand = Some (cc, args @ call.Arguments)}
@@ -165,15 +165,15 @@ let private genCommand
             Ok { context with 
                     Characters = 
                         Map.add 
-                            (genArgUntyped call.Arguments[0]) 
-                            (genArgUntyped call.Arguments[1]) 
+                            (genArgUntyped call.Arguments.[0]) 
+                            (genArgUntyped call.Arguments.[1]) 
                             context.Characters }
         | "if_goto" -> 
             let left, op, right, label = 
-                genArgUntyped call.Arguments[0], 
-                genArgUntyped call.Arguments[1],
-                genArgUntyped call.Arguments[2],
-                genArgUntyped call.Arguments[3]
+                genArgUntyped call.Arguments.[0], 
+                genArgUntyped call.Arguments.[1],
+                genArgUntyped call.Arguments.[2],
+                genArgUntyped call.Arguments.[3]
             
             let op = 
                 match op with
