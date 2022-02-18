@@ -19,11 +19,6 @@ let private genArg = function
     | Symbol "cm4" -> Some "4"
     | Symbol "cm5" -> Some "5"
     | Symbol "cm6" -> Some "6"
-    | Symbol "white" -> Some "#FFFFFF"
-    | Symbol "black" -> Some "#000000"
-    | Symbol "red" -> Some "#FF0000"
-    | Symbol "green" -> Some "#00FF00"
-    | Symbol "blue" -> Some "#0000FF"
     | Symbol "BG_ALPHA" -> Some "BG_ALPHA"
     | Symbol "BG_FADE" -> Some "BG_FADE"
     | Symbol "BG_NOFADE" -> Some "BG_NOFADE"
@@ -43,6 +38,16 @@ let private genArgs' genArg =
     >> function
         | [] -> ""
         | ls -> List.reduce (fun a b -> a + "," + b) ls
+
+
+let private colorArg = function
+    | Symbol "white" -> Constant.String "#FFFFFF"
+    | Symbol "black" -> Constant.String "#000000"
+    | Symbol "red" -> Constant.String "#FF0000"
+    | Symbol "green" -> Constant.String "#00FF00"
+    | Symbol "blue" -> Constant.String "#0000FF"
+    | Integer i -> Constant.String <| "#" + Math.Clamp(i, 0, 0xFFFFFF).ToString("X")
+    | _ -> failwith ""
 
 
 let private genArgs = genArgs' <| List.choose genArg
@@ -67,7 +72,15 @@ let private complexCommands =
     let gen command a b = a @ b |> genArgs |> (+) ("#" + command + " ")
     let gen' c = genArgs >> (+) ("#" + c + " ")
     
-    let genSel c argGroupSize = fun m d -> Integer (List.length m / argGroupSize) :: m @ d |> gen'Untyped c
+    let genSel c argGroupSize = fun m d -> 
+        let d = 
+            if List.length d >= 4 
+            then 
+                let arr = List.toArray d
+                arr.[4] <- colorArg d.[4]
+                List.ofArray arr
+            else d
+        Integer (List.length m / argGroupSize) :: m @ d |> gen'Untyped c
     [ "chara_multi", "chara_multi_do", gen "chara"
       "chara_quake_multi", "chara_quake_multi_do", gen "chara_quake"
       "chara_down_multi", "chara_down_multi_do", gen "chara_down"
@@ -142,6 +155,14 @@ let private simpleCommands =
     |> Set.ofSeq
 
 
+let private colorCommands =
+    [ "text", 4
+      "flash", 0
+      "fade_out", 0
+      "date", 3 ]
+    |> Map.ofList
+
+
 let private genCommand 
     (sb: StringBuilder) 
     context
@@ -208,7 +229,14 @@ let private genCommand
         | ComplexCommand' complex -> 
             Ok { context with CurrentComplexCommand = Some (complex, call.Arguments) }
         | simple when Set.contains simple simpleCommands -> 
-            sb.Append('#').Append(simple).Append(' ').AppendLine(genArgs call.Arguments) |> ignore
+            let args = 
+                match Map.tryFind simple colorCommands with
+                | None -> call.Arguments
+                | Some x -> 
+                    let arg = Array.ofList call.Arguments
+                    arg.[x] <- colorArg arg.[x]
+                    List.ofArray arg
+            sb.Append('#').Append(simple).Append(' ').AppendLine(genArgs args) |> ignore
             Ok context
         | x -> Error ("不能在这里使用的命令" + x + "。", call.DebugInformation)
 
