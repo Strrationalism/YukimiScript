@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="PyMO.fs" />
     <Compile Include="Lua.fs" />
   </ItemGroup>
 

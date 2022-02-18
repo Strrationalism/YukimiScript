@@ -32,10 +32,10 @@ let rec schinese: ErrorStringing =
         | ExplicitSymbol' _ | Symbol' -> "symbol"
         + "。"
     | IsNotAType (x, d) ->
-        $"{header d}{x}不是一个类型。"
+        header d + x + "不是一个类型。"
     | CannotGetParameterException ls ->
         ls
-        |> List.map (fun (x, d) -> header d + $"不能获得{x}的类型。")
+        |> List.map (fun (x, d) -> header d + "不能获得" + x + "的类型。")
         |> List.reduce (fun a b -> a + System.Environment.NewLine + b)
     | InvalidSymbolException -> "非法符号。"
     | InvalidStringCharException x -> "字符串中存在非法字符\"" + x + "\"。"

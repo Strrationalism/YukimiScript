@@ -25,6 +25,7 @@ let help () =
       ""
       "Targets:"
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
+      "    pymo               PyMO 1.2 script, you must compile source code with libpymo.ykm."
       ""
       "Example:"
       "    ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
@@ -40,7 +41,9 @@ type Options = { Lib: string list }
 let defaultOptions = { Lib = [] }
 
 
-type TargetOption = Lua of outputFile: string
+type TargetOption = 
+    | Lua of outputFile: string
+    | PyMO of outputFile: string * scriptName: string
 
 
 type DiagramType =
@@ -61,10 +64,15 @@ let rec parseOptions prev =
     | _ -> Error()
 
 
-let rec parseTargetsAndOptions =
+let rec parseTargetsAndOptions (inputSrc: string) =
     function
+    | "--target-pymo" :: pymoOut :: next ->
+        parseTargetsAndOptions inputSrc next
+        |> Result.map (fun (nextTargets, options) -> 
+            let scriptName = Path.GetFileNameWithoutExtension inputSrc
+            PyMO (pymoOut, scriptName) :: nextTargets, options)
     | "--target-lua" :: luaOut :: next ->
-        parseTargetsAndOptions next
+        parseTargetsAndOptions inputSrc next
         |> Result.map (fun (nextTargets, options) -> Lua luaOut :: nextTargets, options)
     | options ->
         parseOptions defaultOptions options
@@ -92,7 +100,7 @@ let parseArgs =
         |> Result.map (fun options -> Charset(inputDir, charsetFile, options))
 
     | inputSrc :: targetsAndOptions ->
-        parseTargetsAndOptions targetsAndOptions
+        parseTargetsAndOptions inputSrc targetsAndOptions
         |> Result.map (fun (targets, options) -> Compile(inputSrc, targets, options))
 
     | _ -> Error()
@@ -106,15 +114,22 @@ let doAction errStringing =
             |> checkRepeat errStringing
             |> prepareCodegen errStringing
 
+        let intermediate = Intermediate.ofDom dom
+
         targets
         |> List.iter
             (function
-            | Lua output ->
-                let lua =
-                    YukimiScript.CodeGen.Lua.generateLua
-                    <| Intermediate.ofDom dom
+                | PyMO (output, scriptName) -> 
+                    YukimiScript.CodeGen.PyMO.generateScript intermediate scriptName
+                    |> function
+                        | Ok out -> File.WriteAllText(output, out, Text.Encoding.UTF8)
+                        | Error () -> Console.WriteLine "Code generation failed."; exit (-1)
 
-                File.WriteAllText(output, lua, Text.Encoding.UTF8))
+                | Lua output ->
+                    let lua =
+                        YukimiScript.CodeGen.Lua.generateLua intermediate
+
+                    File.WriteAllText(output, lua, Text.Encoding.UTF8))
 
     | Diagram (diagramType, inputDir, out, options) ->
         let diagramExporter =

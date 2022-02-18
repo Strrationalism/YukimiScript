@@ -4,7 +4,7 @@ open YukimiScript.Parser
 open YukimiScript.Parser.Elements
 
 
-let generateLua (Intermediate scenes) : string =
+let generateLua (Intermediate scenes) =
     let luaCall (x: string) =
         let i = x.LastIndexOf '.'
         x.[..i - 1] + ":" + x.[i + 1..]
@@ -16,16 +16,16 @@ let generateLua (Intermediate scenes) : string =
 
     scenes
     |> List.iter
-        (fun (IntermediateScene (defination, commands)) ->
+        (fun scene ->
             sb
                 .Append("  [\"")
-                .Append(Constants.string2literal defination.Name)
+                .Append(Constants.string2literal scene.Scene.Name)
                 .Append("\"] = {")
             |> ignore
 
             sb.AppendLine() |> ignore
 
-            commands
+            scene.Block
             |> List.iter
                 (fun c ->
                     sb
@@ -35,7 +35,7 @@ let generateLua (Intermediate scenes) : string =
                     |> ignore
 
                     let args =
-                        c.UnnamedArgs
+                        c.Arguments
                         |> List.map
                             (function
                             | Symbol "true" -> "true"

@@ -174,13 +174,13 @@ let exportMermaid (diagram: Diagram) : string =
 
     let fileIds =
         diagram.Files
-        |> List.mapi (fun i x -> x.Name, $"f{i}")
+        |> List.mapi (fun i x -> x.Name, "f" + string i)
         |> Map.ofList
 
     let sceneIds =
         diagram.Files
         |> List.collect (fun x -> x.Scenes)
-        |> List.mapi (fun i x -> x, $"n{i}")
+        |> List.mapi (fun i x -> x, "n" + string i)
         |> Map.ofList
 
     let processArrows arrows =

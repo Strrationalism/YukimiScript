@@ -221,7 +221,7 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParam
                                     | Some x -> Ok x
                                     | None -> Error <| IsNotAType (typeName, d)
                             | "__type_symbol" ->
-                                Ok <| ParameterType ($"{typeName}", set [ExplicitSymbol' typeName])
+                                Ok <| ParameterType (typeName, set [ExplicitSymbol' typeName])
                             | _ -> failwith "?")
                         |> sequenceRL
                         |> Result.map (fun t -> 
