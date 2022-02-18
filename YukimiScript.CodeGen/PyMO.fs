@@ -46,7 +46,10 @@ let private colorArg = function
     | Symbol "red" -> Constant.String "#FF0000"
     | Symbol "green" -> Constant.String "#00FF00"
     | Symbol "blue" -> Constant.String "#0000FF"
-    | Integer i -> Constant.String <| "#" + Math.Clamp(i, 0, 0xFFFFFF).ToString("X")
+    | Integer i -> 
+        let mutable hex = Math.Clamp(i, 0, 0xFFFFFF).ToString("X")
+        while hex.Length < 6 do hex <- "0" + hex
+        Constant.String <| "#" + hex
     | _ -> failwith ""
 
 
