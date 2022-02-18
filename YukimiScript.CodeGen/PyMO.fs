@@ -33,6 +33,15 @@ let private genArgUntyped = function
     | Real x -> string x
 
 
+let private checkSceneName (name: string) =
+    if name.Contains '.'
+    then false
+    else 
+        match ParserMonad.run name Basics.symbol with
+        | Ok _ -> true
+        | _ -> false
+
+
 let private genArgs' genArg = 
     genArg
     >> function
@@ -250,28 +259,36 @@ let private generateScene scene context (sb: StringBuilder) =
         .AppendLine(scene.Scene.Name)
     |> ignore
 
-    scene.Block 
-    |> List.fold 
-        (fun (context, success) -> 
-            genCommand sb context
-            >> function
-                | Ok context -> context, success
-                | Error (msg, dbg) -> 
-                    ErrorStringing.header dbg + msg
-                    |> Console.WriteLine
-                    context, false)
-        (context, true)
-    |> function
-        | { CurrentComplexCommand = Some (ComplexCommand (o, e, _), _) } as context, success -> 
-            ErrorStringing.header scene.DebugInformation
-             + "在此场景的末尾，应当使用"
-             + e 
-             + "命令来结束"
-             + o
-             + "变参命令组。"
-            |> Console.WriteLine
-            context, success
-        | context -> context
+    match checkSceneName scene.Scene.Name with
+    | false -> 
+        ErrorStringing.header scene.DebugInformation
+        + "场景名称 " + scene.Scene.Name
+        + " 非法，在PyMO中只可以使用由字母、数字和下划线组成的场景名且首字符不能为数字。"
+        |> Console.WriteLine
+        context, false
+    | true ->
+        scene.Block 
+        |> List.fold 
+            (fun (context, success) -> 
+                genCommand sb context
+                >> function
+                    | Ok context -> context, success
+                    | Error (msg, dbg) -> 
+                        ErrorStringing.header dbg + msg
+                        |> Console.WriteLine
+                        context, false)
+            (context, true)
+        |> function
+            | { CurrentComplexCommand = Some (ComplexCommand (o, e, _), _) } as context, success -> 
+                ErrorStringing.header scene.DebugInformation
+                 + "在此场景的末尾，应当使用"
+                 + e 
+                 + "命令来结束"
+                 + o
+                 + "变参命令组。"
+                |> Console.WriteLine
+                context, success
+            | context -> context
 
     
 let generateScript (Intermediate scenes) scriptName =
