@@ -26,6 +26,7 @@ let help () =
       "Targets:"
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
       "    pymo               PyMO 1.2 script, you must compile source code with libpymo.ykm."
+      "    webgal             WebGAL engine."
       ""
       "Example:"
       "    ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
@@ -44,6 +45,7 @@ let defaultOptions = { Lib = [] }
 type TargetOption = 
     | Lua of outputFile: string
     | PyMO of outputFile: string * scriptName: string
+    | WebGAL of outputFile: string * scriptName: string
 
 
 type DiagramType =
@@ -74,6 +76,11 @@ let rec parseTargetsAndOptions (inputSrc: string) =
     | "--target-lua" :: luaOut :: next ->
         parseTargetsAndOptions inputSrc next
         |> Result.map (fun (nextTargets, options) -> Lua luaOut :: nextTargets, options)
+    | "--target-webgal" :: webgalOut :: next ->
+        parseTargetsAndOptions inputSrc next
+        |> Result.map (fun (next, opt) -> 
+            let scriptName = Path.GetFileNameWithoutExtension inputSrc
+            WebGAL (webgalOut, scriptName) :: next, opt)
     | options ->
         parseOptions defaultOptions options
         |> Result.map (fun options -> [], options)
@@ -129,7 +136,11 @@ let doAction errStringing =
                     let lua =
                         YukimiScript.CodeGen.Lua.generateLua intermediate
 
-                    File.WriteAllText(output, lua, Text.Encoding.UTF8))
+                    File.WriteAllText(output, lua, Text.Encoding.UTF8)
+                    
+                | WebGAL (output, scriptName) -> 
+                    let out = YukimiScript.CodeGen.WebGAL.genWebGal intermediate
+                    File.WriteAllText(output, out))
 
     | Diagram (diagramType, inputDir, out, options) ->
         let diagramExporter =
