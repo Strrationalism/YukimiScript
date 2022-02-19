@@ -71,7 +71,7 @@ let rec schinese: ErrorStringing =
     | ExternCommandDefinationNotFoundException (ex, debug) -> header debug + "发现了对外部元素" + ex + "的引用，但未找到此引用。"
     | ParamRepeatedException (parent, param) -> "在" + parent + "中发现重复定义的参数" + param + "。"
     | NoMacroMatchedException -> "没有匹配的宏。"
-    | ArgumentsTooMuchException (debug, macro, _) -> header debug + "对" + macro.Name + "传入了过多参数。"
+    | ArgumentsTooMuchException (debug, c) -> header debug + "对" + c.Callee + "传入了过多参数。"
     | ArgumentRepeatException (debug, cmd, param) ->
         header debug
         + "对"

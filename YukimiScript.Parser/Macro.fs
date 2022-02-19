@@ -50,7 +50,7 @@ let macroDefinationParser =
 exception NoMacroMatchedException
 
 
-exception ArgumentsTooMuchException of DebugInformation * MacroDefination * CommandCall
+exception ArgumentsTooMuchException of DebugInformation * CommandCall
 
 
 exception ArgumentRepeatException of DebugInformation * CommandCall * string
@@ -64,36 +64,41 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
         x
         |> List.choose (fun { Parameter = name; Default = x } -> Option.map (fun x -> name, x) x)
 
-    let inputArgs =
-        c.UnnamedArgs
-        |> List.zip (List.map (fun x -> x.Parameter) x.[..c.UnnamedArgs.Length - 1])
-        |> List.append c.NamedArgs
+    let parameters = List.map (fun x -> x.Parameter) x.[..c.UnnamedArgs.Length - 1]
 
-    // 检查是否有重复传入的参数
-    let inputArgRepeat =
-        Seq.countBy fst inputArgs
-        |> Seq.tryFind (fun (_, l) -> l > 1)
-        |> function
-            | None -> Ok()
-            | Some (p, _) -> Error <| ArgumentRepeatException(debugInfo, c, p)
+    if parameters.Length < c.UnnamedArgs.Length then
+        Error <| ArgumentsTooMuchException (debugInfo, c)
+    else
+        let inputArgs =
+            c.UnnamedArgs
+            |> List.zip parameters
+            |> List.append c.NamedArgs
 
-    let matchArg paramName : Result<string * Constant, exn> =
-        let find = List.tryFind (fst >> (=) paramName)
+        // 检查是否有重复传入的参数
+        let inputArgRepeat =
+            Seq.countBy fst inputArgs
+            |> Seq.tryFind (fun (_, l) -> l > 1)
+            |> function
+                | None -> Ok()
+                | Some (p, _) -> Error <| ArgumentRepeatException(debugInfo, c, p)
 
-        match find inputArgs with
-        | Some x -> Ok x
-        | None ->
-            match find defaultArgs with
+        let matchArg paramName : Result<string * Constant, exn> =
+            let find = List.tryFind (fst >> (=) paramName)
+
+            match find inputArgs with
             | Some x -> Ok x
             | None ->
-                Error
-                <| ArgumentUnmatchedException(debugInfo, c, paramName)
+                match find defaultArgs with
+                | Some x -> Ok x
+                | None ->
+                    Error
+                    <| ArgumentUnmatchedException(debugInfo, c, paramName)
 
-    inputArgRepeat
-    |> Result.bind
-        (fun () ->
-            List.map (fun x -> matchArg x.Parameter) x
-            |> sequenceRL)
+        inputArgRepeat
+        |> Result.bind
+            (fun () ->
+                List.map (fun x -> matchArg x.Parameter) x
+                |> sequenceRL)
 
 
 let private matchMacro debug x macro =
@@ -103,7 +108,7 @@ let private matchMacro debug x macro =
     | None -> Error NoMacroMatchedException
     | Some (macro, _, _) when macro.Param.Length < x.UnnamedArgs.Length ->
         Error
-        <| ArgumentsTooMuchException(debug, macro, x)
+        <| ArgumentsTooMuchException(debug, x)
     | Some (macro, t, other) ->
         matchArguments debug macro.Param x
         |> Result.bind (checkApplyTypeCorrect debug t)

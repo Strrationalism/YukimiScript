@@ -151,7 +151,7 @@
 
 - extern fade_out color time
 - macro  fade_out color time
-@__type_color color time
+@__type_color time
 @__type time int
 @fade_out color time
 
@@ -217,8 +217,16 @@
 @chara_y_multi charaID filename x y layer
 @chara_y_multi_do coord_mode time
 
-- extern chara_scroll coord_mode charaID filename startx starty endx endy beginalpha layer time
-- macro  chara_scroll coord_mode charaID filename startx starty endx endy beginalpha layer time
+- extern chara_scroll coord_mode charaID endx endy time
+- macro  chara_scroll coord_mode charaID endx endy time
+@__type_coord_mode coord_mode
+@__type charaID int
+@__type endx number
+@__type endy number
+@__type time int
+
+- extern chara_scroll_complex coord_mode charaID filename startx starty endx endy beginalpha layer time
+- macro  chara_scroll_complex coord_mode charaID filename startx starty endx endy beginalpha layer time
 @__type charaID int
 @__type filename string
 @__type startx number
@@ -229,7 +237,7 @@
 @__type layer int
 @__type time int
 @__type_coord_mode coord_mode
-@chara_scroll coord_mode charaID filename startx starty endx endy beginalpha layer time
+@chara_scroll_complex coord_mode charaID filename startx starty endx endy beginalpha layer time
 
 - extern anime_on num filename x y interval isloop=false
 @__type num int

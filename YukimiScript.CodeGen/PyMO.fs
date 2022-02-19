@@ -1,6 +1,7 @@
 ﻿module YukimiScript.CodeGen.PyMO
 
 open YukimiScript.Parser
+open YukimiScript.Parser.ParserMonad
 open YukimiScript.Parser.Elements
 open System.Text
 open System
@@ -12,6 +13,12 @@ let private genArg = function
     | Integer x -> Some <| string x
     | Symbol "true" -> Some "1"
     | Symbol "false" -> Some "0"
+    | Symbol "a" -> Some "a"
+    | Symbol "BG_VERYFAST" -> Some "BG_VERYFAST"
+    | Symbol "BG_FAST" -> Some "BG_FAST"
+    | Symbol "BG_NORMAL" -> Some "BG_NORMAL"
+    | Symbol "BG_SLOW" -> Some "BG_SLOW"
+    | Symbol "BG_VERYSLOW" -> Some "BG_VERYSLOW"
     | Symbol "cm0" -> Some "0"
     | Symbol "cm1" -> Some "1"
     | Symbol "cm2" -> Some "2"
@@ -34,12 +41,16 @@ let private genArgUntyped = function
 
 
 let private checkSceneName (name: string) =
-    if name.Contains '.'
-    then false
-    else 
-        match ParserMonad.run name Basics.symbol with
-        | Ok _ -> true
-        | _ -> false
+    match name with
+    | "$init" -> true
+    | name ->
+        if name.Contains '.'
+        then false
+        else 
+            let p = seq { yield! ['0'..'9']; yield! ['a' .. 'z']; yield! ['A' .. 'Z']; yield! [ '_'; '-' ] }
+            match run name <| oneOrMore (inRange p) with
+            | Ok _ -> true
+            | _ -> false
 
 
 let private genArgs' genArg = 
@@ -146,6 +157,7 @@ let private simpleCommands =
       "textbox"
       "scroll"
       "chara_scroll"
+      "chara_scroll_complex"
       "anime_on"
       "anime_off"
       "goto"
@@ -234,13 +246,17 @@ let private genCommand
         | "__text_type" -> Error ("错误的__text_type用法。", call.DebugInformation)
         | "__text_pushMark" | "__text_popMark" -> Error ("PyMO不支持高级文本语法。", call.DebugInformation)
         | "__text_end" -> Error ("错误的__text_end用法。", call.DebugInformation)
-
         | c when Set.contains c commandsWithUntypedSymbol -> 
             sb.Append('#').Append(c).Append(' ').AppendLine(genArgsUntyped call.Arguments) |> ignore
             Ok context
         | ComplexCommand' complex -> 
             Ok { context with CurrentComplexCommand = Some (complex, call.Arguments) }
         | simple when Set.contains simple simpleCommands -> 
+            let simple = 
+                if simple = "chara_scroll_complex"
+                then "chara_scroll"
+                else simple
+
             let args = 
                 match Map.tryFind simple colorCommands with
                 | None -> call.Arguments
@@ -263,7 +279,7 @@ let private generateScene scene context (sb: StringBuilder) =
     | false -> 
         ErrorStringing.header scene.DebugInformation
         + "场景名称 " + scene.Scene.Name
-        + " 非法，在PyMO中只可以使用由字母、数字和下划线组成的场景名且首字符不能为数字。"
+        + " 非法，在PyMO中只可以使用由字母、数字和下划线组成的场景名。"
         |> Console.WriteLine
         context, false
     | true ->

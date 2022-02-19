@@ -34,7 +34,7 @@ module Intermediate =
                                   Arguments = c.UnnamedArgs
                                   DebugInformation = debugCommand }
                                 |> Some
-                            | a -> failwithf "Not support in intermediate: %A" a)
+                            | a -> failwith <| "Not support in intermediate: " + string a)
 
                 { Scene = scene; Block = commands; DebugInformation = debugScene })
         |> Intermediate

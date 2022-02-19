@@ -57,58 +57,65 @@ and private textSlice () =
     |> name "text slice"
 
 
-let text =
+let hasMoreSymbol =
     parser {
-        let! character =
-            parser {
-                do! whitespace0
-                let! character = symbol
-                do! literal ":"
-                return character
-            }
-            |> zeroOrOne
-
-        let! text = oneOrMore <| textSlice ()
-
-        let text =
-            text
-            |> List.filter
-                (function
-                | TextSlice.Text x -> not <| System.String.IsNullOrWhiteSpace x
-                | _ -> true)
-
-        let text =
-            text
-            |> List.tryFindIndexBack
-                (function
-                | TextSlice.Text _ -> true
-                | _ -> false)
-            |> function
-                | None -> text
-                | Some index ->
-                    let lastTextSlice =
-                        match text.[index] with
-                        | TextSlice.Text x -> x.Trim() |> TextSlice.Text
-                        | _ -> failwith ""
-
-                    text.[..index - 1]
-                    @ [ lastTextSlice ] @ text.[index + 1..]
-
-        let! hasMore =
-            parser {
-                do! whitespace0
-                do! literal "\\"
-                do! whitespace0
-            }
-            |> zeroOrOne
-
-        return
-            Line.Text
-                { Character = character
-                  Text = text
-                  HasMore = hasMore.IsSome }
+        do! whitespace0
+        do! literal "\\"
+        do! whitespace0
     }
-    |> name "text"
+
+let text =
+    let text =
+        parser {
+            let! character =
+                parser {
+                    do! whitespace0
+                    let! character = symbol
+                    do! literal ":"
+                    return character
+                }
+                |> zeroOrOne
+
+            let! text = oneOrMore <| textSlice ()
+
+            let text =
+                text
+                |> List.filter
+                    (function
+                    | TextSlice.Text x -> not <| System.String.IsNullOrWhiteSpace x
+                    | _ -> true)
+
+            let text =
+                text
+                |> List.tryFindIndexBack
+                    (function
+                    | TextSlice.Text _ -> true
+                    | _ -> false)
+                |> function
+                    | None -> text
+                    | Some index ->
+                        let lastTextSlice =
+                            match text.[index] with
+                            | TextSlice.Text x -> x.Trim() |> TextSlice.Text
+                            | _ -> failwith ""
+
+                        text.[..index - 1]
+                        @ [ lastTextSlice ] @ text.[index + 1..]
+
+            let! hasMore = hasMoreSymbol |> zeroOrOne
+
+            return
+                Line.Text
+                    { Character = character
+                      Text = text
+                      HasMore = hasMore.IsSome }
+        }
+    
+    let hasMoreSymbol = 
+        hasMoreSymbol
+        |> map (fun () -> Line.Text { Character = None; Text = []; HasMore = true })
+
+    (text <|> hasMoreSymbol) |> name "text"
 
 
 let toCommands (text: TextBlock) : CommandCall list =
