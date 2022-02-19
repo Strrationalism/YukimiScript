@@ -135,6 +135,11 @@
 @__type time int
 @__type x number
 @__type y number
+@__type_symbol time BG_VERYFAST
+@__type_symbol time BG_FAST
+@__type_symbol time BG_NORMAL
+@__type_symbol time BG_SLOW
+@__type_symbol time BG_VERYSLOW
 
 - extern flash color time
 - macro  flash color time
