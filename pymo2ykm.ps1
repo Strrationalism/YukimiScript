@@ -15,16 +15,9 @@ foreach ($line in $src) { $lines += $line }
 $parsed_lines = @()
 
 function Fix-Text($x) {
-    if ([System.String]::IsNullOrWhitespace) { return "" }
+    if ([System.String]::IsNullOrWhitespace($x)) { return "" }
     else {
-        return 
-            $x
-                .Replace('[', '「')
-                .Replace(']', '」')
-                .Replace('<', '〈')
-                .Replace('>', '〉')
-                .Replace("--", "——")
-                .Replace("`"", "`“")
+        return $x.Replace('[', '「').Replace(']', '」').Replace('<', '〈').Replace('>', '〉').Replace("--", "——").Replace("`"", "`“")
     }
 }
 
@@ -214,9 +207,9 @@ function Gen-Ykm($pymo) {
 
             $text = $text_tmp
 
-            for ($i = 0; $i -lt $text.Length; $i += 1) {
-                $stat += $text[$i]
-                if ($i -ne $text.Length - 1) {
+            for ($text_index = 0; $text_index -lt $text.Length; $text_index += 1) {
+                $stat += $text[$text_index]
+                if ($text_index -ne $text.Length - 1) {
                     $stat += "\"
                 }
 
@@ -616,10 +609,10 @@ function Gen-Ykm($pymo) {
         "bgm_stop" { $ret += "@bgm_stop"; break }
 
         "se" {
-            if ($pymo.Args.Length -ge 2) {
+            if ($pymo.Args.Length -eq 1) {
                 $ret += "@se $(Str($pymo.Args[0]))"
             } else {
-                $ret += "se $(Str($pymo.Args[0])) --isloop $(Bool($pymo.Args[1]))"
+                $ret += "@se $(Str($pymo.Args[0])) --isloop $(Bool($pymo.Args[1]))"
             }
 
             break

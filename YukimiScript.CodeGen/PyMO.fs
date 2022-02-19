@@ -180,7 +180,7 @@ let private simpleCommands =
 
 
 let private colorCommands =
-    [ "text", 4
+    [ "text", 5
       "flash", 0
       "fade_out", 0
       "date", 3 ]

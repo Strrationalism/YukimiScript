@@ -190,7 +190,12 @@ let main argv =
             0
         | Ok x ->
             try
-                doAction ErrorStringing.schinese x
+                let threadStart =
+                    Threading.ThreadStart (fun () -> 
+                        doAction ErrorStringing.schinese x)
+                let thread = Threading.Thread (threadStart, 1024 * 1024 * 16)
+                thread.Start ()
+                thread.Join ()
                 0
             with
             | FailException -> -1
