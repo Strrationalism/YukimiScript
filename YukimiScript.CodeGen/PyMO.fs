@@ -23,7 +23,7 @@ let private genArg = function
     | Symbol "BG_FADE" -> Some "BG_FADE"
     | Symbol "BG_NOFADE" -> Some "BG_NOFADE"
     | Symbol "null" -> None
-    | Symbol x -> failwithf "Unsupported PyMO keyword %A." x
+    | Symbol x -> failwith <| "Unsupported PyMO keyword " +  x + "."
 
 
 let private genArgUntyped = function
