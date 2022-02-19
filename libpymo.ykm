@@ -389,8 +389,9 @@
 @__type save_num null
 @__type save_num int
 
-- extern album album_list_filename
+- extern album album_list_filename=null
 @__type album_list_filename string
+@__type album_list_filename null
 
 - extern music
 
