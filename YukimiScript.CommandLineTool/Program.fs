@@ -192,21 +192,19 @@ let doAction errStringing =
 
 [<EntryPoint>]
 let main argv =
-    argv
-    |> Array.toList
-    |> parseArgs
-    |> function
-        | Error () ->
-            help ()
-            0
-        | Ok x ->
-            try
-                let threadStart =
-                    Threading.ThreadStart (fun () -> 
-                        doAction ErrorStringing.schinese x)
-                let thread = Threading.Thread (threadStart, 1024 * 1024 * 16)
-                thread.Start ()
-                thread.Join ()
-                0
-            with
-            | FailException -> -1
+    let mutable ret = 0
+    let threadStart =
+        Threading.ThreadStart (fun () -> 
+            argv
+            |> Array.toList
+            |> parseArgs
+            |> function
+                | Error () ->
+                    help ()
+                | Ok x ->
+                    try doAction ErrorStringing.schinese x
+                    with FailException -> ret <- -1)
+    let thread = Threading.Thread (threadStart, 1024 * 1024 * 16)
+    thread.Start ()
+    thread.Join ()
+    ret
