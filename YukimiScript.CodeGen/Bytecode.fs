@@ -90,7 +90,7 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
         fourCC |> ASCII.GetBytes |> writeBytes target
 
     let scenes = List.map generateScene scenes
-    while cstrBlock.Length % 4L <> 0 do
+    while (int cstrBlock.Length) % 4 <> 0 do
         cstrBlock.WriteByte 0uy
 
     writeFourCC "RIFF" target
@@ -109,7 +109,7 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
         writeFourCC fourCC target
         block.Flush ()
         block.Length |> uint32 |> getBytesLE |> writeBytes target
-        block.Position <- 0
+        block.Position <- 0L
         block.CopyTo(target)
     
     writeRiffBlock "CSTR" cstrBlock
