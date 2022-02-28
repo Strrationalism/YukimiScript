@@ -81,7 +81,7 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
                 | String s -> 
                     getString s |> int |> (+) 2 |> getBytesLE |> writeBytes code
                 | Symbol s -> 
-                    getString s |> int |> (*) (-1) |> (-) 1 |> getBytesLE |> writeBytes code
+                    - int (getString s) - 1 |> getBytesLE |> writeBytes code
 
         code
 
