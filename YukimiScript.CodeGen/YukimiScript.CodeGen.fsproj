@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Bytecode.fs" />
     <Compile Include="PyMO.fs" />
     <Compile Include="Lua.fs" />
     <Compile Include="WebGAL.fs" />

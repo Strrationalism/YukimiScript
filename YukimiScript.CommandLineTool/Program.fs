@@ -24,6 +24,7 @@ let help () =
       "    mermaid            Flowchart in Mermaid."
       ""
       "Targets:"
+      "    bin                YukimiScript bytecode."
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
       "    pymo               PyMO 1.2 script, you must compile source code with libpymo.ykm."
       "    webgal             WebGAL engine."
@@ -46,6 +47,7 @@ type TargetOption =
     | Lua of outputFile: string
     | PyMO of outputFile: string * scriptName: string
     | WebGAL of outputFile: string * scriptName: string
+    | Bytecode of outputFile: string
 
 
 type DiagramType =
@@ -68,6 +70,10 @@ let rec parseOptions prev =
 
 let rec parseTargetsAndOptions (inputSrc: string) =
     function
+    | "--target-bin" :: binOut :: next ->
+        parseTargetsAndOptions inputSrc next
+        |> Result.map (fun (nextTargets, options) ->
+            Bytecode binOut :: nextTargets, options)
     | "--target-pymo" :: pymoOut :: next ->
         parseTargetsAndOptions inputSrc next
         |> Result.map (fun (nextTargets, options) -> 
@@ -126,6 +132,10 @@ let doAction errStringing =
         targets
         |> List.iter
             (function
+                | Bytecode output ->    
+                    use file = File.Open (output, FileMode.Create)
+                    YukimiScript.CodeGen.Bytecode.generateBytecode intermediate file
+                    file.Close ()
                 | PyMO (output, scriptName) -> 
                     YukimiScript.CodeGen.PyMO.generateScript intermediate scriptName
                     |> function
