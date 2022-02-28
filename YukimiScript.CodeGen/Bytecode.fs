@@ -17,6 +17,10 @@ let inline getBytesLE (x: 'x) =
     else Array.rev bytes
 
 
+let private writeBytes (stream: Stream) byte =
+    stream.Write (byte, 0, Array.length byte)
+
+
 let generateBytecode (Intermediate scenes) (target: FileStream) =
     let cstrBlock = new MemoryStream ()
     let extrBlock = new MemoryStream ()
@@ -30,7 +34,7 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
         | None -> 
             let pos = uint32 cstrBlock.Position
             let strBytes = UTF8.GetBytes(str: string)
-            cstrBlock.Write(strBytes)
+            writeBytes cstrBlock strBytes
             cstrBlock.WriteByte(0uy)
             cstrIndex.Value <- Map.add str pos cstrIndex.Value
             pos
@@ -44,7 +48,7 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
             getString name 
             |> uint16
             |> getBytesLE
-            |> extrBlock.Write
+            |> writeBytes extrBlock
             
             extrIndex.Value <- Map.add name extrId extrIndex.Value
             extrId
@@ -53,18 +57,18 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
         let code = new MemoryStream ()
         getString scene.Scene.Name
         |> getBytesLE
-        |> code.Write
+        |> writeBytes code
 
         for call in scene.Block do
             call.Callee 
             |> getExtern 
             |> getBytesLE
-            |> code.Write
+            |> writeBytes code
 
             call.Arguments.Length
             |> uint16
             |> getBytesLE
-            |> code.Write
+            |> writeBytes code
 
             for arg in call.Arguments do
                 let typeid, data =
@@ -74,14 +78,14 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
                     | String s -> 2u, getString s |> getBytesLE
                     | Symbol s -> 3u, getString s |> getBytesLE
 
-                code.Write (getBytesLE typeid)
-                code.Write data
+                writeBytes code (getBytesLE typeid)
+                writeBytes code data
 
         code
 
     let writeFourCC fourCC (target: Stream) =
         assert (String.length fourCC = 4)
-        fourCC |> ASCII.GetBytes |> target.Write
+        fourCC |> ASCII.GetBytes |> writeBytes target
 
     let scenes = List.map generateScene scenes
     while cstrBlock.Length % 4L <> 0 do
@@ -96,13 +100,13 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
         8L * int64 scenes.Length + List.sumBy (fun (x: MemoryStream) -> x.Length) scenes
         |> uint32
 
-    riffDataSize |> getBytesLE |> target.Write
+    riffDataSize |> getBytesLE |> writeBytes target
     writeFourCC "YUKI" target
 
     let writeRiffBlock fourCC (block: MemoryStream) =
         writeFourCC fourCC target
         block.Flush ()
-        block.Length |> uint32 |> getBytesLE |> target.Write
+        block.Length |> uint32 |> getBytesLE |> writeBytes target
         block.Position <- 0
         block.CopyTo(target)
     
