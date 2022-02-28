@@ -71,15 +71,17 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
             |> writeBytes code
 
             for arg in call.Arguments do
-                let typeid, data =
-                    match arg with
-                    | Integer i -> 0u, getBytesLE i
-                    | Real f -> 1u, getBytesLE (float32 f)
-                    | String s -> 2u, getString s |> getBytesLE
-                    | Symbol s -> 3u, getString s |> getBytesLE
-
-                writeBytes code (getBytesLE typeid)
-                writeBytes code data
+                match arg with
+                | Integer i -> 
+                    writeBytes code <| getBytesLE 0
+                    writeBytes code <| getBytesLE i
+                | Real f -> 
+                    writeBytes code <| getBytesLE 1
+                    writeBytes code <| getBytesLE (float32 f)
+                | String s -> 
+                    getString s |> int |> (+) 2 |> getBytesLE |> writeBytes code
+                | Symbol s -> 
+                    getString s |> int |> (*) (-1) |> (-) 1 |> getBytesLE |> writeBytes code
 
         code
 
