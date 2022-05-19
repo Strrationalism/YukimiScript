@@ -68,6 +68,7 @@ let rec schinese: ErrorStringing =
            |> Seq.reduce (fun a b -> a + System.Environment.NewLine + b))
 
     | MustExpandTextBeforeLinkException -> "必须先展开文本元素再连接外部元素。"
+    | ExternCannotHasContentException (x, d) -> header d + "外部定义中不能包含内容：" + x + "。"
     | ExternCommandDefinationNotFoundException (ex, debug) -> header debug + "发现了对外部元素" + ex + "的引用，但未找到此引用。"
     | ParamRepeatedException (parent, param) -> "在" + parent + "中发现重复定义的参数" + param + "。"
     | NoMacroMatchedException -> "没有匹配的宏。"

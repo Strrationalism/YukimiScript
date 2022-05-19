@@ -131,9 +131,15 @@ let private commandsWithUntypedSymbol =
     |> Set.ofSeq
 
 
+type Scope =
+    | IfScope of ifs: (string * StringBuilder) list * def: StringBuilder option
+
+
 type private CodeGenContext = 
     { Characters: Map<string, string>
-      CurrentComplexCommand: (ComplexCommand * Constant list) option }
+      CurrentComplexCommand: (ComplexCommand * Constant list) option
+      ScopeStack: Scope list
+      Inc: int }
 
 
 let private (|ComplexCommand'|_|) x = 
@@ -160,7 +166,6 @@ let private simpleCommands =
       "chara_scroll_complex"
       "anime_on"
       "anime_off"
-      "goto"
       "change"
       "call"
       "ret"
@@ -188,10 +193,41 @@ let private colorCommands =
 
 
 let private genCommand 
-    (sb: StringBuilder) 
+    (sbRoot: StringBuilder) 
     context
     (call: IntermediateCommandCall) 
     : Result<CodeGenContext, string * DebugInformation> = 
+
+    let getScopeSb = 
+        function
+        | [] -> sbRoot
+        | IfScope ((_, sb) :: _, None) :: _ -> sb
+        | IfScope (_, Some sb) :: _ -> sb
+        | IfScope _ :: _ -> failwith "Invalid if scope!"
+
+    let sb = getScopeSb context.ScopeStack
+
+    let genComplexCommandError () =
+        Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInformation)
+        
+    let condStr left op right =
+        let left, op, right =
+            genArgUntyped left,
+            genArgUntyped op,
+            genArgUntyped right
+            
+        let op =
+            match op with
+            | "eq" -> "="
+            | "ne" -> "!="
+            | "gt" -> ">"
+            | "ge" -> ">="
+            | "lt" -> "<"
+            | "le" -> "<="
+            | _ -> failwith ""
+
+        left + op + right
+
     match context.CurrentComplexCommand with
     | Some (ComplexCommand (openCmd, closeCmd, gen) as cc, args) -> 
         match call.Callee with
@@ -203,7 +239,7 @@ let private genCommand
         | c when c = closeCmd ->
             sb.AppendLine (gen args call.Arguments) |> ignore
             Ok { context with CurrentComplexCommand = None }
-        | _ -> Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInformation)
+        | _ -> genComplexCommandError ()
     | None -> 
         match call.Callee with
         | "__define_character" -> 
@@ -213,26 +249,93 @@ let private genCommand
                             (genArgUntyped call.Arguments.[0]) 
                             (genArgUntyped call.Arguments.[1]) 
                             context.Characters }
-        | "if_goto" -> 
-            let left, op, right, label = 
-                genArgUntyped call.Arguments.[0], 
-                genArgUntyped call.Arguments.[1],
-                genArgUntyped call.Arguments.[2],
-                genArgUntyped call.Arguments.[3]
-            
-            let op = 
-                match op with
-                | "eq" -> "="
-                | "ne" -> "!="
-                | "gt" -> ">"
-                | "ge" -> ">="
-                | "lt" -> "<"
-                | "le" -> "<="
-                | _ -> failwith ""
+        | "if" ->
+            let condStr = condStr call.Arguments[0] call.Arguments[1] call.Arguments[2]
+            if context.CurrentComplexCommand.IsSome
+            then genComplexCommandError ()
+            else 
+                { context with 
+                    ScopeStack = 
+                        IfScope ([condStr, StringBuilder ()], None)::context.ScopeStack }
+                |> Ok
+        | "elif" ->
+            let condStr = condStr call.Arguments[0] call.Arguments[1] call.Arguments[2]
+            if context.CurrentComplexCommand.IsSome
+            then genComplexCommandError ()
+            else 
+                match context.ScopeStack with
+                | IfScope (x, None)::ls ->
+                    { context with
+                        ScopeStack = IfScope ((condStr, StringBuilder ())::x, None)::ls }
+                    |> Ok
+                | _ -> Error ("这里不应该使用elif命令。", call.DebugInformation)
+        | "else" ->
+            if context.CurrentComplexCommand.IsSome
+            then genComplexCommandError ()
+            else 
+                match context.ScopeStack with
+                | IfScope (ifs, None)::ls ->
+                    { context with ScopeStack = IfScope (ifs, Some <| StringBuilder ()) :: ls }
+                    |> Ok
+                | _ -> Error ("这里不应该使用else命令。", call.DebugInformation)
+        | "endif" ->
+            if context.CurrentComplexCommand.IsSome
+            then genComplexCommandError ()
+            else 
+                match context.ScopeStack with
+                | (IfScope (ifs, def)) :: outter -> 
+                    let sb = getScopeSb outter
+                    let ifs = List.rev ifs
+                    ifs
+                    |> List.iteri (fun i (cond, _) ->
+                        sb
+                            .Append("#if ")
+                            .Append(cond)
+                            .Append(",goto ")
+                            .Append("IF_")
+                            .AppendLine(string <| i + context.Inc)
+                        |> ignore)
 
-            sb.Append("#if ").Append(left).Append(op).Append(right).Append(",goto ").AppendLine(label)
+                    let endOfIfLabel = "IF_END_" + string context.Inc
+                    
+                    if def.IsSome then
+                        sb
+                            .AppendLine(def.Value.ToString ())
+                        |> ignore
+
+                    sb.Append("#goto ").AppendLine(endOfIfLabel) |> ignore
+
+                    ifs
+                    |> List.iteri (fun i (_, body) ->
+                        sb
+                            .Append("#label IF_")
+                            .AppendLine(string <| i + context.Inc)
+                            .AppendLine(body.ToString ())
+                            .Append("#goto ")
+                            .AppendLine(endOfIfLabel)
+                        |> ignore)
+
+                    sb.Append("#label ").AppendLine(endOfIfLabel) |> ignore
+                    Ok { context with ScopeStack = outter; Inc = context.Inc + List.length ifs }
+
+                | _ -> Error ("这里不应该使用endif命令。", call.DebugInformation)
+
+        | "if_goto" -> 
+            let condStr, label = 
+                condStr 
+                    call.Arguments[0]
+                    call.Arguments[1]
+                    call.Arguments[2],
+                genArgUntyped call.Arguments.[3]
+                
+
+            sb.Append("#if ").Append(condStr).Append(",goto SCN_").AppendLine(label)
             |> ignore
 
+            Ok context
+
+        | "goto" ->
+            sb.Append("#goto SCN_").AppendLine(genArgUntyped call.Arguments[0]) |> ignore
             Ok context
 
         | "__text_begin" -> 
@@ -271,7 +374,7 @@ let private genCommand
 
 let private generateScene scene context (sb: StringBuilder) =
     sb
-        .Append("#label ")
+        .Append("#label SCN_")
         .AppendLine(scene.Scene.Name)
     |> ignore
 
@@ -295,7 +398,7 @@ let private generateScene scene context (sb: StringBuilder) =
                         context, false)
             (context, true)
         |> function
-            | { CurrentComplexCommand = Some (ComplexCommand (o, e, _), _) } as context, success -> 
+            | { CurrentComplexCommand = Some (ComplexCommand (o, e, _), _) } as context, _ -> 
                 ErrorStringing.header scene.DebugInformation
                  + "在此场景的末尾，应当使用"
                  + e 
@@ -303,20 +406,29 @@ let private generateScene scene context (sb: StringBuilder) =
                  + o
                  + "变参命令组。"
                 |> Console.WriteLine
-                context, success
-            | context -> context
+                context, false
+            | { ScopeStack = _::_ } as context, _ ->
+                ErrorStringing.header scene.DebugInformation
+                 + "在场景的末尾应当结束当前的if区域。"
+                |> Console.WriteLine
+                context, false
+            | c -> c
 
     
 let generateScript (Intermediate scenes) scriptName =
     let sb = new StringBuilder ()
     let scenes, (context, success) = 
-        let initContext = { Characters = Map.empty; CurrentComplexCommand = None }
+        let initContext = 
+          { Characters = Map.empty
+            CurrentComplexCommand = None
+            ScopeStack = []
+            Inc = 0 }
         match List.tryFind (fun x -> x.Scene.Name = "$init") scenes with
         | None -> scenes, (initContext, true)
         | Some init -> 
             List.except [init] scenes,
             generateScene init initContext sb
-    
+
     match success, List.tryFind (fun x -> x.Scene.Name = scriptName) scenes with
     | false, _ -> Error ()
     | true, None -> Console.WriteLine "未能找到入口点场景。"; Error ()
