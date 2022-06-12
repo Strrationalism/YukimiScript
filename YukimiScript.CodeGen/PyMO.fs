@@ -193,6 +193,7 @@ let private colorCommands =
 
 
 let private genCommand 
+    genDbg
     (sbRoot: StringBuilder) 
     context
     (call: IntermediateCommandCall) 
@@ -206,6 +207,9 @@ let private genCommand
         | IfScope _ :: _ -> failwith "Invalid if scope!"
 
     let sb = getScopeSb context.ScopeStack
+
+    if genDbg && call.Callee <> "__text_begin" && call.Callee <> "__text_end" then
+        sb.AppendLine (";YKMDBG;L" + string call.DebugInformation.LineNumber + ";F=\"" + call.DebugInformation.File + "\"") |> ignore
 
     let genComplexCommandError () =
         Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInformation)
@@ -372,7 +376,18 @@ let private genCommand
         | x -> Error ("不能在这里使用的命令" + x + "。", call.DebugInformation)
 
 
-let private generateScene scene context (sb: StringBuilder) =
+let private generateScene genDbg scene context (sb: StringBuilder) =
+    
+    if genDbg then
+        sb.AppendLine(
+            ";YKMDBG;SCENE=\"" + 
+            scene.Scene.Name + 
+            "\";L" + 
+            string scene.DebugInformation.LineNumber +
+            ";F=\"" + scene.DebugInformation.File + "\"") 
+        |> ignore
+    
+
     sb
         .Append("#label SCN_")
         .AppendLine(scene.Scene.Name)
@@ -389,7 +404,7 @@ let private generateScene scene context (sb: StringBuilder) =
         scene.Block 
         |> List.fold 
             (fun (context, success) -> 
-                genCommand sb context
+                genCommand genDbg sb context
                 >> function
                     | Ok context -> context, success
                     | Error (msg, dbg) -> 
@@ -415,8 +430,9 @@ let private generateScene scene context (sb: StringBuilder) =
             | c -> c
 
     
-let generateScript (Intermediate scenes) scriptName =
+let generateScript genDbg (Intermediate scenes) scriptName =
     let sb = new StringBuilder ()
+
     let scenes, (context, success) = 
         let initContext = 
           { Characters = Map.empty
@@ -427,7 +443,7 @@ let generateScript (Intermediate scenes) scriptName =
         | None -> scenes, (initContext, true)
         | Some init -> 
             List.except [init] scenes,
-            generateScene init initContext sb
+            generateScene genDbg init initContext sb
 
     match success, List.tryFind (fun x -> x.Scene.Name = scriptName) scenes with
     | false, _ -> Error ()
@@ -435,7 +451,7 @@ let generateScript (Intermediate scenes) scriptName =
     | true, Some entryPoint ->  
         (entryPoint :: List.except [entryPoint] scenes)
         |> List.fold (fun success scene -> 
-            let succ' = generateScene scene context sb |> snd
+            let succ' = generateScene genDbg scene context sb |> snd
             success && succ') true
         |> function
             | true -> Ok <| sb.ToString ()

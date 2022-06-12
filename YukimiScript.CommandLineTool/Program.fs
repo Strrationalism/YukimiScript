@@ -130,7 +130,7 @@ let doAction errStringing =
                     YukimiScript.CodeGen.Bytecode.generateBytecode intermediate file
                     file.Close ()
                 | PyMO (output, scriptName) -> 
-                    YukimiScript.CodeGen.PyMO.generateScript intermediate scriptName
+                    YukimiScript.CodeGen.PyMO.generateScript false intermediate scriptName
                     |> function
                         | Ok out -> File.WriteAllText(output, out, Text.Encoding.UTF8)
                         | Error () -> Console.WriteLine "Code generation failed."; exit (-1)
