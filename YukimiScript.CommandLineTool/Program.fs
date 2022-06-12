@@ -137,7 +137,7 @@ let doAction errStringing =
 
                 | Lua output ->
                     let lua =
-                        YukimiScript.CodeGen.Lua.generateLua intermediate
+                        YukimiScript.CodeGen.Lua.generateLua false intermediate
 
                     File.WriteAllText(output, lua, Text.Encoding.UTF8))
 

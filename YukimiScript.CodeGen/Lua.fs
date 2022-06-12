@@ -4,12 +4,10 @@ open YukimiScript.Parser
 open YukimiScript.Parser.Elements
 
 
-let generateLua (Intermediate scenes) =
-    let luaCall (x: string) =
-        let i = x.LastIndexOf '.'
-        x.[..i - 1] + ":" + x.[i + 1..]
-
+let generateLua genDebug (Intermediate scenes) =
     let sb = System.Text.StringBuilder()
+
+    let sbDebug = if genDebug then Some (System.Text.StringBuilder ()) else None
 
     sb.AppendLine("return function(api) return {")
     |> ignore
@@ -17,22 +15,49 @@ let generateLua (Intermediate scenes) =
     scenes
     |> List.iter
         (fun scene ->
+            let scenName = Constants.string2literal scene.Scene.Name
+
             sb
                 .Append("  [\"")
-                .Append(Constants.string2literal scene.Scene.Name)
+                .Append(scenName)
                 .Append("\"] = {")
             |> ignore
 
             sb.AppendLine() |> ignore
 
+            sbDebug |> Option.iter (fun sbd -> 
+                sbd
+                    .Append("    [\"")
+                    .Append(scenName)
+                    .AppendLine("\"] = {")
+                    .Append("      F = \"")
+                    .Append(scene.DebugInformation.File.Replace("\\", "\\\\"))
+                    .AppendLine("\",")
+                    .Append("      L = ")
+                    .Append(string scene.DebugInformation.LineNumber)
+                |> ignore)
+
             scene.Block
             |> List.iter
                 (fun c ->
+                    sbDebug |> Option.iter (fun sbd ->
+                        sbd
+                            .AppendLine(",")
+                            .Append("      { F = \"")
+                            .Append(c.DebugInformation.File.Replace("\\", "\\\\"))
+                            .Append("\", L = ")
+                            .Append(string c.DebugInformation.LineNumber)
+                            .Append(" }") |> ignore)
                     sb
                         .Append("    function() ")
-                        .Append(luaCall <| "api." + c.Callee)
-                        .Append("(")
+                        .Append("api[\"")
+                        .Append(c.Callee)
+                        .Append("\"]")
+                        .Append("(api")
                     |> ignore
+
+                    if not <| List.isEmpty c.Arguments then
+                        sb.Append(", ") |> ignore
 
                     let args =
                         c.Arguments
@@ -57,6 +82,15 @@ let generateLua (Intermediate scenes) =
 
                     sb.AppendLine() |> ignore)
 
-            sb.AppendLine("  },") |> ignore)
+            sbDebug |> Option.iter (fun sbd ->
+                sbd.AppendLine().AppendLine ("    },") |> ignore)
+
+            sb.AppendLine().AppendLine("  },") |> ignore)
+
+    sbDebug |> Option.iter (fun sbDbg ->
+        sb.AppendLine ("  [0] = {") |> ignore
+        sb.Append (sbDbg.ToString ()) |> ignore
+        sb.AppendLine ("  }") |> ignore)
 
     sb.AppendLine("} end").ToString()
+
