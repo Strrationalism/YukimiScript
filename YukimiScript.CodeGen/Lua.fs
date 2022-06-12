@@ -67,7 +67,7 @@ let generateLua genDebug (Intermediate scenes) =
                             | Symbol "false" -> "false"
                             | Symbol "null"
                             | Symbol "nil" -> "nil"
-                            | Symbol x -> "api." + x
+                            | Symbol x -> "api[\"" + x + "\"]"
                             | Integer x -> string x
                             | Real x -> string x
                             | String x -> "\"" + Constants.string2literal x + "\"")
