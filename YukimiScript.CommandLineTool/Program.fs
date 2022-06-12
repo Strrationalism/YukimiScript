@@ -18,6 +18,7 @@ let help () =
       ""
       "Options:"
       "    --lib <LIB_DIR>    Include external libraries."
+      "    --debug            Enable debugging information."
       ""
       "Diagram Types:"
       "    dgml               Visual Studio Directed Graph Markup Language."
@@ -36,10 +37,10 @@ let help () =
     |> List.iter Console.WriteLine
 
 
-type Options = { Lib: string list }
+type Options = { Lib: string list; Debugging: bool }
 
 
-let defaultOptions = { Lib = [] }
+let defaultOptions = { Lib = []; Debugging = false }
 
 
 type TargetOption = 
@@ -63,6 +64,7 @@ let rec parseOptions prev =
     function
     | [] -> Ok prev
     | "--lib" :: libDir :: next -> parseOptions { prev with Lib = libDir :: prev.Lib } next
+    | "--debug" :: next -> parseOptions { prev with Debugging = true } next
     | _ -> Error()
 
 
@@ -127,17 +129,17 @@ let doAction errStringing =
             (function
                 | Bytecode output ->    
                     use file = File.Open (output, FileMode.Create)
-                    YukimiScript.CodeGen.Bytecode.generateBytecode false intermediate file
+                    YukimiScript.CodeGen.Bytecode.generateBytecode options.Debugging intermediate file
                     file.Close ()
                 | PyMO (output, scriptName) -> 
-                    YukimiScript.CodeGen.PyMO.generateScript false intermediate scriptName
+                    YukimiScript.CodeGen.PyMO.generateScript options.Debugging intermediate scriptName
                     |> function
                         | Ok out -> File.WriteAllText(output, out, Text.Encoding.UTF8)
                         | Error () -> Console.WriteLine "Code generation failed."; exit (-1)
 
                 | Lua output ->
                     let lua =
-                        YukimiScript.CodeGen.Lua.generateLua false intermediate
+                        YukimiScript.CodeGen.Lua.generateLua options.Debugging intermediate
 
                     File.WriteAllText(output, lua, Text.Encoding.UTF8))
 
