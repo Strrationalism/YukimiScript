@@ -127,7 +127,7 @@ let doAction errStringing =
             (function
                 | Bytecode output ->    
                     use file = File.Open (output, FileMode.Create)
-                    YukimiScript.CodeGen.Bytecode.generateBytecode intermediate file
+                    YukimiScript.CodeGen.Bytecode.generateBytecode false intermediate file
                     file.Close ()
                 | PyMO (output, scriptName) -> 
                     YukimiScript.CodeGen.PyMO.generateScript false intermediate scriptName

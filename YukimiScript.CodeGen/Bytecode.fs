@@ -21,9 +21,9 @@ let private writeBytes (stream: Stream) byte =
     stream.Write (byte, 0, Array.length byte)
 
 
-let generateBytecode (Intermediate scenes) (target: FileStream) =
-    let cstrBlock = new MemoryStream ()
-    let extrBlock = new MemoryStream ()
+let generateBytecode genDebug (Intermediate scenes) (target: FileStream) =
+    use cstrBlock = new MemoryStream ()
+    use extrBlock = new MemoryStream ()
 
     let cstrIndex = ref Map.empty
     let extrIndex = ref Map.empty
@@ -46,7 +46,7 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
             let extrId = Map.count extrIndex.Value |> uint16
             
             getString name 
-            |> uint16
+            |> uint32
             |> getBytesLE
             |> writeBytes extrBlock
             
@@ -55,11 +55,24 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
 
     let generateScene scene = 
         let code = new MemoryStream ()
-        getString scene.Scene.Name
-        |> getBytesLE
-        |> writeBytes code
+        let debugInfo = if genDebug then Some <| new MemoryStream () else None
+
+        let pSceneName = 
+            getString scene.Scene.Name
+            |> getBytesLE
+        
+        writeBytes code pSceneName
+        debugInfo |> Option.iter (fun d -> 
+            writeBytes d pSceneName
+            scene.DebugInformation.File |> getString |> getBytesLE |> writeBytes d
+            uint32 scene.DebugInformation.LineNumber |> getBytesLE  |> writeBytes d)
 
         for call in scene.Block do
+            debugInfo |> Option.iter (fun d ->
+                uint32 code.Position |> getBytesLE |> writeBytes d
+                call.DebugInformation.File |> getString |> getBytesLE |> writeBytes d
+                uint32 call.DebugInformation.LineNumber |> getBytesLE |> writeBytes d)
+
             call.Callee 
             |> getExtern 
             |> getBytesLE
@@ -83,13 +96,14 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
                 | Symbol s -> 
                     - int (getString s) - 1 |> getBytesLE |> writeBytes code
 
-        code
+        code, debugInfo
 
     let writeFourCC fourCC (target: Stream) =
         assert (String.length fourCC = 4)
         fourCC |> ASCII.GetBytes |> writeBytes target
 
-    let scenes = List.map generateScene scenes
+    let scenes, debugInfos = List.map generateScene scenes |> List.unzip
+    let debugInfos = List.choose id debugInfos
     while (int cstrBlock.Length) % 4 <> 0 do
         cstrBlock.WriteByte 0uy
 
@@ -99,7 +113,8 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
         4L +                        // FourCC 'YUKI'
         8L + cstrBlock.Length +     // Block 'CSTR'
         8L + extrBlock.Length +     // Block 'EXTR'
-        8L * int64 scenes.Length + List.sumBy (fun (x: MemoryStream) -> x.Length) scenes
+        8L * int64 scenes.Length + List.sumBy (fun (x: MemoryStream) -> x.Length) scenes +
+        8L * int64 debugInfos.Length + List.sumBy (fun (x: MemoryStream) -> x.Length) debugInfos
         |> uint32
 
     riffDataSize |> getBytesLE |> writeBytes target
@@ -114,6 +129,14 @@ let generateBytecode (Intermediate scenes) (target: FileStream) =
     
     writeRiffBlock "CSTR" cstrBlock
     writeRiffBlock "EXTR" extrBlock
+
     for scene in scenes do
+        use scene = scene
         writeRiffBlock "SCEN" scene
+
+    for dbg in debugInfos do
+        use dbg = dbg
+        writeRiffBlock "DBGS" dbg
+        
+    
     
