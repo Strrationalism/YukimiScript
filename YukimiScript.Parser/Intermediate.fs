@@ -10,7 +10,7 @@ type IntermediateCommandCall =
 
 
 type IntermediateScene = 
-    { Scene: SceneDefination
+    { Name: string
       Block: IntermediateCommandCall list
       DebugInformation: DebugInformation }
 
@@ -22,7 +22,7 @@ module Intermediate =
     let ofDom (dom: Dom) =
         dom.Scenes
         |> List.map
-            (fun (scene, block, debugScene) ->
+            (fun ({ Name = sceneName }, block, debugScene) ->
                 let commands =
                     block
                     |> List.choose
@@ -40,5 +40,5 @@ module Intermediate =
                                 |> Some
                             | a -> failwith <| "Not support in intermediate: " + string a)
 
-                { Scene = scene; Block = commands; DebugInformation = debugScene })
+                { Name = sceneName; Block = commands; DebugInformation = debugScene })
         |> Intermediate

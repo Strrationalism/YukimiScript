@@ -53,12 +53,12 @@ let generateBytecode genDebug (Intermediate scenes) (target: FileStream) =
             extrIndex.Value <- Map.add name extrId extrIndex.Value
             extrId
 
-    let generateScene scene = 
+    let generateScene (scene: IntermediateScene) = 
         let code = new MemoryStream ()
         let debugInfo = if genDebug then Some <| new MemoryStream () else None
 
         let pSceneName = 
-            getString scene.Scene.Name
+            getString (scene.Name: string)
             |> getBytesLE
         
         writeBytes code pSceneName

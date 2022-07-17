@@ -15,7 +15,7 @@ let generateLua genDebug (Intermediate scenes) =
     scenes
     |> List.iter
         (fun scene ->
-            let scenName = Constants.string2literal scene.Scene.Name
+            let scenName = Constants.string2literal scene.Name
 
             sb
                 .Append("  [\"")

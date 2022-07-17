@@ -376,12 +376,12 @@ let private genCommand
         | x -> Error ("不能在这里使用的命令" + x + "。", call.DebugInformation)
 
 
-let private generateScene genDbg scene context (sb: StringBuilder) =
+let private generateScene genDbg (scene: IntermediateScene) context (sb: StringBuilder) =
     
     if genDbg then
         sb.AppendLine(
             ";YKMDBG;SCENE=\"" + 
-            scene.Scene.Name + 
+            scene.Name + 
             "\";L" + 
             string scene.DebugInformation.LineNumber +
             ";F=\"" + scene.DebugInformation.File + "\"") 
@@ -390,13 +390,13 @@ let private generateScene genDbg scene context (sb: StringBuilder) =
 
     sb
         .Append("#label SCN_")
-        .AppendLine(scene.Scene.Name)
+        .AppendLine(scene.Name)
     |> ignore
 
-    match checkSceneName scene.Scene.Name with
+    match checkSceneName scene.Name with
     | false -> 
         ErrorStringing.header scene.DebugInformation
-        + "场景名称 " + scene.Scene.Name
+        + "场景名称 " + scene.Name
         + " 非法，在PyMO中只可以使用由字母、数字和下划线组成的场景名。"
         |> Console.WriteLine
         context, false
@@ -439,13 +439,13 @@ let generateScript genDbg (Intermediate scenes) scriptName =
             CurrentComplexCommand = None
             ScopeStack = []
             Inc = 0 }
-        match List.tryFind (fun x -> x.Scene.Name = "$init") scenes with
+        match List.tryFind (fun (x: IntermediateScene) -> x.Name = "$init") scenes with
         | None -> scenes, (initContext, true)
         | Some init -> 
             List.except [init] scenes,
             generateScene genDbg init initContext sb
 
-    match success, List.tryFind (fun x -> x.Scene.Name = scriptName) scenes with
+    match success, List.tryFind (fun (x: IntermediateScene) -> x.Name = scriptName) scenes with
     | false, _ -> Error ()
     | true, None -> Console.WriteLine "未能找到入口点场景。"; Error ()
     | true, Some entryPoint ->  
