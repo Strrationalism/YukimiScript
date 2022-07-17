@@ -132,3 +132,8 @@ let constantParser =
       map Symbol symbol ]
     |> choices
     |> name "constant"
+
+
+let commandArg =
+    map Constant constantParser
+    <|> map StringFormat (bind (fun () -> stringParser) <| literal "$")

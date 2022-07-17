@@ -6,11 +6,6 @@ open Basics
 open Constants
 
 
-let private commandArg =
-    map Constant constantParser
-    <|> map StringFormat (bind (fun () -> stringParser) <| literal "$")
-
-
 let commandCall =
     parser {
         do! whitespace0

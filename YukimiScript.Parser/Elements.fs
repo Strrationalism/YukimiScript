@@ -27,7 +27,7 @@ type TextSlice =
 
 type Parameter =
     { Parameter: string
-      Default: Constant option }
+      Default: CommandArg option }
 
 
 type MacroDefination = { Name: string; Param: Parameter list }

@@ -18,7 +18,7 @@ let private parameter: Parser<Parameter> =
         let! defArg =
             parser {
                 do! literal "="
-                return! constantParser
+                return! commandArg
             }
             |> zeroOrOne
 
@@ -63,7 +63,7 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
     let defaultArgs =
         x
         |> List.choose (fun { Parameter = name; Default = x } -> 
-            Option.map (fun x -> name, Constant x) x)
+            Option.map (fun x -> name, x) x)
 
     let parameters = List.map (fun x -> x.Parameter) x.[..c.UnnamedArgs.Length - 1]
 
