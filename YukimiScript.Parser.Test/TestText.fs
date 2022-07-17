@@ -29,7 +29,7 @@ let testCommand () =
               [ TextSlice.CommandCall
                     { Callee = "wait"
                       UnnamedArgs = []
-                      NamedArgs = [ "time", Integer 5 ] } ]
+                      NamedArgs = [ "time", Constant <| Integer 5 ] } ]
           HasMore = true }
 
 
@@ -41,7 +41,7 @@ let testCommand () =
               [ TextSlice.Text "测试  "
                 TextSlice.CommandCall
                     { Callee = "wait"
-                      UnnamedArgs = [ Integer 5 ]
+                      UnnamedArgs = [ Constant <| Integer 5 ]
                       NamedArgs = [] }
 
                 TextSlice.Text "测试" ]

@@ -59,10 +59,11 @@ exception ArgumentRepeatException of DebugInformation * CommandCall * string
 exception ArgumentUnmatchedException of DebugInformation * CommandCall * parameter: string
 
 
-let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(string * Constant) list, exn> =
+let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(string * CommandArg) list, exn> =
     let defaultArgs =
         x
-        |> List.choose (fun { Parameter = name; Default = x } -> Option.map (fun x -> name, x) x)
+        |> List.choose (fun { Parameter = name; Default = x } -> 
+            Option.map (fun x -> name, Constant x) x)
 
     let parameters = List.map (fun x -> x.Parameter) x.[..c.UnnamedArgs.Length - 1]
 
@@ -82,7 +83,7 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
                 | None -> Ok()
                 | Some (p, _) -> Error <| ArgumentRepeatException(debugInfo, c, p)
 
-        let matchArg paramName : Result<string * Constant, exn> =
+        let matchArg paramName : Result<string * CommandArg, exn> =
             let find = List.tryFind (fst >> (=) paramName)
 
             match find inputArgs with
@@ -119,15 +120,17 @@ let private matchMacro debug x macro =
 let private replaceParamToArgs args macroBody =
     let replaceArg =
         function
-        | Symbol x ->
+        | Constant (Symbol x) ->
             match List.tryFind (fst >> (=) x) args with
             | None -> Symbol x
-            | Some (_, x) -> x
-        | x -> x
+            | Some (_, Constant x) -> x
+            | Some (_, StringFormat _) -> failwith "String format should not here."
+        | Constant x -> x
+        | StringFormat x -> failwith "No Impl"
 
     { macroBody with
-          UnnamedArgs = List.map replaceArg macroBody.UnnamedArgs
-          NamedArgs = List.map (fun (name, arg) -> name, replaceArg arg) macroBody.NamedArgs }
+          UnnamedArgs = List.map (replaceArg >> Constant) macroBody.UnnamedArgs
+          NamedArgs = List.map (fun (name, arg) -> name, Constant <| replaceArg arg) macroBody.NamedArgs }
 
 
 exception MacroInnerException of DebugInformation * exn
@@ -197,7 +200,7 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParam
                 |> readOnlyDict 
                 |> fun x ->
                 match x.["param"], x.["type"] with
-                | Symbol par, Symbol t -> macroName, par, t, d
+                | Constant (Symbol par), Constant (Symbol t) -> macroName, par, t, d
                 | _ -> failwith "parametersTypeFromBlock: failed!") x
 
         let dummy =

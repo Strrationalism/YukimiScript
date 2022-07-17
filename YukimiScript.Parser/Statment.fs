@@ -39,8 +39,8 @@ let commandCall =
 
         return
             { Callee = command
-              UnnamedArgs = unnamedArgs
-              NamedArgs = namedArgs }
+              UnnamedArgs = List.map Constant unnamedArgs
+              NamedArgs = List.map (fun (a, b) -> a, Constant b) namedArgs }
     }
     |> name "command call"
 

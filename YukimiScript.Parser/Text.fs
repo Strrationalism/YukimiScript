@@ -123,7 +123,7 @@ let toCommands (text: TextBlock) : CommandCall list =
         UnnamedArgs = []
         NamedArgs =
             [ if text.Character.IsSome then
-                  "character", Symbol text.Character.Value ] }
+                  "character", Constant <| Symbol text.Character.Value ] }
 
       let rec textSliceToCommand x =
           x
@@ -133,24 +133,24 @@ let toCommands (text: TextBlock) : CommandCall list =
               | TextSlice.Text x ->
                   [ { Callee = "__text_type"
                       UnnamedArgs = []
-                      NamedArgs = [ "text", String x ] } ]
+                      NamedArgs = [ "text", Constant <| String x ] } ]
               | Marked (mark, inner) ->
                   [ { Callee = "__text_pushMark"
                       UnnamedArgs = []
-                      NamedArgs = [ "mark", Symbol mark ] }
+                      NamedArgs = [ "mark", Constant <| Symbol mark ] }
 
                     yield! textSliceToCommand inner
 
                     { Callee = "__text_popMark"
                       UnnamedArgs = []
-                      NamedArgs = [ "mark", Symbol mark ] } ])
+                      NamedArgs = [ "mark", Constant <| Symbol mark ] } ])
 
       yield! textSliceToCommand text.Text
 
 
       { Callee = "__text_end"
         UnnamedArgs = []
-        NamedArgs = [ "hasMore", Symbol <| text.HasMore.ToString().ToLower() ] } ]
+        NamedArgs = [ "hasMore", Constant <| Symbol (text.HasMore.ToString().ToLower()) ] } ]
 
 
 let expandTextBlock (x: TextBlock) (debugInfo: DebugInformation) : Block =

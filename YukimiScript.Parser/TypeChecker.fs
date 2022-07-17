@@ -32,10 +32,11 @@ let sumParameterType (ParameterType (n1, s1)) (ParameterType (n2, s2)) =
 
 let checkType = 
     function
-    | String _ -> String'
-    | Integer _ -> Int'
-    | Real _ -> Real'
-    | Symbol x -> ExplicitSymbol' x
+    | Constant (String _) -> String'
+    | Constant (Integer _) -> Int'
+    | Constant (Real _) -> Real'
+    | Constant (Symbol x) -> ExplicitSymbol' x
+    | StringFormat _ -> String'
 
 
 let unify src dst =
@@ -60,7 +61,7 @@ exception IsNotAType of string * DebugInformation
 type BlockParamTypes = (string * ParameterType) list
 
 
-let checkApplyTypeCorrect d (paramTypes: BlockParamTypes) (args: (string * Constant) list) =
+let checkApplyTypeCorrect d (paramTypes: BlockParamTypes) (args: (string * CommandArg) list) =
     paramTypes
     |> List.mapi (fun i (paramName, paramType) ->
         args

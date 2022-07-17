@@ -8,10 +8,15 @@ type Constant =
     | Symbol of string
 
 
+type CommandArg =
+    | Constant of Constant
+    | StringFormat of string
+
+
 type CommandCall =
     { Callee: string
-      UnnamedArgs: Constant list
-      NamedArgs: (string * Constant) list }
+      UnnamedArgs: CommandArg list
+      NamedArgs: (string * CommandArg) list }
 
 
 type TextSlice =

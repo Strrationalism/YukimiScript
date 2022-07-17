@@ -181,7 +181,7 @@ let doAction errStringing =
                 c.UnnamedArgs
                 |> Seq.collect
                     (function
-                    | Elements.Constant.String x -> x
+                    | Elements.Constant (Elements.String x) -> x
                     | _ -> "")
             | _ -> Seq.empty)
         |> Set.ofSeq

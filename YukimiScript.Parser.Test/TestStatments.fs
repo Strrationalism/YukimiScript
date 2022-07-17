@@ -14,6 +14,7 @@ let testCommandCall () =
               [ Symbol "Black"
                 String "C1"
                 Integer -256 ]
+              |> List.map Constant
           NamedArgs =
-              [ "effect", Symbol "a"
-                "camera", Real -2.0 ] }
+              [ "effect", Constant <| Symbol "a"
+                "camera", Constant <| Real -2.0 ] }

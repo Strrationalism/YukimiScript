@@ -50,7 +50,7 @@ let analyze (files: (string * Dom) list) : Result<Diagram, exn> =
                                                     debug
                                                     [ "target", TypeChecker.Types.string ])
                                             |> function
-                                                | Ok [ "target", (String target) ] -> Some target
+                                                | Ok [ "target", Constant (String target) ] -> Some target
                                                 | Error e -> raise e
                                                 | _ -> raise <| DiagramMacroErrorException debug
                                         | _ -> None)

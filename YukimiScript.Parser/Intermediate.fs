@@ -31,7 +31,11 @@ module Intermediate =
                             | EmptyLine -> None
                             | CommandCall c -> 
                                 { Callee = c.Callee
-                                  Arguments = c.UnnamedArgs
+                                  Arguments = 
+                                    c.UnnamedArgs
+                                    |> List.map (function
+                                        | Constant x -> x
+                                        | _ -> failwith "Should not here.")
                                   DebugInformation = debugCommand }
                                 |> Some
                             | a -> failwith <| "Not support in intermediate: " + string a)
