@@ -32,6 +32,7 @@ let private help () =
       "    bin                YukimiScript bytecode."
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
       "    pymo               PyMO 1.2 script, you must compile with libpymo.ykm."
+      "    json               Json."
       ""
       "Example:"
       "    ykmc ./Example/main.ykm --target-pymo ./main.lua -lpymo --lib ./Example/lib/"
@@ -57,6 +58,7 @@ type private TargetOption =
     | Lua of outputFile: string
     | PyMO of outputFile: string * scriptName: string
     | Bytecode of outputFile: string
+    | Json of outputFile: string
 
 
 type private DiagramType =
@@ -117,6 +119,9 @@ let rec private parseTargetsAndOptions (inputSrc: string) =
     | "--target-lua" :: luaOut :: next ->
         parseTargetsAndOptions inputSrc next
         |> Result.map (fun (nextTargets, options) -> Lua luaOut :: nextTargets, options)
+    | "--target-json" :: json :: next ->
+        parseTargetsAndOptions inputSrc next
+        |> Result.map (fun (nextTargets, options) -> Json json :: nextTargets, options)
     | options ->
         parseOptions defaultOptions options
         |> Result.map (fun options -> [], options)
@@ -176,7 +181,9 @@ let private doAction errStringing =
                     let lua =
                         YukimiScript.CodeGen.Lua.generateLua options.Debugging intermediate
 
-                    File.WriteAllText(output, lua, Text.Encoding.UTF8))
+                    File.WriteAllText(output, lua, Text.Encoding.UTF8)
+                | Json out ->
+                    YukimiScript.CodeGen.Json.genJson options.Debugging intermediate out)
 
     | Diagram (diagramType, inputDir, out, options) ->
         let diagramExporter =
