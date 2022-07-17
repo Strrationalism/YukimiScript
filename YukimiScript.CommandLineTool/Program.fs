@@ -35,7 +35,7 @@ let private help () =
       "    json               Json."
       ""
       "Example:"
-      "    ykmc ./Example/main.ykm --target-pymo ./main.lua -lpymo --lib ./Example/lib/"
+      "    ykmc ./Example/main.ykm --target-pymo ./main.lua -L../lib -lpymo"
       "    ykmc diagram dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
       "    ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib"
       "" ]
