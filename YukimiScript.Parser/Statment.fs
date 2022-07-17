@@ -6,6 +6,11 @@ open Basics
 open Constants
 
 
+let private commandArg =
+    map Constant constantParser
+    <|> map StringFormat (bind (fun () -> stringParser) <| literal "$")
+
+
 let commandCall =
     parser {
         do! whitespace0
@@ -14,7 +19,7 @@ let commandCall =
         let! unnamedArgs =
             parser {
                 do! whitespace1
-                return! constantParser
+                return! commandArg
             }
             |> zeroOrMore
 
@@ -28,10 +33,10 @@ let commandCall =
                 let arg =
                     parser {
                         do! whitespace1
-                        return! constantParser
+                        return! commandArg
                     }
 
-                let! arg = arg <|> return' (Symbol "true")
+                let! arg = arg <|> return' (Constant <| Symbol "true")
 
                 return param, arg
             }
@@ -39,8 +44,8 @@ let commandCall =
 
         return
             { Callee = command
-              UnnamedArgs = List.map Constant unnamedArgs
-              NamedArgs = List.map (fun (a, b) -> a, Constant b) namedArgs }
+              UnnamedArgs = unnamedArgs
+              NamedArgs = namedArgs }
     }
     |> name "command call"
 
