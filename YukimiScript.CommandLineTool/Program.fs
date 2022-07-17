@@ -4,7 +4,7 @@ open YukimiScript.CommandLineTool.Compile
 open YukimiScript.Parser
 
 
-let help () =
+let private help () =
     [ "YukimiScript Command Line Tool"
       "by Strrationalism Studio 2021"
       ""
@@ -17,8 +17,12 @@ let help () =
       "        ykmc charset <INPUT_DIR> <OUTPUT_CHARSET_FILE> [OPTIONS...]"
       ""
       "Options:"
-      "    --lib <LIB_DIR>    Include external libraries."
-      "    --debug            Enable debugging information."
+      "    --lib <LIBPATH>     Import external library(ies) from file or dir."
+      "    --debug, -g         Enable debugging information."
+      "    -L<LIB_SEARCH_DIR>  Add library searching dir for -l."
+      "    -l<LIBNAME>         Import library from -L dirs,"
+      "                        -lpymo means search \'libpymo.ykm\',"
+      "                        -l\"libpymo.ykm\" means search \'libpymo.ykm\'."
       ""
       "Diagram Types:"
       "    dgml               Visual Studio Directed Graph Markup Language."
@@ -27,48 +31,79 @@ let help () =
       "Targets:"
       "    bin                YukimiScript bytecode."
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
-      "    pymo               PyMO 1.2 script, you must compile source code with libpymo.ykm."
+      "    pymo               PyMO 1.2 script, you must compile with libpymo.ykm."
       ""
       "Example:"
-      "    ykmc ./Example/main.ykm --target-lua ./main.lua --lib ./Example/lib/"
+      "    ykmc ./Example/main.ykm --target-pymo ./main.lua -lpymo --lib ./Example/lib/"
       "    ykmc diagram dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
       "    ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib"
       "" ]
     |> List.iter Console.WriteLine
 
 
-type Options = { Lib: string list; Debugging: bool }
+type private Options = 
+  { Lib: string list
+    LibSearchDir: string list
+    Debugging: bool }
 
 
-let defaultOptions = { Lib = []; Debugging = false }
+let private defaultOptions = 
+  { Lib = []
+    Debugging = false
+    LibSearchDir = ["."] }
 
 
-type TargetOption = 
+type private TargetOption = 
     | Lua of outputFile: string
     | PyMO of outputFile: string * scriptName: string
     | Bytecode of outputFile: string
 
 
-type DiagramType =
+type private DiagramType =
     | Dgml
     | Mermaid
 
 
-type CmdArg =
+type private CmdArg =
     | Diagram of DiagramType * inputDir: string * output: string * Options
     | Charset of inputDir: string * outputCharsetFile: string * Options
     | Compile of inputFile: string * TargetOption list * Options
 
 
-let rec parseOptions prev =
+let private findLib opt (libName: string) =
+    let libName =
+        if libName.ToLower().EndsWith ".ykm"
+        then libName
+        else "lib" + libName + ".ykm"
+
+    opt.LibSearchDir
+    |> Seq.rev
+    |> Seq.tryPick (fun dir ->
+        let path = IO.Path.Combine (dir, libName)
+        if File.Exists path || Directory.Exists path
+        then Some path
+        else None)
+
+
+let rec private parseOptions prev =
     function
     | [] -> Ok prev
-    | "--lib" :: libDir :: next -> parseOptions { prev with Lib = libDir :: prev.Lib } next
-    | "--debug" :: next -> parseOptions { prev with Debugging = true } next
+    | "--lib" :: libDir :: next -> 
+        parseOptions { prev with Lib = libDir :: prev.Lib } next
+    | x :: next when x = "-g" || x = "--debug" -> 
+        parseOptions { prev with Debugging = true } next
+    | x :: next when x.StartsWith "-L" -> 
+        parseOptions { prev with LibSearchDir = x.[2..] :: next } next
+    | x :: next when x.StartsWith "-l" ->
+        match findLib prev x.[2..] with
+        | None -> 
+            Console.WriteLine("Can not find lib \"" + x + "\"."); exit -1
+        | Some libPath -> 
+            parseOptions { prev with Lib = libPath :: prev.Lib } next
     | _ -> Error()
 
 
-let rec parseTargetsAndOptions (inputSrc: string) =
+let rec private parseTargetsAndOptions (inputSrc: string) =
     function
     | "--target-bin" :: binOut :: next ->
         parseTargetsAndOptions inputSrc next
@@ -87,14 +122,14 @@ let rec parseTargetsAndOptions (inputSrc: string) =
         |> Result.map (fun options -> [], options)
 
 
-let parseDiagramType =
+let private parseDiagramType =
     function
     | "dgml" -> Ok Dgml
     | "mermaid" -> Ok Mermaid
     | _ -> Error()
 
 
-let parseArgs =
+let private parseArgs =
     function
     | "diagram" :: diagramType :: inputDir :: output :: options ->
         parseDiagramType diagramType
@@ -114,7 +149,7 @@ let parseArgs =
     | _ -> Error()
 
 
-let doAction errStringing =
+let private doAction errStringing =
     function
     | Compile (inputFile, targets, options) ->
         let dom =

@@ -87,9 +87,12 @@ let checkRepeat errStringing (dom: Dom) =
     dom
 
 
-let getYkmFiles (dir: string) =
-    Directory.EnumerateFiles(dir, "*.ykm", SearchOption.AllDirectories)
-    |> Array.ofSeq
+let getYkmFiles (path: string) =
+    if File.Exists path
+    then [|path|]
+    else
+        Directory.EnumerateFiles(path, "*.ykm", SearchOption.AllDirectories)
+        |> Array.ofSeq
 
 
 let loadLib errStringing libPath =
