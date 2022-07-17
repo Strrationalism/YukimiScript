@@ -6,7 +6,7 @@
     <WarnOn>3390;$(WarnOn)</WarnOn>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ykmc</ToolCommandName>
-    <Version>0.8.1</Version>
+    <Version>0.8.3</Version>
     <Authors>Seng Jik</Authors>
     <Company>Strrationalism</Company>
     <Product>YukimiScript</Product>
