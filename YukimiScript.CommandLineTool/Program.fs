@@ -19,10 +19,12 @@ let private help () =
       "Options:"
       "    --lib <LIBPATH>     Import external library(ies) from file or dir."
       "    --debug, -g         Enable debugging information."
-      "    -L<LIB_SEARCH_DIR>  Add library searching dir for -l."
+      "    -L<LIB_SEARCH_DIR>  Add library searching dir for -l,"
+      "                        you can even pass this argument by env variable "
+      "                        \"YKM_LIB_PATH\" and split it by \':\'."
       "    -l<LIBNAME>         Import library from -L dirs,"
-      "                        -lpymo means search \'libpymo.ykm\',"
-      "                        -l\"libpymo.ykm\" means search \'libpymo.ykm\'."
+      "                        -lpymo means search \"libpymo.ykm\","
+      "                        -l\"libpymo.ykm\" means search \"libpymo.ykm\"."
       ""
       "Diagram Types:"
       "    dgml               Visual Studio Directed Graph Markup Language."
@@ -48,10 +50,16 @@ type private Options =
     Debugging: bool }
 
 
+let defaultLibSearchDirs =
+    let e = System.Environment.GetEnvironmentVariable ("YKM_LIB_PATH")
+    if String.IsNullOrWhiteSpace e then [] else
+        e.Split ':' |> List.ofArray
+
+
 let private defaultOptions = 
   { Lib = []
     Debugging = false
-    LibSearchDir = ["."] }
+    LibSearchDir = "." :: defaultLibSearchDirs }
 
 
 type private TargetOption = 
