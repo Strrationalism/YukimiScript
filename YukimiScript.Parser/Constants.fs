@@ -118,6 +118,13 @@ let stringParser =
 let private stringConstant = map String stringParser
 
 
+let constantToString = function
+                        | String x -> x
+                        | Symbol x -> x
+                        | Integer x -> string x
+                        | Real x -> string x
+
+
 let constantParser =
     [ numberParser
       integerParser

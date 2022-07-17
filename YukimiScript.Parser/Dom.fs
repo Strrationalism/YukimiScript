@@ -219,15 +219,26 @@ module Dom =
                 | Some (ExternCommand (_, param), t) ->
                     Macro.matchArguments debugInfo param c
                     |> Result.bind (checkApplyTypeCorrect debugInfo t)
-                    |> Result.map
+                    |> Result.bind
                         (fun args ->
                             let args =
-                                List.map (fun { Parameter = param } -> List.find (fst >> (=) param) args |> snd) param
+                                List.map 
+                                    (fun { Parameter = param } -> 
+                                        param, List.find (fst >> (=) param) args |> snd) 
+                                    param
 
-                            CommandCall
-                                { c with
-                                        UnnamedArgs = args
-                                        NamedArgs = [] })
+                            let args = 
+                                List.map (fun (n, a) -> 
+                                    Macro.commandArgToConstant 
+                                        args (Some n) a debugInfo) args
+                                |> ParserMonad.sequenceRL
+
+                            args
+                            |> Result.map (fun args -> 
+                                CommandCall
+                                    { c with
+                                        UnnamedArgs = List.map Constant args
+                                        NamedArgs = [] } ))
             | x -> Ok x
             |> Result.map (fun x -> x, debugInfo)
 

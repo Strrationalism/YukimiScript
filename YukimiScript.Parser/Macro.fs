@@ -114,23 +114,68 @@ let private matchMacro debug x macro =
         matchArguments debug macro.Param x
         |> Result.bind (checkApplyTypeCorrect debug t)
         |> Result.map (fun args -> macro, other, args)
+    
         
+let rec private processStringFormat env name format debug =
+    let hole = 
+        parser {
+            do! literal "{"
+            let! holeName = symbol
+            do! literal "}"
+            return holeName
+        }
+        |> ParserMonad.name "String format hole"
+    
+    let stringFormat = 
+        zeroOrMore (map Some hole <|> map (fun _ -> None) anyChar)
+        |> map (List.choose id)
+
+    run format stringFormat
+    |> Result.bind (
+        List.fold (fun intermediateString hole -> 
+            if Some hole = name then Error <| CannotGetParameterException [hole, debug] else
+                intermediateString
+                |> Result.bind (fun (intermediateString: string) ->
+                    match List.tryFind (fst >> (=) hole) env with
+                    | None -> Error <| CannotGetParameterException [hole, debug]
+                    | Some (_, Constant x) -> Ok <| intermediateString.Replace("{" + hole + "}", constantToString x)
+                    | Some (n, StringFormat format) -> processStringFormat env (Some n) format debug)) <| Ok format)
+    
 
 
-let private replaceParamToArgs args macroBody =
+let commandArgToConstant env name arg debug =
+    match arg with
+    | Constant x -> Ok x
+    | StringFormat x -> Result.map String <| processStringFormat env name x debug
+
+
+let private replaceParamToArgs args macroBody debug =
     let replaceArg =
         function
         | Constant (Symbol x) ->
             match List.tryFind (fst >> (=) x) args with
-            | None -> Symbol x
-            | Some (_, Constant x) -> x
-            | Some (_, StringFormat _) -> failwith "String format should not here."
-        | Constant x -> x
-        | StringFormat x -> failwith "No Impl"
+            | None -> Ok <| Symbol x
+            | Some (n, x) -> commandArgToConstant args (Some n) x debug
+        | x -> commandArgToConstant args None x debug
 
-    { macroBody with
-          UnnamedArgs = List.map (replaceArg >> Constant) macroBody.UnnamedArgs
-          NamedArgs = List.map (fun (name, arg) -> name, Constant <| replaceArg arg) macroBody.NamedArgs }
+    let unnamedArgs = 
+        List.map (replaceArg >> Result.map Constant) macroBody.UnnamedArgs
+        |> sequenceRL
+
+    let namedArgs =
+        List.map 
+            (fun (name, arg) -> 
+                Result.map (fun x -> name, Constant x) <| replaceArg arg) 
+            macroBody.NamedArgs
+        |> sequenceRL
+        
+    unnamedArgs
+    |> Result.bind (fun unnamedArgs ->
+        namedArgs
+        |> Result.map (fun namedArgs ->
+            { macroBody with 
+                UnnamedArgs = unnamedArgs
+                NamedArgs = namedArgs }))
 
 
 exception MacroInnerException of DebugInformation * exn
@@ -150,11 +195,14 @@ let rec private expandSingleOperation macros operation : Result<Block, exn> =
             macroBody
             |> List.map (
                 function
-                | CommandCall call, debugInfo -> CommandCall <| replaceParamToArgs args call, debugInfo
-                | x -> x
-                >> expandSingleOperation macros
+                | CommandCall call, debugInfo -> 
+                    Result.map (fun x -> CommandCall x, debugInfo) <|
+                        replaceParamToArgs args call debugInfo
+                | x -> Ok x
+                >> Result.map (expandSingleOperation macros)
             )
             |> sequenceRL
+            |> Result.bind sequenceRL
             |> Result.map List.concat
     | x -> Ok [ x ]
     |> Result.mapError (fun err -> MacroInnerException (snd operation, err))
