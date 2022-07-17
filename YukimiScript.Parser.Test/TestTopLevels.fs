@@ -44,7 +44,7 @@ let testExternDefination () =
         ExternCommand(
             "wait",
             [ { Parameter = "time"
-                Default = Some <| Integer 1 } ]
+                Default = Some <| Constant (Integer 1) } ]
         )
     )
 
@@ -71,10 +71,10 @@ let testMacroDefination () =
         { Name = "test"
           Param =
               [ { Parameter = "param1"
-                  Default = Some <| Symbol "def" }
+                  Default = Some <| Constant (Symbol "def") }
                 { Parameter = "param2"; Default = None }
                 { Parameter = "param3"
-                  Default = Some <| Integer 1 }
+                  Default = Some <| Constant (Integer 1) }
                 { Parameter = "param4"; Default = None }
                 { Parameter = "param5"
-                  Default = Some <| String "what" } ] }
+                  Default = Some <| Constant (String "what") } ] }
