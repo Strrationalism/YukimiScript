@@ -198,11 +198,12 @@ module Dom =
                 | Ok (ExternDefination x) -> x
                 | _ -> failwith "Bug here!"
 
-        [ parse "- extern __text_begin character=null", [ "character", Types.symbol ]
+        [ parse "- extern __text_begin character=null", [ 
+                "character", ParameterType ("string | null", set [ String'; ExplicitSymbol' "null" ]) ]
           parse "- extern __text_type text", [ "text", Types.string ]
           parse "- extern __text_pushMark mark", [ "mark", Types.symbol ]
           parse "- extern __text_popMark mark", [ "mark", Types.symbol ]
-          parse "- extern __text_end hasMore", [ "hasMore", Types.symbol] ]
+          parse "- extern __text_end hasMore", [ "hasMore", Types.bool ] ]
 
 
     let linkToExternCommands (x: Dom) : Result<Dom, exn> =

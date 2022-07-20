@@ -345,9 +345,9 @@ let private genCommand
         | "__text_begin" -> 
             match call.Arguments.[0] with
             | Symbol "null" as n -> Ok { context with CurrentComplexCommand = Some (sayCommand, [n])}
-            | Symbol x -> 
+            | String x -> 
                 match Map.tryFind x context.Characters with
-                | None -> Error ("未能找到角色定义 " + x + " 。", call.DebugInformation)
+                | None -> Ok { context with CurrentComplexCommand = Some (sayCommand, [Constant.String x])}
                 | Some x -> Ok { context with CurrentComplexCommand = Some (sayCommand, [Constant.String x])}
             | _ -> failwith ""
         | "__text_type" -> Error ("错误的__text_type用法。", call.DebugInformation)

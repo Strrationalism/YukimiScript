@@ -17,8 +17,8 @@ let private commandCall =
     }
 
 
-let private bareText =
-    let charPred x =
+let private bareText, characterNameText =
+    let charPred isCharacterNameText x =
         Seq.exists
             ((=) x)
             [ '\n'
@@ -28,14 +28,19 @@ let private bareText =
               '>'
               '#'
               '\\'
-              '\r' ]
+              '\r'
+              if isCharacterNameText then ':' ]
         |> not
 
-    let textChar = predicate charPred anyChar
+    
+    let p isCharacterNameText =
+        let textChar = predicate (charPred isCharacterNameText) anyChar
 
-    oneOrMore textChar
-    |> map (toString >> TextSlice.Text)
-    |> name "text"
+        oneOrMore textChar
+        
+
+    p false |> map (toString >> TextSlice.Text) |> name "text", 
+    p true |> map toString
 
 
 let rec private markBlock () =
@@ -70,7 +75,7 @@ let text =
             let! character =
                 parser {
                     do! whitespace0
-                    let! character = symbol
+                    let! character = characterNameText
                     do! literal ":"
                     return character
                 }
@@ -123,7 +128,7 @@ let toCommands (text: TextBlock) : CommandCall list =
         UnnamedArgs = []
         NamedArgs =
             [ if text.Character.IsSome then
-                  "character", Constant <| Symbol text.Character.Value ] }
+                  "character", Constant <| String text.Character.Value ] }
 
       let rec textSliceToCommand x =
           x
@@ -146,7 +151,6 @@ let toCommands (text: TextBlock) : CommandCall list =
                       NamedArgs = [ "mark", Constant <| Symbol mark ] } ])
 
       yield! textSliceToCommand text.Text
-
 
       { Callee = "__text_end"
         UnnamedArgs = []
