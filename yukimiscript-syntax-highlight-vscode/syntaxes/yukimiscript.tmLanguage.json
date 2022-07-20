@@ -1,0 +1,117 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Yukimi Script",
+	"patterns": [
+		{ "include": "#linecomment" },
+		{ "include": "#toplevels" },
+		{ "include": "#keywords" },
+		{ "include": "#marks" },
+		{ "include": "#lineop" },
+		{ "include": "#inlineop" },
+		{ "include": "#character"}
+	],
+	"repository": {
+		"linecomment": {
+			"name": "comment.line",
+			"match": "#.*$"
+		},
+		"toplevels": {
+			"begin": "^(-(\\s)*(macro|extern|scene))\\s*([a-zA-Z0-9_'.']+)?",
+			"end": "$",
+			"beginCaptures": {
+				"1": { "name": "keyword.control" },
+				"0": { "name": "entity.name.function" }
+			},
+			"patterns": [
+				{ "include": "#strings" },
+				{ "include": "#numbers" },
+				{ "include": "#keywords" },
+				{
+					"match": "\\s([a-zA-Z0-9_'.']+)(=)?",
+					"captures": {
+						"1": { "name": "variable.parameter" },
+						"0": { "name": "keyword.operator" }
+					}
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "constant.language",
+					"match": "(\\s|(?<==))(true|false|null)(?=\\s)"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double",
+			"begin": "\\$?\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape",
+					"match": "\\\\."
+				}
+			]
+		},
+		"marks": {
+			"name": "keyword.control",
+			"patterns": [
+				{
+					"name": "keyword.control",
+					"match": "<([A-Z]|[a-z]|[1-9]|\\.)+\\s"
+				},
+				{
+					"name": "keyword.control",
+					"match": ">"
+				}
+			]
+		},
+		"symbol": {
+			"name": "variable.name",
+			"match": "([a-zA-Z0-9_\\.]+)"
+		},
+		"args": {
+			"patterns": [
+				{ 
+					"match": "(--[a-zA-Z0-9_\\.]+)\\s+",
+					"name": "variable.parameter"
+				},
+				{ "include": "#strings" },
+				{ "include": "#comments"},
+				{ "include": "#numbers" },
+				{ "include": "#keywords"},
+				{ "include": "#symbol" }
+			]
+		},
+		"lineop": {
+			"begin": "^@\\s*[A-Za-z0-9\\._]*",
+			"end": "$",
+			"beginCaptures": {
+				"0": { "name": "entity.name.function" }
+			},
+			"patterns": [
+				{ "include": "#args" }
+			]
+		},
+		"inlineop": {
+			"begin": "\\[[A-Za-z0-9\\._]*",
+			"end": "\\]",
+			"beginCaptures": {
+				"0": { "name": "entity.name.function" }
+			},
+			"patterns": [
+				{ "include": "#args" }
+			]
+		},
+		"numbers": {
+			"name": "constant.numeric",
+			"match": "\\b(0x[0-9a-fA-F]+|[0-9]+(\\.[0-9]+)?)\\b"
+		},
+		"character": {
+			"name": "support.type",
+			"match": "^.*:"
+		}
+	},
+	"scopeName": "text.ykm"
+}

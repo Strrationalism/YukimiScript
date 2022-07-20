@@ -1,0 +1,25 @@
+{
+    "name": "yukimiscript-syntax-highlight",
+    "displayName": "YukimiScript Syntax Highlight",
+    "description": "YukimiScript Syntax Highlight",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.69.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "yukimiscript",
+            "aliases": ["Yukimi Script", "yukimiscript"],
+            "extensions": [".ykm"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "yukimiscript",
+            "scopeName": "text.ykm",
+            "path": "./syntaxes/yukimiscript.tmLanguage.json"
+        }]
+    }
+}
