@@ -454,4 +454,4 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-yukimiscript-syntax-highlight-vscode/yukimiscript-syntax-highlight-0.0.1.vsix
+yukimiscript-syntax-highlight-vscode/yukimiscript-syntax-highlight-*.vsix
