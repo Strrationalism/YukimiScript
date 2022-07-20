@@ -23,6 +23,10 @@
 				"0": { "name": "entity.name.function" }
 			},
 			"patterns": [
+				{  
+					"name": "keyword.control",
+					"match": "\\sinheirt\\s"
+				},
 				{ "include": "#strings" },
 				{ "include": "#numbers" },
 				{ "include": "#keywords" },
@@ -75,7 +79,7 @@
 			"patterns": [
 				{ 
 					"match": "(--[a-zA-Z0-9_\\.]+)\\s+",
-					"name": "variable.parameter"
+					"name": "constant.regexp"
 				},
 				{ "include": "#strings" },
 				{ "include": "#comments"},
