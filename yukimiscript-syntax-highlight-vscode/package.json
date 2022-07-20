@@ -2,6 +2,7 @@
     "name": "yukimiscript-syntax-highlight",
     "displayName": "YukimiScript Syntax Highlight",
     "description": "YukimiScript Syntax Highlight",
+    "publisher": "seng-jik",
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.69.0"
