@@ -30,6 +30,7 @@
 				{ "include": "#strings" },
 				{ "include": "#numbers" },
 				{ "include": "#keywords" },
+				{ "include": "#symbol" },
 				{
 					"match": "\\s([a-zA-Z0-9_'.']+)(=)?",
 					"captures": {
