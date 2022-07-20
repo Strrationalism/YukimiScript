@@ -6,7 +6,7 @@ open YukimiScript.Parser
 
 let private help () =
     [ "YukimiScript Command Line Tool"
-      "by Strrationalism Studio 2021"
+      "by Strrationalism Studio 2022"
       ""
       "Usage:"
       "    Compile YukimiScript to Lua:"
