@@ -28,6 +28,8 @@
 
 ## 安装
 
+你可以在[这里](https://marketplace.visualstudio.com/items?itemName=seng-jik.yukimiscript-syntax-highlight)安装用于Visual Studio Code的YukimiScript代码高亮工具。
+
 ### 在.NET中通过NuGet安装YukimiScript命令行工具
 
 ```shell
