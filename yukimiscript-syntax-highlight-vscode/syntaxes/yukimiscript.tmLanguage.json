@@ -90,7 +90,7 @@
 			]
 		},
 		"lineop": {
-			"begin": "^@\\s*[A-Za-z0-9\\._]*",
+			"begin": "@\\s*[A-Za-z0-9\\._]*",
 			"end": "$",
 			"beginCaptures": {
 				"0": { "name": "entity.name.function" }
