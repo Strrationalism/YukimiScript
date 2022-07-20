@@ -74,7 +74,7 @@ y:感谢您使用由纪美脚本语言！
 @wait
 
 # 以上文字内容编译为
-# @__text_begin --character y
+# @__text_begin --character "y"
 # @__text_type --text "你好~我叫"
 # @name
 # @__text_type --text "，"
@@ -87,7 +87,7 @@ y:感谢您使用由纪美脚本语言！
 # @__text_type "欢迎你来我家里玩~"
 # @__text_end --hasMore false
 
-# @__text_begin --character y
+# @__text_begin --character "y"
 # @__text_type --text "感谢您使用由纪美脚本语言！"
 # @__text_end
 
