@@ -79,7 +79,7 @@
 		"args": {
 			"patterns": [
 				{ 
-					"match": "(--[a-zA-Z0-9_\\.]+)\\s+",
+					"match": "(--[a-zA-Z0-9_\\.]+)(?=(\\s+|\\]))",
 					"name": "constant.regexp"
 				},
 				{ "include": "#strings" },
