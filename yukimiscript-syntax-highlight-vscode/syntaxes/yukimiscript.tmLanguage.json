@@ -115,7 +115,7 @@
 		},
 		"character": {
 			"name": "support.type",
-			"match": "^.*:"
+			"match": "^[^:]*:"
 		}
 	},
 	"scopeName": "text.ykm"

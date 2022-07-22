@@ -75,11 +75,12 @@ let text =
             let! character =
                 parser {
                     do! whitespace0
-                    let! character = characterNameText
+                    let! character = zeroOrOne characterNameText
                     do! literal ":"
                     return character
                 }
                 |> zeroOrOne
+                |> map Option.flatten
 
             let! text = oneOrMore <| textSlice ()
 
