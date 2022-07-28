@@ -6,8 +6,16 @@ open YukimiScript.Parser.Elements
 
 let generateLua genDebug (Intermediate scenes) =
     let sb = System.Text.StringBuilder()
-
     let sbDebug = if genDebug then Some (System.Text.StringBuilder ()) else None
+
+    let strPool = ref Map.empty
+    let getStr str = 
+        match Map.tryFind str strPool.Value with
+        | Some x -> "s" + string x
+        | None ->
+            let curId = Map.count strPool.Value
+            strPool.Value <- Map.add str curId strPool.Value
+            "s" + string curId
 
     sb.AppendLine("return function(api) return {")
     |> ignore
@@ -18,21 +26,21 @@ let generateLua genDebug (Intermediate scenes) =
             let scenName = Constants.string2literal scene.Name
 
             sb
-                .Append("  [\"")
-                .Append(scenName)
-                .Append("\"] = {")
+                .Append("  [")
+                .Append(getStr scenName)
+                .Append("] = {")
             |> ignore
 
             sb.AppendLine() |> ignore
 
             sbDebug |> Option.iter (fun sbd -> 
                 sbd
-                    .Append("    [\"")
-                    .Append(scenName)
-                    .AppendLine("\"] = {")
-                    .Append("      F = \"")
-                    .Append(scene.DebugInformation.File.Replace("\\", "\\\\"))
-                    .AppendLine("\",")
+                    .Append("    [")
+                    .Append(getStr scenName)
+                    .AppendLine("] = {")
+                    .Append("      F = ")
+                    .Append(getStr scene.DebugInformation.File)
+                    .AppendLine(",")
                     .Append("      L = ")
                     .Append(string scene.DebugInformation.LineNumber)
                 |> ignore)
@@ -43,16 +51,16 @@ let generateLua genDebug (Intermediate scenes) =
                     sbDebug |> Option.iter (fun sbd ->
                         sbd
                             .AppendLine(",")
-                            .Append("      { F = \"")
-                            .Append(c.DebugInformation.File.Replace("\\", "\\\\"))
-                            .Append("\", L = ")
+                            .Append("      { F = ")
+                            .Append(getStr c.DebugInformation.File)
+                            .Append(", L = ")
                             .Append(string c.DebugInformation.LineNumber)
                             .Append(" }") |> ignore)
                     sb
                         .Append("    function() ")
-                        .Append("api[\"")
-                        .Append(c.Callee)
-                        .Append("\"]")
+                        .Append("api[")
+                        .Append(getStr c.Callee)
+                        .Append("]")
                         .Append("(api")
                     |> ignore
 
@@ -67,10 +75,10 @@ let generateLua genDebug (Intermediate scenes) =
                             | Symbol "false" -> "false"
                             | Symbol "null"
                             | Symbol "nil" -> "nil"
-                            | Symbol x -> "api[\"" + x + "\"]"
+                            | Symbol x -> "api[" + getStr x + "]"
                             | Integer x -> string x
                             | Real x -> string x
-                            | String x -> "\"" + Constants.string2literal x + "\"")
+                            | String x -> getStr x)
 
                     if not <| List.isEmpty args then
                         args
@@ -92,5 +100,12 @@ let generateLua genDebug (Intermediate scenes) =
         sb.Append (sbDbg.ToString ()) |> ignore
         sb.AppendLine ("  }") |> ignore)
 
-    sb.AppendLine("} end").ToString()
+    let strPool =
+        Map.toSeq strPool.Value
+        |> Seq.map (fun (str, strId) ->
+            "local s" + string strId + " = \"" 
+            + Constants.string2literal str + "\"")
+        |> Seq.fold (fun acc x -> acc + x + "\n") ""
+
+    strPool + sb.AppendLine("} end").ToString()
 
