@@ -70,8 +70,8 @@ let generateBytecode genDebug (Intermediate scenes) (target: FileStream) =
         for call in scene.Block do
             debugInfo |> Option.iter (fun d ->
                 uint32 code.Position |> getBytesLE |> writeBytes d
-                call.DebugInformation.File |> getString |> getBytesLE |> writeBytes d
-                uint32 call.DebugInformation.LineNumber |> getBytesLE |> writeBytes d)
+                call.DebugInfo.File |> getString |> getBytesLE |> writeBytes d
+                uint32 call.DebugInfo.LineNumber |> getBytesLE |> writeBytes d)
 
             call.Callee 
             |> getExtern 

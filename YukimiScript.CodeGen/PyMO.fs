@@ -235,7 +235,7 @@ let private genCommand
 
         sb.Append (";E") |> ignore
 
-        let mutable d = Some call.DebugInformation
+        let mutable d = Some call.DebugInfo
         while Option.isSome d do
             let dbgInfo = d.Value
             sb.Append (";L") |> ignore
@@ -268,7 +268,7 @@ let private genCommand
         sb.AppendLine () |> ignore
 
     let genComplexCommandError () =
-        Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInformation)
+        Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInfo)
         
     let condStr left op right =
         let left, op, right =
@@ -328,7 +328,7 @@ let private genCommand
                     { context with
                         ScopeStack = IfScope ((condStr, StringBuilder ())::x, None)::ls }
                     |> Ok
-                | _ -> Error ("这里不应该使用elif命令。", call.DebugInformation)
+                | _ -> Error ("这里不应该使用elif命令。", call.DebugInfo)
         | "else" ->
             if context.CurrentComplexCommand.IsSome
             then genComplexCommandError ()
@@ -337,7 +337,7 @@ let private genCommand
                 | IfScope (ifs, None)::ls ->
                     { context with ScopeStack = IfScope (ifs, Some <| StringBuilder ()) :: ls }
                     |> Ok
-                | _ -> Error ("这里不应该使用else命令。", call.DebugInformation)
+                | _ -> Error ("这里不应该使用else命令。", call.DebugInfo)
         | "endif" ->
             if context.CurrentComplexCommand.IsSome
             then genComplexCommandError ()
@@ -378,7 +378,7 @@ let private genCommand
                     sb.Append("#label ").AppendLine(endOfIfLabel) |> ignore
                     Ok { context with ScopeStack = outter; Inc = context.Inc + List.length ifs }
 
-                | _ -> Error ("这里不应该使用endif命令。", call.DebugInformation)
+                | _ -> Error ("这里不应该使用endif命令。", call.DebugInfo)
 
         | "if_goto" -> 
             let condStr, label = 
@@ -406,9 +406,9 @@ let private genCommand
                 | None -> Ok { context with CurrentComplexCommand = Some (sayCommand, [Constant.String x])}
                 | Some x -> Ok { context with CurrentComplexCommand = Some (sayCommand, [Constant.String x])}
             | _ -> failwith ""
-        | "__text_type" -> Error ("错误的__text_type用法。", call.DebugInformation)
-        | "__text_pushMark" | "__text_popMark" -> Error ("PyMO不支持高级文本语法。", call.DebugInformation)
-        | "__text_end" -> Error ("错误的__text_end用法。", call.DebugInformation)
+        | "__text_type" -> Error ("错误的__text_type用法。", call.DebugInfo)
+        | "__text_pushMark" | "__text_popMark" -> Error ("PyMO不支持高级文本语法。", call.DebugInfo)
+        | "__text_end" -> Error ("错误的__text_end用法。", call.DebugInfo)
         | c when Set.contains c commandsWithUntypedSymbol -> 
             sb.Append('#').Append(c).Append(' ').AppendLine(genArgsUntyped call.Arguments) |> ignore
             Ok context
@@ -429,7 +429,7 @@ let private genCommand
                     List.ofArray arg
             sb.Append('#').Append(simple).Append(' ').AppendLine(genArgs args) |> ignore
             Ok context
-        | x -> Error ("不能在这里使用的命令" + x + "。", call.DebugInformation)
+        | x -> Error ("不能在这里使用的命令" + x + "。", call.DebugInfo)
 
 
 let private generateScene strings genDbg (scene: IntermediateScene) context (sb: StringBuilder) =

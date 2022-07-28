@@ -64,7 +64,7 @@ let genJson debug (Intermediate scenes) targetFile =
                 writer.WriteEndArray()
                 if debug then
                     writer.WriteStartObject("debug")
-                    writeDebugInfo call.DebugInformation
+                    writeDebugInfo call.DebugInfo
                     writer.WriteEndObject()
                 writer.WriteEndObject()
             writer.WriteEndArray()

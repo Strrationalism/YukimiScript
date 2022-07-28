@@ -105,7 +105,7 @@ let generateLua genDebug (Intermediate scenes) =
                             .AppendLine(",")
                             .Append("      ")
                         |> ignore
-                        genDebugInfo sbd c.DebugInformation)
+                        genDebugInfo sbd c.DebugInfo)
                     sb
                         .Append("    function() ")
                         .Append("api[")

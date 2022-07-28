@@ -6,7 +6,7 @@ open YukimiScript.Parser.Elements
 type IntermediateCommandCall = 
     { Callee: string
       Arguments: Constant list 
-      DebugInformation: DebugInfo }
+      DebugInfo: DebugInfo }
 
 
 type IntermediateScene = 
@@ -36,7 +36,7 @@ module Intermediate =
                                     |> List.map (function
                                         | Constant x -> x
                                         | _ -> failwith "Should not here.")
-                                  DebugInformation = debugCommand }
+                                  DebugInfo = debugCommand }
                                 |> Some
                             | a -> failwith <| "Not support in intermediate: " + string a)
 
