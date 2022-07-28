@@ -1,0 +1,39 @@
+- scene "startup"
+
+@bg "titlebg"
+
+- scene "title"
+
+@select_img 87 6.5 1
+@select_img 87 13 1
+@select_img 87 19.5 1
+@select_img 87 26 1
+@select_img 87 32.5 1
+@select_img_do "title_ui"
+
+@if_goto FSEL eq 0 "load"
+@if_goto FSEL eq 1 "start"
+@if_goto FSEL eq 2 "cg"
+@if_goto FSEL eq 3 "config"
+@if_goto FSEL eq 4 "exit"
+
+- scene "start"
+@bgm_stop
+@bg "white" --transition BG_ALPHA
+@wait 1000
+@change "scene01"
+
+- scene "load"
+@load
+@goto "title"
+
+- scene "config"
+@config
+@goto "title"
+
+- scene "cg"
+@album
+@wait 500
+@goto "title"
+
+- scene "exit"

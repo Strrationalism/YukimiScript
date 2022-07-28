@@ -1,0 +1,60 @@
+﻿;YKMDBG;SCENE="startup";L1;F="D:\Repos\YukimiScript\startup.ykm"
+#label SCN_startup
+;YKMDBG;L3
+#bg titlebg,BG_ALPHA,300,0,0
+;YKMDBG;SCENE="title";L5;F="D:\Repos\YukimiScript\startup.ykm"
+#label SCN_title
+;YKMDBG;L7
+;YKMDBG;L8
+;YKMDBG;L9
+;YKMDBG;L10
+;YKMDBG;L11
+;YKMDBG;L12
+#select_img 5,title_ui,87,6.5,1,87,13,1,87,19.5,1,87,26,1,87,32.5,1,0
+;YKMDBG;L332;F="D:\Repos\CPyMO\libpymo.ykm"
+
+#if FSEL=0,goto SCN_load
+;YKMDBG;L332
+#if FSEL=1,goto SCN_start
+;YKMDBG;L332
+#if FSEL=2,goto SCN_cg
+;YKMDBG;L332
+#if FSEL=3,goto SCN_config
+;YKMDBG;L332
+#if FSEL=4,goto SCN_exit
+;YKMDBG;SCENE="start";L20;F="D:\Repos\YukimiScript\startup.ykm"
+#label SCN_start
+;YKMDBG;L21
+#bgm_stop 
+;YKMDBG;L22
+#bg white,BG_ALPHA,300,0,0
+;YKMDBG;L23
+#wait 1000
+;YKMDBG;L341;F="D:\Repos\CPyMO\libpymo.ykm"
+
+#change scene01
+;YKMDBG;SCENE="load";L26;F="D:\Repos\YukimiScript\startup.ykm"
+#label SCN_load
+;YKMDBG;L27
+#load 
+;YKMDBG;L325;F="D:\Repos\CPyMO\libpymo.ykm"
+
+#goto SCN_title
+;YKMDBG;SCENE="config";L30;F="D:\Repos\YukimiScript\startup.ykm"
+#label SCN_config
+;YKMDBG;L31
+#config 
+;YKMDBG;L325;F="D:\Repos\CPyMO\libpymo.ykm"
+
+#goto SCN_title
+;YKMDBG;SCENE="cg";L34;F="D:\Repos\YukimiScript\startup.ykm"
+#label SCN_cg
+;YKMDBG;L35
+#album 
+;YKMDBG;L36
+#wait 500
+;YKMDBG;L325;F="D:\Repos\CPyMO\libpymo.ykm"
+
+#goto SCN_title
+;YKMDBG;SCENE="exit";L39;F="D:\Repos\YukimiScript\startup.ykm"
+#label SCN_exit
