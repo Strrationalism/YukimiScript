@@ -20,6 +20,17 @@ let generateLua genDebug (Intermediate scenes) =
     sb.AppendLine("return function(api) return {")
     |> ignore
 
+    let genConst =
+        function
+        | Symbol "true" -> "true"
+        | Symbol "false" -> "false"
+        | Symbol "null"
+        | Symbol "nil" -> "nil"
+        | Symbol x -> getStr x
+        | Integer x -> string x
+        | Real x -> string x
+        | String x -> getStr x
+
     scenes
     |> List.iter
         (fun scene ->
@@ -48,14 +59,53 @@ let generateLua genDebug (Intermediate scenes) =
             scene.Block
             |> List.iter
                 (fun c ->
+                    let rec genDebugInfo (w: System.Text.StringBuilder) dbg =
+                        let vars = 
+                            match dbg.MacroVars with
+                            | [] -> ""
+                            | vars ->
+                                vars
+                                |> List.map (fun (name, var) ->
+                                    "[" + getStr name + "] = " + genConst var)
+                                |> List.reduce (fun a b -> a + ", " + b)
+                        w
+                            .Append("{ F = ")
+                            .Append(getStr dbg.File)
+                            .Append(", L = ")
+                            .Append(string dbg.LineNumber)
+                            .Append(", V = {")
+                            .Append(vars)
+                            .Append("}")
+                        |> ignore
+
+                        match dbg.Scope with
+                        | None -> w.Append(", ScopeType = nil")
+                        | Some (Choice1Of2 a) -> 
+                            w
+                                .Append(", ScopeType = ")
+                                .Append(getStr "macro")
+                                .Append(", MacroName = ")
+                                .Append(getStr a.Name)
+                        | Some (Choice2Of2 a) ->
+                            w
+                                .Append(", ScopeType = ")
+                                .Append(getStr "scene")
+                                .Append(", SceneName = ")
+                                .Append(getStr a.Name)
+                        |> ignore
+
+                        if Option.isSome dbg.Outter then
+                            w.Append(", O = ") |> ignore
+                            genDebugInfo w dbg.Outter.Value
+
+                        w.Append (" }") |> ignore
+                        
                     sbDebug |> Option.iter (fun sbd ->
                         sbd
                             .AppendLine(",")
-                            .Append("      { F = ")
-                            .Append(getStr c.DebugInformation.File)
-                            .Append(", L = ")
-                            .Append(string c.DebugInformation.LineNumber)
-                            .Append(" }") |> ignore)
+                            .Append("      ")
+                        |> ignore
+                        genDebugInfo sbd c.DebugInformation)
                     sb
                         .Append("    function() ")
                         .Append("api[")
@@ -67,19 +117,7 @@ let generateLua genDebug (Intermediate scenes) =
                     if not <| List.isEmpty c.Arguments then
                         sb.Append(", ") |> ignore
 
-                    let args =
-                        c.Arguments
-                        |> List.map
-                            (function
-                            | Symbol "true" -> "true"
-                            | Symbol "false" -> "false"
-                            | Symbol "null"
-                            | Symbol "nil" -> "nil"
-                            | Symbol x -> "api[" + getStr x + "]"
-                            | Integer x -> string x
-                            | Real x -> string x
-                            | String x -> getStr x)
-
+                    let args = List.map genConst c.Arguments
                     if not <| List.isEmpty args then
                         args
                         |> List.reduce (fun a b -> a + ", " + b)
