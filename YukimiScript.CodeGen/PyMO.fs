@@ -523,12 +523,7 @@ let generateScript genDbg (Intermediate scenes) scriptName =
                             else None))
                     |> Seq.fold 
                         (fun acc x -> 
-                            let x = 
-                                x
-                                    .Replace("\n", "\\n")
-                                    .Replace("\r", "")
-                                    .Replace("\\", "\\\\")
-                            acc + ";YKMDBG;P" + x + "\n") 
+                            acc + ";YKMDBG;P" + Constants.string2literal x + "\n") 
                         ""
 
                 Ok <| debugSymbolTable + sb.ToString ()
