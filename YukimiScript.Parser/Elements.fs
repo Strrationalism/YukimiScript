@@ -60,7 +60,8 @@ type DebugInfo =
     { LineNumber: int
       File: string
       Scope: Choice<MacroDefination, SceneDefination> option
-      Outter: (DebugInfo * list<CommandArg>) option }
+      Outter: DebugInfo option
+      MacroVars: (string * Constant) list }
 
 
 type Operation =

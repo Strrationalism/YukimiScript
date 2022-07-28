@@ -209,7 +209,52 @@ let private genCommand
     let sb = getScopeSb context.ScopeStack
 
     if genDbg && call.Callee <> "__text_begin" && call.Callee <> "__text_end" then
-        sb.AppendLine (";YKMDBG;L" + string call.DebugInformation.LineNumber + ";F=\"" + call.DebugInformation.File + "\"") |> ignore
+        sb.Append (";YKMDBG") |> ignore
+
+        sb.Append (";C") |> ignore
+        sb.Append (call.Callee) |> ignore
+
+        for arg in call.Arguments do
+                match arg with
+                | Constant.String x -> ";AS\"" + x + "\""
+                | Symbol x -> ";As" + x
+                | Integer i -> ";Ai" + string i
+                | Real r -> ";Ar" + string r
+                |> sb.Append
+                |> ignore
+
+        sb.Append (";E") |> ignore
+
+        let mutable d = Some call.DebugInformation
+        while Option.isSome d do
+            let dbgInfo = d.Value
+            sb.Append (";L") |> ignore
+            sb.Append (dbgInfo.LineNumber) |> ignore
+            sb.Append (";F\"") |> ignore
+            sb.Append (dbgInfo.File) |> ignore
+            sb.Append ('\"') |> ignore
+
+            for i in dbgInfo.MacroVars do
+                let var = fst i
+                match snd i with
+                | Constant.String x -> ";VS" + var + "=\"" + x + "\""
+                | Symbol x -> ";Vs" + var + "=" + x + "\""
+                | Integer x -> ";Vi" + var + "=" + string x
+                | Real x -> ";Vr" + var + "=" + string x
+                |> sb.Append
+                |> ignore
+
+            match dbgInfo.Scope with
+            | None -> ()
+            | Some (Choice2Of2 a) -> 
+                sb.Append(";S\"").Append(a.Name).Append('\"') |> ignore
+            | Some (Choice1Of2 a) -> 
+                sb.Append(";M\"").Append(a.Name).Append('\"') |> ignore
+
+            sb.Append (";E") |> ignore
+
+            d <- dbgInfo.Outter
+        sb.AppendLine () |> ignore
 
     let genComplexCommandError () =
         Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInformation)
@@ -380,11 +425,11 @@ let private generateScene genDbg (scene: IntermediateScene) context (sb: StringB
     
     if genDbg then
         sb.AppendLine(
-            ";YKMDBG;SCENE=\"" + 
-            scene.Name + 
-            "\";L" + 
+            ";YKMDBG" + 
+            ";L" + 
             string scene.DebugInformation.LineNumber +
-            ";F=\"" + scene.DebugInformation.File + "\"") 
+            ";F\"" + scene.DebugInformation.File + "\"" +
+            ";S\"" + scene.Name + "\"") 
         |> ignore
     
 

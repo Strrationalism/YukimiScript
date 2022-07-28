@@ -198,22 +198,25 @@ let rec private expandSingleOperation macros operation : Result<Block, exn> =
                 macros
                 |> List.filter (fun (x, _, _) -> x.Name <> macro.Name)
 
-            let outterDebugInfo =
-                Some begin
-                    debug, 
-                    List.map snd <| sortArgs macro.Param args
-                end
-
             macroBody
-            |> List.map (fun (x, debugInfo) ->
-                x, { debugInfo with Outter = outterDebugInfo })
             |> List.map (
                 function
                 | CommandCall call, debugInfo -> 
-                    Result.map (fun x -> CommandCall x, debugInfo) <|
-                        replaceParamToArgs args call debugInfo
+                    replaceParamToArgs args call debugInfo
+                    |> Result.map (fun x -> 
+                        CommandCall x, 
+                        { debugInfo with
+                            Outter = Some debug })
                 | x -> Ok x
-                >> Result.map (expandSingleOperation macros)
+                >> Result.map (fun (op, dbg) ->
+                    let dbg = 
+                        { dbg with 
+                            MacroVars = 
+                                args
+                                |> List.map (function
+                                    | (a, StringFormat _) -> a, String "?"
+                                    | (a, Constant x) -> a, x) }
+                    expandSingleOperation macros (op, dbg))
             )
             |> sequenceRL
             |> Result.bind sequenceRL

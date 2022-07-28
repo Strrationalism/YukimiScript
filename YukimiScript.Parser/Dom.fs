@@ -145,7 +145,8 @@ module Dom =
                         { LineNumber = lineNumber + 1
                           File = filePath
                           Scope = None
-                          Outter = None })
+                          Outter = None
+                          MacroVars = [] })
                 |> Seq.fold
                     (fun state x -> Result.bind (fun state -> analyzeFold state x) state)
                     (Ok { Result = empty; CurrentBlock = None })
