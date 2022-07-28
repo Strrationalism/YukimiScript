@@ -6,10 +6,10 @@ open YukimiScript.Parser.TypeChecker
 
 
 type Dom =
-    { HangingEmptyLine: DebugInformation list
-      Externs: (ExternDefination * BlockParamTypes * DebugInformation) list
-      Macros: (MacroDefination * BlockParamTypes * Block * DebugInformation) list
-      Scenes: (SceneDefination * Block * DebugInformation) list }
+    { HangingEmptyLine: DebugInfo list
+      Externs: (ExternDefination * BlockParamTypes * DebugInfo) list
+      Macros: (MacroDefination * BlockParamTypes * Block * DebugInfo) list
+      Scenes: (SceneDefination * Block * DebugInfo) list }
 
 
 module Dom =
@@ -29,25 +29,25 @@ module Dom =
 
     type private AnalyzeState =
         { Result: Dom
-          CurrentBlock: (Line * DebugInformation * Block) option }
+          CurrentBlock: (Line * DebugInfo * Block) option }
 
 
-    exception HangingOperationException of debugInfo: DebugInformation
+    exception HangingOperationException of debugInfo: DebugInfo
 
 
     exception UnknownException
 
 
-    exception SceneRepeatException of scene: string * debugInfo: DebugInformation seq
+    exception SceneRepeatException of scene: string * debugInfo: DebugInfo seq
 
 
-    exception MacroRepeatException of macro: string * debugInfo: DebugInformation seq
+    exception MacroRepeatException of macro: string * debugInfo: DebugInfo seq
 
 
-    exception ExternRepeatException of name: string * debugInfo: DebugInformation seq
+    exception ExternRepeatException of name: string * debugInfo: DebugInfo seq
 
 
-    exception ExternCannotHasContentException of name: string * DebugInformation
+    exception ExternCannotHasContentException of name: string * DebugInfo
 
 
     let private saveCurrentBlock state =
@@ -183,7 +183,7 @@ module Dom =
     exception MustExpandTextBeforeLinkException
 
 
-    exception ExternCommandDefinationNotFoundException of string * DebugInformation
+    exception ExternCommandDefinationNotFoundException of string * DebugInfo
 
 
     let private systemCommands : (ExternDefination * BlockParamTypes) list =

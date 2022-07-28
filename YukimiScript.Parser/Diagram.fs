@@ -21,7 +21,7 @@ type Diagram =
       Arrows: SceneArrow list }
 
 
-exception DiagramMacroErrorException of DebugInformation
+exception DiagramMacroErrorException of DebugInfo
 
 
 exception CannotFindSceneException of string

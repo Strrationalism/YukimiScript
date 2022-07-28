@@ -158,6 +158,6 @@ let toCommands (text: TextBlock) : CommandCall list =
         NamedArgs = [ "hasMore", Constant <| Symbol (text.HasMore.ToString().ToLower()) ] } ]
 
 
-let expandTextBlock (x: TextBlock) (debugInfo: DebugInformation) : Block =
+let expandTextBlock (x: TextBlock) (debugInfo: DebugInfo) : Block =
     toCommands x
     |> List.map (fun x -> CommandCall x, debugInfo)

@@ -197,7 +197,7 @@ let private genCommand
     (sbRoot: StringBuilder) 
     context
     (call: IntermediateCommandCall) 
-    : Result<CodeGenContext, string * DebugInformation> = 
+    : Result<CodeGenContext, string * DebugInfo> = 
 
     let getScopeSb = 
         function
@@ -210,6 +210,7 @@ let private genCommand
 
     if genDbg && call.Callee <> "__text_begin" && call.Callee <> "__text_end" then
         sb.AppendLine (";YKMDBG;L" + string call.DebugInformation.LineNumber + ";F=\"" + call.DebugInformation.File + "\"") |> ignore
+        sb.AppendLine (";;;" + sprintf "%A" call.DebugInformation) |> ignore
 
     let genComplexCommandError () =
         Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInformation)

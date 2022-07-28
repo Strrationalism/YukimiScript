@@ -40,7 +40,7 @@ let private loadDom errStringing src =
     |> unwrapDomException errStringing
 
 
-let private findRepeat (items: (string * Elements.DebugInformation) seq) =
+let private findRepeat (items: (string * Elements.DebugInfo) seq) =
     Seq.groupBy fst items
     |> Seq.choose
         (fun (key, matches) ->

@@ -50,13 +50,13 @@ let macroDefinationParser =
 exception NoMacroMatchedException
 
 
-exception ArgumentsTooMuchException of DebugInformation * CommandCall
+exception ArgumentsTooMuchException of DebugInfo * CommandCall
 
 
-exception ArgumentRepeatException of DebugInformation * CommandCall * string
+exception ArgumentRepeatException of DebugInfo * CommandCall * string
 
 
-exception ArgumentUnmatchedException of DebugInformation * CommandCall * parameter: string
+exception ArgumentUnmatchedException of DebugInfo * CommandCall * parameter: string
 
 
 let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(string * CommandArg) list, exn> =
@@ -178,7 +178,7 @@ let private replaceParamToArgs args macroBody debug =
                 NamedArgs = namedArgs }))
 
 
-exception MacroInnerException of DebugInformation * exn
+exception MacroInnerException of DebugInfo * exn
 
 
 let rec private expandSingleOperation macros operation : Result<Block, exn> =

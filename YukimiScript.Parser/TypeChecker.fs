@@ -46,7 +46,7 @@ let unify src dst =
     | _ -> None
 
 
-exception TypeCheckFailedException of DebugInformation * int * ParameterType * SimpleType
+exception TypeCheckFailedException of DebugInfo * int * ParameterType * SimpleType
 
 
 let matchType d i (ParameterType (t, paramTypes)) (argType: SimpleType) : Result<unit, exn> =
@@ -55,7 +55,7 @@ let matchType d i (ParameterType (t, paramTypes)) (argType: SimpleType) : Result
     else Error <| TypeCheckFailedException (d, i, (ParameterType (t, paramTypes)), argType)
 
 
-exception IsNotAType of string * DebugInformation
+exception IsNotAType of string * DebugInfo
 
 
 type BlockParamTypes = (string * ParameterType) list
@@ -73,6 +73,6 @@ let checkApplyTypeCorrect d (paramTypes: BlockParamTypes) (args: (string * Comma
     |> Result.map (fun _ -> args)
 
 
-exception CannotGetParameterException of (string * DebugInformation) list
+exception CannotGetParameterException of (string * DebugInfo) list
 
 

@@ -6,13 +6,13 @@ open YukimiScript.Parser.Elements
 type IntermediateCommandCall = 
     { Callee: string
       Arguments: Constant list 
-      DebugInformation: DebugInformation }
+      DebugInformation: DebugInfo }
 
 
 type IntermediateScene = 
     { Name: string
       Block: IntermediateCommandCall list
-      DebugInformation: DebugInformation }
+      DebugInformation: DebugInfo }
 
 
 type Intermediate = Intermediate of IntermediateScene list

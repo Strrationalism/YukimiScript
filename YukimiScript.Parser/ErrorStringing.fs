@@ -14,7 +14,7 @@ open System.IO
 type ErrorStringing = exn -> string
 
 
-let header (debug: Elements.DebugInformation) =
+let header (debug: Elements.DebugInfo) =
     Path.GetFileName(debug.File)
     + "("
     + string debug.LineNumber

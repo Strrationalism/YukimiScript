@@ -12,7 +12,7 @@ let genJson debug (Intermediate scenes) targetFile =
 
     writer.WriteStartArray()
 
-    let writeDebugInfo (debugInfo: Elements.DebugInformation) =
+    let writeDebugInfo (debugInfo: Elements.DebugInfo) =
         if debug then
             writer.WriteStartObject("debug")
             writer.WriteString("src", debugInfo.File)

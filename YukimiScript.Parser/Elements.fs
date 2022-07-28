@@ -56,7 +56,7 @@ type Line =
     | Text of TextBlock
 
 
-type DebugInformation =
+type DebugInfo =
     { LineNumber: int
       File: string }
 
@@ -86,4 +86,4 @@ module Operation =
         | x -> raise <| CanNotConvertToOperationException x
 
 
-type Block = (Operation * DebugInformation) list
+type Block = (Operation * DebugInfo) list
