@@ -130,10 +130,9 @@ module Dom =
                 x
                 |> Seq.indexed
                 |> Seq.map
-                    (fun (lineNumber, { Line = line; Comment = comment }) ->
+                    (fun (lineNumber, { Line = line }) ->
                         line,
                         { LineNumber = lineNumber + 1
-                          Comment = comment
                           File = fileName })
                 |> Seq.fold
                     (fun state x -> Result.bind (fun state -> analyzeFold state x) state)
@@ -153,10 +152,7 @@ module Dom =
         let mapBlock =
             List.collect (function
                 | Text x, debugInfo ->
-                    [ if debugInfo.Comment.IsSome then
-                            EmptyLine, debugInfo
-
-                      yield! Text.expandTextBlock x debugInfo ]
+                    Text.expandTextBlock x debugInfo
                 | x -> [ x ])
 
         { x with

@@ -17,11 +17,6 @@ let genJson debug (Intermediate scenes) targetFile =
             writer.WriteStartObject("debug")
             writer.WriteString("src", debugInfo.File)
             writer.WriteNumber("line", debugInfo.LineNumber)
-
-            match debugInfo.Comment with
-            | None -> ()
-            | Some c -> writer.WriteString("comment", c)
-
             writer.WriteEndObject()
 
     for scene in scenes do 

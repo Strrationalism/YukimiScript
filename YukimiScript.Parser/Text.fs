@@ -159,7 +159,5 @@ let toCommands (text: TextBlock) : CommandCall list =
 
 
 let expandTextBlock (x: TextBlock) (debugInfo: DebugInformation) : Block =
-    let blockDebugInfo: DebugInformation = { debugInfo with Comment = None }
-
     toCommands x
-    |> List.map (fun x -> CommandCall x, blockDebugInfo)
+    |> List.map (fun x -> CommandCall x, debugInfo)
