@@ -133,7 +133,7 @@ module Dom =
                     (fun (lineNumber, { Line = line }) ->
                         line,
                         { LineNumber = lineNumber + 1
-                          File = fileName })
+                          File = System.IO.Path.GetFullPath fileName })
                 |> Seq.fold
                     (fun state x -> Result.bind (fun state -> analyzeFold state x) state)
                     (Ok { Result = empty; CurrentBlock = None })
