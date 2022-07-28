@@ -192,7 +192,17 @@ let private colorCommands =
     |> Map.ofList
 
 
+let private getDebugString (table: ref<Map<string, int>>) str =
+    match Map.tryFind str table.Value with
+    | Some x -> x
+    | None ->
+        let curId = Map.count table.Value
+        table.Value <- Map.add str curId table.Value
+        curId
+
+
 let private genCommand 
+    dbgStrs
     genDbg
     (sbRoot: StringBuilder) 
     context
@@ -212,12 +222,12 @@ let private genCommand
         sb.Append (";YKMDBG") |> ignore
 
         sb.Append (";C") |> ignore
-        sb.Append (call.Callee) |> ignore
+        sb.Append (getDebugString dbgStrs call.Callee) |> ignore
 
         for arg in call.Arguments do
                 match arg with
-                | Constant.String x -> ";AS\"" + x + "\""
-                | Symbol x -> ";As" + x
+                | Constant.String x -> ";AS" + string (getDebugString dbgStrs x)
+                | Symbol x -> ";As" + string (getDebugString dbgStrs x)
                 | Integer i -> ";Ai" + string i
                 | Real r -> ";Ar" + string r
                 |> sb.Append
@@ -230,15 +240,16 @@ let private genCommand
             let dbgInfo = d.Value
             sb.Append (";L") |> ignore
             sb.Append (dbgInfo.LineNumber) |> ignore
-            sb.Append (";F\"") |> ignore
-            sb.Append (dbgInfo.File) |> ignore
-            sb.Append ('\"') |> ignore
+            sb.Append (";F") |> ignore
+            sb.Append (getDebugString dbgStrs dbgInfo.File) |> ignore
 
             for i in dbgInfo.MacroVars do
                 let var = fst i
                 match snd i with
-                | Constant.String x -> ";VS" + var + "=\"" + x + "\""
-                | Symbol x -> ";Vs" + var + "=" + x + "\""
+                | Constant.String x -> 
+                    ";VS" + var + "=" + string (getDebugString dbgStrs x)
+                | Symbol x -> 
+                    ";Vs" + var + "=" + string (getDebugString dbgStrs x)
                 | Integer x -> ";Vi" + var + "=" + string x
                 | Real x -> ";Vr" + var + "=" + string x
                 |> sb.Append
@@ -247,9 +258,9 @@ let private genCommand
             match dbgInfo.Scope with
             | None -> ()
             | Some (Choice2Of2 a) -> 
-                sb.Append(";S\"").Append(a.Name).Append('\"') |> ignore
+                sb.Append(";S").Append(getDebugString dbgStrs a.Name) |> ignore
             | Some (Choice1Of2 a) -> 
-                sb.Append(";M\"").Append(a.Name).Append('\"') |> ignore
+                sb.Append(";M").Append(getDebugString dbgStrs a.Name) |> ignore
 
             sb.Append (";E") |> ignore
 
@@ -421,15 +432,15 @@ let private genCommand
         | x -> Error ("不能在这里使用的命令" + x + "。", call.DebugInformation)
 
 
-let private generateScene genDbg (scene: IntermediateScene) context (sb: StringBuilder) =
+let private generateScene strings genDbg (scene: IntermediateScene) context (sb: StringBuilder) =
     
     if genDbg then
         sb.AppendLine(
             ";YKMDBG" + 
             ";L" + 
             string scene.DebugInformation.LineNumber +
-            ";F\"" + scene.DebugInformation.File + "\"" +
-            ";S\"" + scene.Name + "\"") 
+            ";F" + string (getDebugString strings scene.DebugInformation.File) +
+            ";S" + string (getDebugString strings scene.Name))
         |> ignore
     
 
@@ -449,7 +460,7 @@ let private generateScene genDbg (scene: IntermediateScene) context (sb: StringB
         scene.Block 
         |> List.fold 
             (fun (context, success) -> 
-                genCommand genDbg sb context
+                genCommand strings genDbg sb context
                 >> function
                     | Ok context -> context, success
                     | Error (msg, dbg) -> 
@@ -477,6 +488,7 @@ let private generateScene genDbg (scene: IntermediateScene) context (sb: StringB
     
 let generateScript genDbg (Intermediate scenes) scriptName =
     let sb = new StringBuilder ()
+    let strings: ref<Map<string, int>> = ref Map.empty
 
     let scenes, (context, success) = 
         let initContext = 
@@ -488,7 +500,7 @@ let generateScript genDbg (Intermediate scenes) scriptName =
         | None -> scenes, (initContext, true)
         | Some init -> 
             List.except [init] scenes,
-            generateScene genDbg init initContext sb
+            generateScene strings genDbg init initContext sb
 
     match success, List.tryFind (fun (x: IntermediateScene) -> x.Name = scriptName) scenes with
     | false, _ -> Error ()
@@ -496,10 +508,29 @@ let generateScript genDbg (Intermediate scenes) scriptName =
     | true, Some entryPoint ->  
         (entryPoint :: List.except [entryPoint] scenes)
         |> List.fold (fun success scene -> 
-            let succ' = generateScene genDbg scene context sb |> snd
+            let succ' = generateScene strings genDbg scene context sb |> snd
             success && succ') true
         |> function
-            | true -> Ok <| sb.ToString ()
             | false -> Error ()
+            | true -> 
+                let debugSymbolTable =
+                    seq { 0 .. Map.count strings.Value - 1 }
+                    |> Seq.map (fun x -> 
+                        strings.Value
+                        |> Map.pick (fun s x' -> 
+                            if x = x' 
+                            then Some s 
+                            else None))
+                    |> Seq.fold 
+                        (fun acc x -> 
+                            let x = 
+                                x
+                                    .Replace("\n", "\\n")
+                                    .Replace("\r", "")
+                                    .Replace("\\", "\\\\")
+                            acc + ";YKMDBG;P" + x + "\n") 
+                        ""
+
+                Ok <| debugSymbolTable + sb.ToString ()
             
         
