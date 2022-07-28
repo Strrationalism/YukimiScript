@@ -58,7 +58,9 @@ type Line =
 
 type DebugInfo =
     { LineNumber: int
-      File: string }
+      File: string
+      Scope: Choice<MacroDefination, SceneDefination> option
+      Outter: (DebugInfo * list<CommandArg>) option }
 
 
 type Operation =

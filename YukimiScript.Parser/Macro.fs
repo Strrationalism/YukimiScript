@@ -114,6 +114,12 @@ let private matchMacro debug x macro =
         matchArguments debug macro.Param x
         |> Result.bind (checkApplyTypeCorrect debug t)
         |> Result.map (fun args -> macro, other, args)
+
+
+let sortArgs parameters args =
+    parameters
+    |> List.map (fun p ->
+        args |> List.find (fst >> ((=) p.Parameter)))
     
         
 let rec private processStringFormat env name format debug =
@@ -192,7 +198,15 @@ let rec private expandSingleOperation macros operation : Result<Block, exn> =
                 macros
                 |> List.filter (fun (x, _, _) -> x.Name <> macro.Name)
 
+            let outterDebugInfo =
+                Some begin
+                    debug, 
+                    List.map snd <| sortArgs macro.Param args
+                end
+
             macroBody
+            |> List.map (fun (x, debugInfo) ->
+                x, { debugInfo with Outter = outterDebugInfo })
             |> List.map (
                 function
                 | CommandCall call, debugInfo -> 

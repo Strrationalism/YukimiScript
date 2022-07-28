@@ -96,12 +96,21 @@ module Dom =
             | None -> Error <| HangingOperationException debugInfo
             | Some (line, labelDbgInfo, block) ->
                 { state with
-                      CurrentBlock = Some(line, labelDbgInfo, (x, debugInfo) :: block) }
+                      CurrentBlock = 
+                        let debugInfo = 
+                            { debugInfo with Scope = labelDbgInfo.Scope }
+                        Some(line, labelDbgInfo, (x, debugInfo) :: block) }
                 |> Ok
 
         let setLabel state line =
             { saveCurrentBlock state with
-                  CurrentBlock = Some(line, debugInfo, []) }
+                  CurrentBlock = 
+                    let debugInfoScope = 
+                        match line with
+                        | SceneDefination scene -> Some (Choice2Of2 scene)
+                        | MacroDefination macro -> Some (Choice1Of2 macro)
+                        | _ -> None
+                    Some (line, { debugInfo with Scope = debugInfoScope }, []) }
 
         match line with
         | Line.EmptyLine ->
@@ -125,6 +134,7 @@ module Dom =
 
 
     let analyze (fileName: string) (x: Parsed seq) : Result<Dom, exn> =
+        let filePath = System.IO.Path.GetFullPath fileName
         try
             let finalState =
                 x
@@ -133,7 +143,9 @@ module Dom =
                     (fun (lineNumber, { Line = line }) ->
                         line,
                         { LineNumber = lineNumber + 1
-                          File = System.IO.Path.GetFullPath fileName })
+                          File = filePath
+                          Scope = None
+                          Outter = None })
                 |> Seq.fold
                     (fun state x -> Result.bind (fun state -> analyzeFold state x) state)
                     (Ok { Result = empty; CurrentBlock = None })
@@ -218,12 +230,7 @@ module Dom =
                     |> Result.bind (checkApplyTypeCorrect debugInfo t)
                     |> Result.bind
                         (fun args ->
-                            let args =
-                                List.map 
-                                    (fun { Parameter = param } -> 
-                                        param, List.find (fst >> (=) param) args |> snd) 
-                                    param
-
+                            let args = Macro.sortArgs param args
                             let args = 
                                 List.map (fun (n, a) -> 
                                     Macro.commandArgToConstant 
