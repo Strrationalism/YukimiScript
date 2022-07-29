@@ -67,11 +67,52 @@ let generateBytecode genDebug (Intermediate scenes) (target: FileStream) =
             scene.DebugInfo.File |> getString |> getBytesLE |> writeBytes d
             uint32 scene.DebugInfo.LineNumber |> getBytesLE  |> writeBytes d)
 
+        let writeValue block =
+            function
+            | Integer i -> 
+                    writeBytes block <| getBytesLE 0
+                    writeBytes block <| getBytesLE i
+            | Real f -> 
+                writeBytes block <| getBytesLE 1
+                writeBytes block <| getBytesLE (float32 f)
+            | String s -> 
+                getString s |> int |> (+) 2 |> getBytesLE |> writeBytes block
+            | Symbol s -> 
+                - int (getString s) - 1 |> getBytesLE |> writeBytes block
+
         for call in scene.Block do
             debugInfo |> Option.iter (fun d ->
+                let rec countStackFrames =
+                    function
+                    | { Outter = None } -> 1
+                    | { Outter = Some x } -> 1 + countStackFrames x
+
+                let stackFrameDepth = countStackFrames call.DebugInfo
                 uint32 code.Position |> getBytesLE |> writeBytes d
-                call.DebugInfo.File |> getString |> getBytesLE |> writeBytes d
-                uint32 call.DebugInfo.LineNumber |> getBytesLE |> writeBytes d)
+                uint32 stackFrameDepth |> getBytesLE |> writeBytes d
+
+                let mutable dbg = call.DebugInfo
+                for _ in 1 .. stackFrameDepth do
+                    getString dbg.File |> getBytesLE |> writeBytes d
+                    uint32 dbg.LineNumber |> getBytesLE |> writeBytes d
+
+                    let isSceneFlag, scopeName =
+                        match dbg.Scope with
+                        | Some (Choice1Of2 a) -> 0u, a.Name
+                        | Some (Choice2Of2 a) -> 0x80000000u, a.Name
+                        | None -> 0x80000000u, ""
+                    
+                    getString scopeName |> getBytesLE |> writeBytes d
+                    (uint32 dbg.MacroVars.Length) ||| isSceneFlag
+                    |> getBytesLE |> writeBytes d
+                    
+                    for (name, var) in dbg.MacroVars do
+                        getString name |> getBytesLE |> writeBytes d
+                        writeValue d var
+                    
+                    if dbg.Outter.IsSome then
+                        dbg <- dbg.Outter.Value
+            )
 
             call.Callee 
             |> getExtern 
@@ -84,17 +125,7 @@ let generateBytecode genDebug (Intermediate scenes) (target: FileStream) =
             |> writeBytes code
 
             for arg in call.Arguments do
-                match arg with
-                | Integer i -> 
-                    writeBytes code <| getBytesLE 0
-                    writeBytes code <| getBytesLE i
-                | Real f -> 
-                    writeBytes code <| getBytesLE 1
-                    writeBytes code <| getBytesLE (float32 f)
-                | String s -> 
-                    getString s |> int |> (+) 2 |> getBytesLE |> writeBytes code
-                | Symbol s -> 
-                    - int (getString s) - 1 |> getBytesLE |> writeBytes code
+                writeValue code arg
 
         code, debugInfo
 
