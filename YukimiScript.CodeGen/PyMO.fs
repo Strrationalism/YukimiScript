@@ -438,8 +438,8 @@ let private generateScene strings genDbg (scene: IntermediateScene) context (sb:
         sb.AppendLine(
             ";YKMDBG" + 
             ";L" + 
-            string scene.DebugInformation.LineNumber +
-            ";F" + string (getDebugString strings scene.DebugInformation.File) +
+            string scene.DebugInfo.LineNumber +
+            ";F" + string (getDebugString strings scene.DebugInfo.File) +
             ";S" + string (getDebugString strings scene.Name))
         |> ignore
     
@@ -451,7 +451,7 @@ let private generateScene strings genDbg (scene: IntermediateScene) context (sb:
 
     match checkSceneName scene.Name with
     | false -> 
-        ErrorStringing.header scene.DebugInformation
+        ErrorStringing.header scene.DebugInfo
         + "场景名称 " + scene.Name
         + " 非法，在PyMO中只可以使用由字母、数字和下划线组成的场景名。"
         |> Console.WriteLine
@@ -470,7 +470,7 @@ let private generateScene strings genDbg (scene: IntermediateScene) context (sb:
             (context, true)
         |> function
             | { CurrentComplexCommand = Some (ComplexCommand (o, e, _), _) } as context, _ -> 
-                ErrorStringing.header scene.DebugInformation
+                ErrorStringing.header scene.DebugInfo
                  + "在此场景的末尾，应当使用"
                  + e 
                  + "命令来结束"
@@ -479,7 +479,7 @@ let private generateScene strings genDbg (scene: IntermediateScene) context (sb:
                 |> Console.WriteLine
                 context, false
             | { ScopeStack = _::_ } as context, _ ->
-                ErrorStringing.header scene.DebugInformation
+                ErrorStringing.header scene.DebugInfo
                  + "在场景的末尾应当结束当前的if区域。"
                 |> Console.WriteLine
                 context, false

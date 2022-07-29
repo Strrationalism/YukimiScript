@@ -50,10 +50,10 @@ let generateLua genDebug (Intermediate scenes) =
                     .Append(getStr scenName)
                     .AppendLine("] = {")
                     .Append("      F = ")
-                    .Append(getStr scene.DebugInformation.File)
+                    .Append(getStr scene.DebugInfo.File)
                     .AppendLine(",")
                     .Append("      L = ")
-                    .Append(string scene.DebugInformation.LineNumber)
+                    .Append(string scene.DebugInfo.LineNumber)
                 |> ignore)
 
             scene.Block

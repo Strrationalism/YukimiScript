@@ -49,7 +49,7 @@ let genJson debug (Intermediate scenes) targetFile =
 
         if debug then
             writer.WriteStartObject("debug")
-            writeDebugInfo scene.DebugInformation
+            writeDebugInfo scene.DebugInfo
             writer.WriteEndObject()
         
         begin

@@ -12,7 +12,7 @@ type IntermediateCommandCall =
 type IntermediateScene = 
     { Name: string
       Block: IntermediateCommandCall list
-      DebugInformation: DebugInfo }
+      DebugInfo: DebugInfo }
 
 
 type Intermediate = Intermediate of IntermediateScene list
@@ -40,5 +40,5 @@ module Intermediate =
                                 |> Some
                             | a -> failwith <| "Not support in intermediate: " + string a)
 
-                { Name = sceneName; Block = commands; DebugInformation = debugScene })
+                { Name = sceneName; Block = commands; DebugInfo = debugScene })
         |> Intermediate
