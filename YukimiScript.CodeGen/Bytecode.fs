@@ -28,16 +28,24 @@ let generateBytecode genDebug (Intermediate scenes) (target: FileStream) =
     let cstrIndex = ref Map.empty
     let extrIndex = ref Map.empty
 
-    let getString str = 
+    let getString (str: string) = 
         match Map.tryFind str cstrIndex.Value with
         | Some offset -> offset
         | None -> 
-            let pos = uint32 cstrBlock.Position
-            let strBytes = UTF8.GetBytes(str: string)
-            writeBytes cstrBlock strBytes
-            cstrBlock.WriteByte(0uy)
-            cstrIndex.Value <- Map.add str pos cstrIndex.Value
-            pos
+            cstrIndex.Value
+            |> Map.tryPick (fun s offset ->
+                if not <| s.EndsWith str then None else
+                    UTF8.GetByteCount(s, 0, s.Length - str.Length)
+                    |> uint32
+                    |> (+) offset
+                    |> Some)
+            |> Option.defaultWith (fun () ->    
+                let pos = uint32 cstrBlock.Position
+                let strBytes = UTF8.GetBytes(str: string)
+                writeBytes cstrBlock strBytes
+                cstrBlock.WriteByte(0uy)
+                cstrIndex.Value <- Map.add str pos cstrIndex.Value
+                pos)
 
     let getExtern name = 
         match Map.tryFind name extrIndex.Value with
