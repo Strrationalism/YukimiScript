@@ -30,6 +30,7 @@
 				{ "include": "#strings" },
 				{ "include": "#numbers" },
 				{ "include": "#keywords" },
+				{ "include": "#linecomment" },
 				{ "include": "#symbol" },
 				{
 					"match": "\\s([a-zA-Z0-9_'.']+)(=)?",
@@ -96,7 +97,8 @@
 				"0": { "name": "entity.name.function" }
 			},
 			"patterns": [
-				{ "include": "#args" }
+				{ "include": "#args" },
+				{ "include": "#linecomment" }
 			]
 		},
 		"inlineop": {
@@ -106,7 +108,8 @@
 				"0": { "name": "entity.name.function" }
 			},
 			"patterns": [
-				{ "include": "#args" }
+				{ "include": "#args" },
+				{ "include": "#linecomment" }
 			]
 		},
 		"numbers": {
