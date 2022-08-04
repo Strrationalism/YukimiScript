@@ -139,7 +139,8 @@ type private CodeGenContext =
     { Characters: Map<string, string>
       CurrentComplexCommand: (ComplexCommand * Constant list) option
       ScopeStack: Scope list
-      Inc: int }
+      Inc: int 
+      GenExitLabel: bool ref }
 
 
 let private (|ComplexCommand'|_|) x = 
@@ -309,6 +310,10 @@ let private genCommand
                             (genArgUntyped call.Arguments.[0]) 
                             (genArgUntyped call.Arguments.[1]) 
                             context.Characters }
+        | "exit" ->
+            sb.AppendLine ("#goto EXIT") |> ignore
+            context.GenExitLabel.Value <- true
+            Ok context
         | "if" ->
             let condStr = condStr call.Arguments[0] call.Arguments[1] call.Arguments[2]
             if context.CurrentComplexCommand.IsSome
@@ -495,7 +500,8 @@ let generateScript genDbg (Intermediate scenes) scriptName =
           { Characters = Map.empty
             CurrentComplexCommand = None
             ScopeStack = []
-            Inc = 0 }
+            Inc = 0
+            GenExitLabel = ref false }
         match List.tryFind (fun (x: IntermediateScene) -> x.Name = "$init") scenes with
         | None -> scenes, (initContext, true)
         | Some init -> 
@@ -525,6 +531,11 @@ let generateScript genDbg (Intermediate scenes) scriptName =
                         (fun acc x -> 
                             acc + ";YKMDBG;P" + Constants.string2literal x + "\n") 
                         ""
+
+                if context.GenExitLabel.Value then 
+                    sb  .AppendLine()
+                        .AppendLine("#label EXIT")
+                    |> ignore
 
                 Ok <| debugSymbolTable + sb.ToString ()
             
