@@ -27,6 +27,7 @@
     <Compile Include="Intermediate.fs" />
     <Compile Include="Diagram.fs" />
     <Compile Include="EditorHelper.fs" />
+    <Compile Include="CompilePipe.fs" />
     <Compile Include="ErrorStringing.fs" />
   </ItemGroup>
 </Project>
