@@ -23,6 +23,16 @@ let header (debug: Elements.DebugInfo) =
 
 let rec schinese: ErrorStringing =
     function
+    | Parser.ParseLinesException (filePath, errs) ->
+        errs
+        |> Seq.map
+            (fun (lineNumber, err) ->
+                Path.GetFileName(filePath: string)
+                + "("
+                + string lineNumber
+                + "):"
+                + schinese err)
+        |> Seq.fold (fun acc x -> acc + NewLine + x) ""
     | MultiException exns ->
         List.fold (fun acc x -> acc + NewLine + schinese x) "" exns
     | TypeCheckFailedException (d, i, ParameterType (name, _), a) ->

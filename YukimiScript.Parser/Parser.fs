@@ -6,6 +6,9 @@ open ParserMonad
 open Basics
 
 
+exception ParseLinesException of path: string * (int * exn) list
+
+
 let private lineComment: Parser<string> =
     parser {
         do! literal "#"

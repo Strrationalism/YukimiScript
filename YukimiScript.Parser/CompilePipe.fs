@@ -1,15 +1,15 @@
 module YukimiScript.Parser.CompilePipe
 
 open System.IO
+open YukimiScript.Parser.Parser
 open YukimiScript.Parser.Utils
-
-
-exception ParseLinesException of (int * exn) list
 
 
 let loadDom path =
     try Ok <| File.ReadAllLines path with e -> Error e
-    |> Result.bind (Parser.parseLines >> Result.mapError ParseLinesException)
+    |> Result.bind 
+        (parseLines 
+        >> Result.mapError (fun err -> ParseLinesException (path, err)))
     |> Result.bind (Dom.analyze <| Path.GetFileName path)
 
     
