@@ -1,6 +1,7 @@
 ﻿module YukimiScript.Parser.TypeChecker
 
 open YukimiScript.Parser.Elements
+open YukimiScript.Parser.Utils
 
 
 type SimpleType =
@@ -69,7 +70,7 @@ let checkApplyTypeCorrect d (paramTypes: BlockParamTypes) (args: (string * Comma
         |> snd
         |> checkType
         |> matchType d i paramType)
-    |> ParserMonad.sequenceRL
+    |> Result.transposeList
     |> Result.map (fun _ -> args)
 
 

@@ -1,6 +1,7 @@
 ﻿module YukimiScript.Parser.Parser
 
 open YukimiScript.Parser.Elements
+open YukimiScript.Parser.Utils
 open ParserMonad
 open Basics
 
@@ -56,7 +57,7 @@ let parseLines (line: string []) : Result<Parsed list, (int * exn) list> =
             | _ -> None)
 
     if List.isEmpty errors then
-        match sequenceRL parsed with
+        match Result.transposeList parsed with
         | Ok x -> Ok x
         | _ -> failwith "Internal Error"
     else

@@ -13,6 +13,7 @@
     <Title>YukimiScript.Parser</Title>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Utils.fs" />
     <Compile Include="Elements.fs" />
     <Compile Include="ParserMonad.fs" />
     <Compile Include="Basics.fs" />

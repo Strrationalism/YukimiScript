@@ -1,6 +1,7 @@
 module YukimiScript.Parser.CompilePipe
 
 open System.IO
+open YukimiScript.Parser.Utils
 
 
 exception ParseLinesException of (int * exn) list
@@ -39,12 +40,6 @@ let findLibs libDirs libs =
             ([], [])
     
     if fails <> [] then Error <| CanNotFindLib fails else Ok succs
-
-
-let loadSrcs paths =
-    List.map loadDom paths
-    |> ParserMonad.sequenceRL
-    |> Result.map (List.fold Dom.merge Dom.empty)
 
 
 let checkRepeat (dom: Dom) =
@@ -88,10 +83,18 @@ let checkRepeat (dom: Dom) =
                 |> Error)
 
 
-let checkLib = Ok
+let checkLib path dom = 
+    if List.isEmpty dom.Scenes then Ok dom else
+        Error <| Dom.CannotDefineSceneInLibException path
 
 
-let loadLibs = loadSrcs >> Result.bind checkLib >> Result.bind checkRepeat
+let loadLib path = 
+    loadDom path |> Result.bind (checkLib path)
+
+
+let loadLibs paths =
+    List.map loadLib paths
+    |> Result.transposeList
 
 
 let getYkmFiles (path: string) =

@@ -3,6 +3,7 @@ namespace YukimiScript.Parser
 open YukimiScript.Parser.Parser
 open YukimiScript.Parser.Elements
 open YukimiScript.Parser.TypeChecker
+open YukimiScript.Parser.Utils
 
 
 type Dom =
@@ -182,7 +183,7 @@ module Dom =
             (fun (sceneDef, block, debugInfo) ->
                 Macro.expandBlock macros block
                 |> Result.map (fun x -> sceneDef, x, debugInfo))
-        |> ParserMonad.sequenceRL
+        |> Result.transposeList
         |> Result.map (fun scenes -> { x with Scenes = scenes })
 
 
@@ -236,7 +237,7 @@ module Dom =
                                 List.map (fun (n, a) -> 
                                     Macro.commandArgToConstant 
                                         args (Some n) a debugInfo) args
-                                |> ParserMonad.sequenceRL
+                                |> Result.transposeList
 
                             args
                             |> Result.map (fun args -> 
@@ -249,9 +250,9 @@ module Dom =
 
         let linkToExternCommands (sceneDef, block, debugInfo) =
             List.map linkSingleCommand block
-            |> ParserMonad.sequenceRL
+            |> Result.transposeList
             |> Result.map (fun block -> sceneDef, (block: Block), debugInfo)
 
         List.map linkToExternCommands x.Scenes
-        |> ParserMonad.sequenceRL
+        |> Result.transposeList
         |> Result.map (fun scenes -> { x with Scenes = scenes })

@@ -9,6 +9,7 @@ open YukimiScript.Parser.TopLevels
 open YukimiScript.Parser.Diagram
 open YukimiScript.Parser.TypeChecker
 open System.IO
+open type System.Environment
 
 
 type ErrorStringing = exn -> string
@@ -22,6 +23,8 @@ let header (debug: Elements.DebugInfo) =
 
 let rec schinese: ErrorStringing =
     function
+    | MultiException exns ->
+        List.fold (fun acc x -> acc + NewLine + schinese x) "" exns
     | TypeCheckFailedException (d, i, ParameterType (name, _), a) ->
         header d 
         + "第" + string (i + 1) + "个参数的类型应当为" + name + "，但传入了" +
@@ -36,7 +39,7 @@ let rec schinese: ErrorStringing =
     | CannotGetParameterException ls ->
         ls
         |> List.map (fun (x, d) -> header d + "不能获得" + x + "的类型。")
-        |> List.reduce (fun a b -> a + System.Environment.NewLine + b)
+        |> List.reduce (fun a b -> a + NewLine + b)
     | InvalidSymbolException -> "非法符号。"
     | InvalidStringCharException x -> "字符串中存在非法字符\"" + x + "\"。"
     | HangingOperationException debug -> header debug + "存在悬浮操作。"
@@ -44,28 +47,28 @@ let rec schinese: ErrorStringing =
         "重复定义了场景"
         + scene
         + "，分别在以下位置："
-        + System.Environment.NewLine
+        + NewLine
         + (dbgs
            |> Seq.map (fun x -> "    " + x.File + "(" + string x.LineNumber + ")")
-           |> Seq.reduce (fun a b -> a + System.Environment.NewLine + b))
+           |> Seq.reduce (fun a b -> a + NewLine + b))
 
     | MacroRepeatException (macro, dbgs) ->
         "重复定义了宏"
         + macro
         + "，分别在以下位置："
-        + System.Environment.NewLine
+        + NewLine
         + (dbgs
            |> Seq.map (fun x -> "    " + x.File + "(" + string x.LineNumber + ")")
-           |> Seq.reduce (fun a b -> a + System.Environment.NewLine + b))
+           |> Seq.reduce (fun a b -> a + NewLine + b))
 
     | ExternRepeatException (ex, dbgs) ->
         "重复定义了外部元素"
         + ex
         + "，分别在以下位置："
-        + System.Environment.NewLine
+        + NewLine
         + (dbgs
            |> Seq.map (fun x -> "    " + x.File + "(" + string x.LineNumber + ")")
-           |> Seq.reduce (fun a b -> a + System.Environment.NewLine + b))
+           |> Seq.reduce (fun a b -> a + NewLine + b))
 
     | MustExpandTextBeforeLinkException -> "必须先展开文本元素再连接外部元素。"
     | ExternCannotHasContentException (x, d) -> header d + "外部定义中不能包含内容：" + x + "。"
@@ -98,10 +101,10 @@ let rec schinese: ErrorStringing =
     | DiagramMacroErrorException d -> header d + "__diagram_link_to宏使用方式错误。"
     | CannotFindSceneException x -> "不能找到场景\"" + x + "\"的定义。"
     | MacroInnerException (debugInfo, x) ->
-        header debugInfo + "在展开宏时遇到以下错误：" + System.Environment.NewLine +
+        header debugInfo + "在展开宏时遇到以下错误：" + NewLine +
         begin 
             (schinese x).Split '\n' 
             |> Array.map (fun x -> "    " + x.Trim('\r')) 
-            |> Array.reduce (fun a b -> a + System.Environment.NewLine + b)
+            |> Array.reduce (fun a b -> a + NewLine + b)
         end
     | e -> "未知错误" + e.Message

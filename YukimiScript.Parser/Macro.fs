@@ -1,6 +1,7 @@
 module internal YukimiScript.Parser.Macro
 
 open YukimiScript.Parser.Elements
+open YukimiScript.Parser.Utils
 open TypeChecker
 open ParserMonad
 open Basics
@@ -99,7 +100,7 @@ let matchArguments debugInfo (x: Parameter list) (c: CommandCall) : Result<(stri
         |> Result.bind
             (fun () ->
                 List.map (fun x -> matchArg x.Parameter) x
-                |> sequenceRL)
+                |> Result.transposeList)
 
 
 let private matchMacro debug x macro =
@@ -166,14 +167,14 @@ let private replaceParamToArgs args macroBody debug =
 
     let unnamedArgs = 
         List.map (replaceArg >> Result.map Constant) macroBody.UnnamedArgs
-        |> sequenceRL
+        |> Result.transposeList
 
     let namedArgs =
         List.map 
             (fun (name, arg) -> 
                 Result.map (fun x -> name, Constant x) <| replaceArg arg) 
             macroBody.NamedArgs
-        |> sequenceRL
+        |> Result.transposeList
         
     unnamedArgs
     |> Result.bind (fun unnamedArgs ->
@@ -218,8 +219,8 @@ let rec private expandSingleOperation macros operation : Result<Block, exn> =
                                     | (a, Constant x) -> a, x) }
                     expandSingleOperation macros (op, dbg))
             )
-            |> sequenceRL
-            |> Result.bind sequenceRL
+            |> Result.transposeList
+            |> Result.bind Result.transposeList
             |> Result.map List.concat
     | x -> Ok [ x ]
     |> Result.mapError (fun err -> MacroInnerException (snd operation, err))
@@ -227,7 +228,7 @@ let rec private expandSingleOperation macros operation : Result<Block, exn> =
 
 let expandBlock macros (block: Block) =
     List.map (expandSingleOperation macros) block
-    |> sequenceRL
+    |> Result.transposeList
     |> Result.map List.concat
 
 
@@ -257,7 +258,7 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParam
         matchArguments d typeMacroParams c
         |> Result.bind (checkApplyTypeCorrect d typeMacroParamsTypes)
         |> Result.map (fun x -> c.Callee, x, d))
-    |> sequenceRL
+    |> Result.transposeList
     |> Result.bind (fun x ->
         let paramTypePairs =
             List.map (fun (macroName, x, d) ->
@@ -296,8 +297,8 @@ let parametersTypeFromBlock (par: Parameter list) (b: Block) : Result<BlockParam
                             | "__type_symbol" ->
                                 Ok <| ParameterType (typeName, set [ExplicitSymbol' typeName])
                             | _ -> failwith "?")
-                        |> sequenceRL
+                        |> Result.transposeList
                         |> Result.map (fun t -> 
                             name, List.reduce sumParameterType t))
-            |> sequenceRL
+            |> Result.transposeList
         else Error <| CannotGetParameterException dummy)
