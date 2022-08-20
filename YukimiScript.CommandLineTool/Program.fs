@@ -66,7 +66,7 @@ type private Options =
 let defaultLibSearchDirs =
     let e = System.Environment.GetEnvironmentVariable ("YKM_LIB_PATH")
     if String.IsNullOrWhiteSpace e then [] else
-        e.Split ':' |> List.ofArray
+        e.Split ';' |> List.ofArray
 
 
 let private defaultOptions = 
@@ -92,21 +92,6 @@ type private CmdArg =
     | Diagram of DiagramType * inputDir: string * output: string * Options
     | Charset of inputDir: string * outputCharsetFile: string * Options
     | Compile of inputFile: string * TargetOption list * Options
-
-
-let private findLib opt (libName: string) =
-    let libName =
-        if libName.ToLower().EndsWith ".ykm"
-        then libName
-        else "lib" + libName + ".ykm"
-
-    opt.LibSearchDir
-    |> Seq.rev
-    |> Seq.tryPick (fun dir ->
-        let path = IO.Path.Combine (dir, libName)
-        if File.Exists path || Directory.Exists path
-        then Some path
-        else None)
 
 
 let rec private parseOptions prev =
@@ -263,6 +248,7 @@ let private doAction errStringing =
 [<EntryPoint>]
 let main argv =
     let mutable ret = 0
+    (*
     let threadStart =
         Threading.ThreadStart (fun () -> 
             argv
@@ -277,4 +263,15 @@ let main argv =
     let thread = Threading.Thread (threadStart, 1024 * 1024 * 16)
     thread.Start ()
     thread.Join ()
+    ret*)
+    
+    argv
+    |> Array.toList
+    |> parseArgs
+    |> function
+        | Error () ->
+            help ()
+        | Ok x ->
+            try doAction ErrorStringing.schinese x
+            with FailException -> ret <- -1
     ret

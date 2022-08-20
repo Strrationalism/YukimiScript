@@ -12,9 +12,6 @@ let loadDom path =
         >> Result.mapError (fun err -> ParseLinesException (path, err)))
     |> Result.bind (Dom.analyze <| Path.GetFileName path)
 
-    
-exception CanNotFindLib of string list
-
 
 let findLib libDirs (libName: string) =
     let libFileName =
@@ -24,8 +21,8 @@ let findLib libDirs (libName: string) =
 
     libDirs
     |> List.tryPick (fun x ->
-        let libPath = Path.Combine (x, "/" + libFileName)
-        if Directory.Exists libPath || File.Exists libPath 
+        let libPath = Path.Combine (x, "./" + libFileName)
+        if File.Exists libPath 
             then Some libPath else None)
 
     

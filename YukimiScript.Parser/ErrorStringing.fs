@@ -37,6 +37,8 @@ let rec schinese: ErrorStringing =
     | MultiException exns ->
         List.fold (fun acc x -> acc + schinese x + NewLine) "" exns
         |> fun x -> x.TrimEnd('\n', '\r')
+    | CanNotFindLib x ->
+        "找不到这些库：" + List.fold (fun acc x -> acc + "\t" + x + NewLine) "" x
     | TypeCheckFailedException (d, i, ParameterType (name, _), a) ->
         header d 
         + "第" + string (i + 1) + "个参数的类型应当为" + name + "，但传入了" +

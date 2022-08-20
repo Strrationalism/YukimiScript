@@ -2,6 +2,7 @@ namespace YukimiScript.Parser.Utils
 
 
 exception MultiException of exn list
+exception CanNotFindLib of string list
 
 
 module Result =  
