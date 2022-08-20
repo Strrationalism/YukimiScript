@@ -1,7 +1,8 @@
 open System
 open System.IO
-open YukimiScript.CommandLineTool.Compile
 open YukimiScript.Parser
+open YukimiScript.Parser.Utils
+open YukimiScript.Parser.Elements
 
 
 let private help () =
@@ -44,8 +45,20 @@ let private help () =
     |> List.iter Console.WriteLine
 
 
+exception FailException
+
+
+let private unwrapResultExn (errorStringing: ErrorStringing.ErrorStringing) =
+    function
+    | Ok x -> x
+    | Error err ->
+        errorStringing err |> stderr.WriteLine
+        raise FailException
+
+
 type private Options = 
-  { Lib: string list
+  { LibExactly: string list
+    LibsToSearch: string list
     LibSearchDir: string list
     Debugging: bool }
 
@@ -57,7 +70,8 @@ let defaultLibSearchDirs =
 
 
 let private defaultOptions = 
-  { Lib = []
+  { LibExactly = []
+    LibsToSearch = []
     Debugging = false
     LibSearchDir = "." :: defaultLibSearchDirs }
 
@@ -98,18 +112,18 @@ let private findLib opt (libName: string) =
 let rec private parseOptions prev =
     function
     | [] -> Ok prev
-    | "--lib" :: libDir :: next -> 
-        parseOptions { prev with Lib = libDir :: prev.Lib } next
+    | "--lib" :: libPath :: next -> 
+        parseOptions { prev with LibExactly = libPath :: prev.LibExactly } next
     | x :: next when x = "-g" || x = "--debug" -> 
         parseOptions { prev with Debugging = true } next
     | x :: next when x.StartsWith "-L" -> 
-        parseOptions { prev with LibSearchDir = x.[2..] :: next } next
+        parseOptions
+            { prev with LibSearchDir = x.[2..] :: prev.LibSearchDir } 
+            next
     | x :: next when x.StartsWith "-l" ->
-        match findLib prev x.[2..] with
-        | None -> 
-            Console.WriteLine("Can not find lib \"" + x + "\"."); exit -1
-        | Some libPath -> 
-            parseOptions { prev with Lib = libPath :: prev.Lib } next
+        parseOptions 
+            { prev with LibsToSearch = x.[2..] :: prev.LibsToSearch } 
+            next
     | _ -> Error()
 
 
@@ -163,15 +177,18 @@ let private parseArgs =
 
 
 let private doAction errStringing =
+
+    let loadLibs options =
+        CompilePipe.findLibs options.LibSearchDir options.LibsToSearch
+        |> Result.map (List.append options.LibExactly)
+        |> Result.bind CompilePipe.loadLibs
+        |> unwrapResultExn ErrorStringing.schinese
+
     function
     | Compile (inputFile, targets, options) ->
-        let dom =
-            loadSrc errStringing (loadLibs errStringing options.Lib) inputFile
-            |> checkRepeat errStringing
-            |> prepareCodegen errStringing
-
-        let intermediate = Intermediate.ofDom dom
-
+        let libs = loadLibs options
+        let intermediate = CompilePipe.compile libs inputFile |> unwrapResultExn ErrorStringing.schinese
+        
         targets
         |> List.iter
             (function
@@ -199,43 +216,42 @@ let private doAction errStringing =
             | Dgml -> Diagram.exportDgml
             | _ -> Diagram.exportMermaid
 
-        let lib = loadLibs errStringing options.Lib
+        let lib = loadLibs options
 
-        getYkmFiles inputDir
+        CompilePipe.getYkmFiles inputDir
         |> Array.map
             (fun path ->
-                Path.GetRelativePath(inputDir, path),
-                loadSrc errStringing lib path
-                |> checkRepeat errStringing)
+                //loadSrc errStringing lib path
+                CompilePipe.loadDom path
+                |> Result.map (Dom.merge lib)
+                |> Result.bind CompilePipe.checkRepeat
+                |> Result.map Dom.expandTextCommands
+                |> Result.bind Dom.expandUserMacros
+                |> Result.map (fun x -> 
+                    Path.GetRelativePath(inputDir, path), x))
         |> List.ofArray
-        |> Diagram.analyze
-        |> unwrapDomException errStringing
+        |> Result.transposeList
+        |> Result.bind Diagram.analyze
+        |> unwrapResultExn errStringing
         |> diagramExporter
         |> fun diagram -> File.WriteAllText(out, diagram, Text.Encoding.UTF8)
 
     | Charset (inputDir, outCharset, options) ->
-        let lib = loadLibs errStringing options.Lib
+        let lib = loadLibs options
 
-        getYkmFiles inputDir
-        |> Array.map
-            (fun filePath ->
-                loadSrc errStringing lib filePath
-                |> checkRepeat errStringing
-                |> prepareCodegen errStringing)
-        |> Array.fold Dom.merge Dom.empty
-        |> (fun x -> Seq.map (fun (_, block, _) -> block) x.Scenes)
-        |> Seq.collect (Seq.map fst)
-        |> Seq.collect
-            (function
-            | Elements.Operation.CommandCall c ->
-                c.UnnamedArgs
-                |> Seq.collect
-                    (function
-                    | Elements.Constant (Elements.String x) -> x
-                    | _ -> "")
-            | _ -> Seq.empty)
+        CompilePipe.getYkmFiles inputDir
+        |> Array.map (CompilePipe.compile lib)
+        |> Array.toList
+        |> Result.transposeList
+        |> unwrapResultExn ErrorStringing.schinese
+        |> Seq.collect (fun (Intermediate s) -> s)
+        |> Seq.collect (fun x -> x.Block)
+        |> Seq.collect (fun x -> x.Arguments)
+        |> Seq.choose (function
+            | String x -> Some x
+            | _ -> None)
+        |> Seq.concat
         |> Set.ofSeq
-        |> Set.remove ' '
         |> Array.ofSeq
         |> Array.map string
         |> fun x -> IO.File.WriteAllLines(outCharset, x, Text.Encoding.UTF8)

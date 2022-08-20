@@ -19,7 +19,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Compile.fs" />
     <Compile Include="Program.fs" />
     <Content Include="../LICENSE" />
   </ItemGroup>

@@ -95,6 +95,8 @@ let loadLib path =
 let loadLibs paths =
     List.map loadLib paths
     |> Result.transposeList
+    |> Result.map (List.fold Dom.merge Dom.empty)
+    |> Result.bind checkRepeat
 
 
 let getYkmFiles (path: string) =
