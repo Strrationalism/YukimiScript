@@ -1,5 +1,7 @@
 module YukimiScript.Parser.ParserMonad
 
+open YukimiScript.Parser.Utils
+
 
 type Parser<'a> =
     { Run: char list -> Result<'a * char list, exn> }
@@ -69,9 +71,6 @@ let predicate (f: 'a -> bool) (a: Parser<'a>) : Parser<'a> =
         | a when f a -> return a
         | _ -> return! fail PredicateFailedException
     }
-
-
-exception MultiException of exn list
 
 
 let (<||>) (a: Parser<'a>) (b: Parser<'b>) : Parser<Choice<'a, 'b>> =

@@ -252,9 +252,12 @@ let private doAction errStringing =
             | _ -> None)
         |> Seq.concat
         |> Set.ofSeq
+        |> Set.remove ' '
+        |> Set.remove '\n'
+        |> Set.remove '\r'
         |> Array.ofSeq
-        |> Array.map string
-        |> fun x -> IO.File.WriteAllLines(outCharset, x, Text.Encoding.UTF8)
+        |> fun x -> new String (x)
+        |> fun x -> IO.File.WriteAllText(outCharset, x, Text.Encoding.UTF8)
 
 
 [<EntryPoint>]

@@ -8,6 +8,7 @@ open YukimiScript.Parser.ParserMonad
 open YukimiScript.Parser.TopLevels
 open YukimiScript.Parser.Diagram
 open YukimiScript.Parser.TypeChecker
+open YukimiScript.Parser.Utils
 open System.IO
 open type System.Environment
 
@@ -34,7 +35,8 @@ let rec schinese: ErrorStringing =
                 + schinese err)
         |> Seq.fold (fun acc x -> acc + NewLine + x) ""
     | MultiException exns ->
-        List.fold (fun acc x -> acc + NewLine + schinese x) "" exns
+        List.fold (fun acc x -> acc + schinese x + NewLine) "" exns
+        |> fun x -> x.TrimEnd('\n', '\r')
     | TypeCheckFailedException (d, i, ParameterType (name, _), a) ->
         header d 
         + "第" + string (i + 1) + "个参数的类型应当为" + name + "，但传入了" +
@@ -117,4 +119,4 @@ let rec schinese: ErrorStringing =
             |> Array.map (fun x -> "    " + x.Trim('\r')) 
             |> Array.reduce (fun a b -> a + NewLine + b)
         end
-    | e -> "未知错误" + e.Message
+    | e -> "未知错误:" + NewLine + string e

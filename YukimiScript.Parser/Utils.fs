@@ -1,9 +1,10 @@
 namespace YukimiScript.Parser.Utils
 
-module Result =
 
-    exception MultiException of exn list
+exception MultiException of exn list
 
+
+module Result =  
 
     let transposeList listOfResult =
         let oks, errs =
