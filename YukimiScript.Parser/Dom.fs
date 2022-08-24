@@ -178,9 +178,55 @@ module Dom =
         let macros =
             List.map (fun (a, t, b, _) -> a, t, b) x.Macros
 
+        let callSystemCallback name args sceneDebugInfo =
+            if 
+                x.Macros |> List.exists (fun (a, _, _, _) -> a.Name = name) ||
+                x.Externs |> List.exists (fun ((ExternCommand (x, _)), _, _) -> x = name)
+                then
+                    Some begin
+                        CommandCall { Callee = name
+                                      UnnamedArgs = args
+                                      NamedArgs = [] },
+                        sceneDebugInfo
+                    end
+                else None
+                    
         x.Scenes
         |> List.map
             (fun (sceneDef, block, debugInfo) ->
+                let lastDebugInfo =
+                    List.tryLast block
+                    |> Option.map snd
+                    |> Option.defaultValue debugInfo
+
+                let beforeSceneCall, afterSceneCall =
+                    match sceneDef.Inherit with
+                    | None -> 
+                        callSystemCallback 
+                            "__callback_scene_before"
+                            [ Constant <| String sceneDef.Name ]
+                            debugInfo,
+                        callSystemCallback
+                            "__callback_scene_after"
+                            [ Constant <| String sceneDef.Name ]
+                            lastDebugInfo
+                    | Some inheritScene ->
+                        callSystemCallback
+                            "__callback_scene_inherit_before"
+                            [ Constant <| String sceneDef.Name;
+                              Constant <| String inheritScene ]
+                            debugInfo,
+                        callSystemCallback
+                            "__callback_scene_inherit_after"
+                            [ Constant <| String sceneDef.Name;
+                              Constant <| String inheritScene ]
+                            lastDebugInfo
+
+                let block = 
+                    Option.toList beforeSceneCall
+                    @ block @ 
+                    Option.toList afterSceneCall
+                
                 Macro.expandBlock macros block
                 |> Result.map (fun x -> sceneDef, x, debugInfo))
         |> Result.transposeList
