@@ -35,7 +35,7 @@ let generateBytecode genDebug (Intermediate scenes) (target: FileStream) =
             cstrIndex.Value
             |> Map.tryPick (fun s offset ->
                 if not <| s.EndsWith str then None else
-                    UTF8.GetByteCount(s.[..s.Length - str.Length])
+                    UTF8.GetByteCount(s.[..s.Length - str.Length - 1])
                     |> uint32
                     |> (+) offset
                     |> Some)
