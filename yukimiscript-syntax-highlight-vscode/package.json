@@ -3,7 +3,7 @@
     "displayName": "YukimiScript Syntax Highlight",
     "description": "YukimiScript Syntax Highlight",
     "publisher": "seng-jik",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "engines": {
         "vscode": "^1.69.0"
     },
