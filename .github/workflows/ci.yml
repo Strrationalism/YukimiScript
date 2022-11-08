@@ -1,4 +1,4 @@
-name: .NET
+name: CI
 
 on:
   push:
@@ -86,3 +86,22 @@ jobs:
           ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc.exe
         if-no-files-found: error
       
+
+  build-vscode-extension:
+    name: Build Visual Studio Code Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+        
+      - name: Build
+        run: |
+          npm i vsce -g
+          cd ./yukimiscript-syntax-highlight-vscode
+          vsce package
+          
+      - name: Upload
+        with:
+          name: YukimiScript Visual Studio Code Extension
+          path: ./yukimiscript-syntax-highlight-vscode/*.vsix
+          
