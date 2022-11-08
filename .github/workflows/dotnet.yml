@@ -7,95 +7,48 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
+  build-command-line-tool-nuget-pack:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      name: Checkout
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 7.0.x
         
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Test
+      run: dotnet test -c Release
       
     - name: Build
-      run: dotnet build --no-restore -c Release
-      
-    - name: Test
-      run: dotnet test --no-build --verbosity normal -c Release
-      
-    - name: Publish YukimiScript.Parser
-      run: dotnet publish YukimiScript.Parser -c Release
-      if: ${{ runner.os == 'Windows' }}
-      
-    - name: Upload YukimiScript.Parser Library
-      if: ${{ runner.os == 'Windows' }}
-      uses: actions/upload-artifact@v2.2.4
-      with:
-          name: "YukimiScript.Parser Library"
-          path: "${{ github.workspace }}/YukimiScript.Parser/bin/Release/netstandard2.0/publish/YukimiScript.Parser.dll"
-
-    - name: Publish Command Line Tool for DotNetTool
-      if: ${{ runner.os == 'Windows' }}
       run: dotnet pack YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release
-
-    - name: Publish Command Line Tool for Windows
-      if: ${{ runner.os == 'Windows' }}
-      run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r win7-x64 -p:PublishAot=true --self-contained
+        
+  build-command-line-tool-aot:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rid: [ win-x64, linux-x64, osx-x64 ]
+        
+        include:
+        - rid: win-x64
+          os: windows-latest
+          
+        - rid: linux-x64
+          os: ubuntu-latest
+          
+        - rid: osx-x64
+          os: macos-latest
+          
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout
     
-    - name: Publish Command Line Tool for macOS
-      if: ${{ runner.os == 'macOS' }}
-      run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r osx-x64 -p:PublishAot=true --self-contained
-        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/osx-x64/publish/ykmc
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.x
         
-    - name: Publish Command Line Tool for Linux
-      if: ${{ runner.os == 'Linux' }}
-      run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r linux-x64 -p:PublishAot=true --self-contained
-        strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/ykmc
-        
-    - name: Test Executable File for Windows
-      if: ${{ runner.os == 'Windows' }}
-      run: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/win7-x64/publish/ykmc.exe
+    - name: Build
+      run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -p:PublishAot=true --self-contained -r:${{ matrix.rid }} -p:PublishTrimmed=true -p:StripSymbols=true
       
-    - name: Test Executable File for macOS
-      if: ${{ runner.os == 'macOS' }}
-      run:  ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/osx-x64/publish/ykmc
-      
-    - name: Test Executable File for Linux
-      if: ${{ runner.os == 'Linux' }}
-      run:  ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/ykmc
-
-    - name: Upload Command Line Tool for DotNetTool
-      uses: actions/upload-artifact@v2.2.4
-      with:
-          name: YukimiScript Command Line Tool for DotNetTool
-          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/*.nupkg
-      if: ${{ runner.os == 'Windows' }}
-
-    - name: Upload Command Line Tool for Windows
-      uses: actions/upload-artifact@v2.2.4
-      with:
-          name: YukimiScript Command Line Tool for Windows x64
-          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/win7-x64/publish/ykmc.exe
-      if: ${{ runner.os == 'Windows' }}
-     
-    - name: Upload Command Line Tool for macOS
-      uses: actions/upload-artifact@v2.2.4
-      with:
-          name: YukimiScript Command Line Tool for macOS x64
-          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/osx-x64/publish/ykmc
-      if: ${{ runner.os == 'macOS' }}
-
-    - name: Upload Command Line Tool for Linux
-      uses: actions/upload-artifact@v2.2.4
-      with:
-          name: YukimiScript Command Line Tool for Linux x64
-          path: ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/ykmc
-      if: ${{ runner.os == 'Linux' }}
