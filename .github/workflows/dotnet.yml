@@ -46,18 +46,18 @@ jobs:
 
     - name: Publish Command Line Tool for Windows
       if: ${{ runner.os == 'Windows' }}
-      run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r win7-x64 --self-contained
+      run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r win7-x64 -p:PublishAot=true --self-contained
     
     - name: Publish Command Line Tool for macOS
       if: ${{ runner.os == 'macOS' }}
       run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r osx-x64 --self-contained
+        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r osx-x64 -p:PublishAot=true --self-contained
         strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/osx-x64/publish/ykmc
         
     - name: Publish Command Line Tool for Linux
       if: ${{ runner.os == 'Linux' }}
       run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r linux-x64 --self-contained
+        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r linux-x64 -p:PublishAot=true --self-contained
         strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/ykmc
         
     - name: Test Executable File for Windows
