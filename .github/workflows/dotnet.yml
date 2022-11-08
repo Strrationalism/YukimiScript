@@ -67,6 +67,10 @@ jobs:
     - name: Test Executable File for macOS
       if: ${{ runner.os == 'macOS' }}
       run:  ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/osx-x64/publish/ykmc
+      
+    - name: Test Executable File for Linux
+      if: ${{ runner.os == 'Linux' }}
+      run:  ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/ykmc
 
     - name: Upload Command Line Tool for DotNetTool
       uses: actions/upload-artifact@v2.2.4
