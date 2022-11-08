@@ -38,7 +38,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rid: [ win-x64, linux-x64, osx-x64, win-arm64, osx-arm64 ]
+        rid: [ win-x64, linux-x64, osx-x64, win-arm64 ]
         
         include:
         - rid: win-x64
@@ -60,11 +60,6 @@ jobs:
           os: macos-latest
           name: macOS x64
           test: true
-          
-        - rid: osx-arm64
-          os: macos-latest
-          name: macOS ARM64
-          test: false
           
     steps:
     - uses: actions/checkout@v2
