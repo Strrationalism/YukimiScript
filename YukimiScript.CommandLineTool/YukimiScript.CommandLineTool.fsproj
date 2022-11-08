@@ -18,6 +18,18 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Title>YukimiScript.CommandLineTool</Title>
   </PropertyGroup>
+   
+   <!-- Optimizing for AOT -->
+  <PropertyGroup>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+    <TrimMode>link</TrimMode>
+    <IlcGenerateCompleteTypeMetadata>false</IlcGenerateCompleteTypeMetadata>
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    <IlcDisableReflection>true</IlcDisableReflection>
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+  </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="Program.fs" />
