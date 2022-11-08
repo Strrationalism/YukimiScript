@@ -57,8 +57,7 @@ jobs:
     - name: Publish Command Line Tool for Linux
       if: ${{ runner.os == 'Linux' }}
       run: |
-        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true --self-contained
-        mv ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/YukimiScript.CommandLineTool ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/ykmc
+        dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.AOT.fsproj -c Release -r linux-x64 --self-contained
         strip ${{ github.workspace }}/YukimiScript.CommandLineTool/bin/Release/net7.0/linux-x64/publish/ykmc
         
     - name: Test Executable File for Windows
