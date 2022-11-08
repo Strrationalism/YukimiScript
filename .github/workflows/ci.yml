@@ -101,6 +101,7 @@ jobs:
           vsce package
           
       - name: Upload
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: YukimiScript Visual Studio Code Extension
           path: ./yukimiscript-syntax-highlight-vscode/*.vsix
