@@ -29,7 +29,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.1
       with:
         name: YukimiScript Compiler for NuGet
-        path: ./YukimiScript.CommandLineTool/bin/Release/YukimiScript.CommandLineTool.*.nupkg
+        path: ./YukimiScript.CommandLineTool/bin/Release/*.nupkg
         if-no-files-found: error
       
         
@@ -38,20 +38,38 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rid: [ win-x64, linux-x64, osx-x64 ]
+        rid: [ win-x64, linux-x64, osx-x64, win-arm64, linux-arm64, osx-arm64 ]
         
         include:
         - rid: win-x64
           os: windows-latest
           name: Windows x64
+          test: true
+          
+        - rid: win-arm64
+          os: windows-latest
+          name: Windows ARM64
+          test: false
           
         - rid: linux-x64
           os: ubuntu-latest
           name: Linux x64
+          test: true
+          
+        - rid: linux-arm64
+          os: ubuntu-latest
+          name: Linux ARM64
+          test: false
           
         - rid: osx-x64
           os: macos-latest
           name: macOS x64
+          test: true
+          
+        - rid: osx-arm64
+          os: macos-latest
+          name: macOS ARM64
+          test: false
           
     steps:
     - uses: actions/checkout@v2
@@ -65,13 +83,16 @@ jobs:
     - name: Build
       run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -p:PublishAot=true --self-contained -r:${{ matrix.rid }} -p:PublishTrimmed=true -p:StripSymbols=true
       
-    # - name: Test Executable File
-    #   run: ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc
+    - name: Test Executable File
+      if: ${{ matrix.test }}
+      run: ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc
       
     - name: Upload
       uses: actions/upload-artifact@v3.1.1
       with:
         name: YukimiScript Compiler for ${{ matrix.name }}
-        path: ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish
+        path: |
+          ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc
+          ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc.exe
         if-no-files-found: error
       
