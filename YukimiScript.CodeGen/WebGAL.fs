@@ -39,7 +39,7 @@ let private generateCommand externs (sb: StringBuilder) cmd =
 
 
 let private generateScene externs sb (scene: IntermediateScene) =
-    (sb: StringBuilder).Append("label:").AppendLine(scene.Name) |> ignore
+    (sb: StringBuilder).Append("label:").Append(scene.Name).AppendLine(";") |> ignore
     scene.Block |> List.iter (generateCommand externs sb)
     sb.AppendLine() |> ignore
 
