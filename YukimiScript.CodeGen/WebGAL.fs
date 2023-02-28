@@ -35,6 +35,8 @@ let private generateCommand externs (sb: StringBuilder) cmd =
     | nextParams ->
         writeParams nextParams
 
+    sb.AppendLine(";") |> ignore
+
 
 let private generateScene externs sb (scene: IntermediateScene) =
     (sb: StringBuilder).Append("label:").AppendLine(scene.Name) |> ignore
