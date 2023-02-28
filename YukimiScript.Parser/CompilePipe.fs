@@ -109,8 +109,8 @@ let generateIntermediate dom =
     |> Result.bind (Dom.expandTextCommands >> Dom.expandUserMacros)
     |> Result.bind (fun externAndSysMacro ->
         Dom.expandSystemMacros externAndSysMacro
-        |> Dom.linkToExternCommands
-        |> Result.map Intermediate.ofDom)
+        |> Dom.linkToExternCommands)
+    |> Result.map (fun dom -> dom, Intermediate.ofDom dom)
 
 
 let compile lib srcPath =

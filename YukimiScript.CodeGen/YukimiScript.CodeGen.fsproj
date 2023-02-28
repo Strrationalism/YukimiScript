@@ -8,6 +8,7 @@
     <Compile Include="PyMO.fs" />
     <Compile Include="Lua.fs" />
     <Compile Include="Json.fs" />
+    <Compile Include="WebGAL.fs" />
   </ItemGroup>
 
   <ItemGroup>

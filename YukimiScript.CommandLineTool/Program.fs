@@ -36,6 +36,7 @@ let private help () =
       "    lua                Lua 5.1 for Lua Runtime 5.1 or LuaJIT (UTF-8)"
       "    pymo               PyMO 1.2 script, you must compile with libpymo.ykm."
       "    json               Json."
+      "    webgal             WebGAL Script (WIP)."
       ""
       "Example:"
       "    ykmc ./Example/main.ykm --target-pymo ./main.lua -L../lib -lpymo"
@@ -81,6 +82,7 @@ type private TargetOption =
     | PyMO of outputFile: string * scriptName: string
     | Bytecode of outputFile: string
     | Json of outputFile: string
+    | WebGAL of outputFile: string
 
 
 type private DiagramType =
@@ -129,6 +131,9 @@ let rec private parseTargetsAndOptions (inputSrc: string) =
     | "--target-json" :: json :: next ->
         parseTargetsAndOptions inputSrc next
         |> Result.map (fun (nextTargets, options) -> Json json :: nextTargets, options)
+    | "--target-webgal" :: webgal :: next ->
+        parseTargetsAndOptions inputSrc next
+        |> Result.map (fun (nextTargets, options) -> WebGAL webgal :: nextTargets, options)
     | options ->
         parseOptions defaultOptions options
         |> Result.map (fun options -> [], options)
@@ -172,7 +177,7 @@ let private doAction errStringing =
     function
     | Compile (inputFile, targets, options) ->
         let libs = loadLibs options
-        let intermediate = CompilePipe.compile libs inputFile |> unwrapResultExn ErrorStringing.schinese
+        let dom, intermediate = CompilePipe.compile libs inputFile |> unwrapResultExn ErrorStringing.schinese
         
         targets
         |> List.iter
@@ -193,7 +198,10 @@ let private doAction errStringing =
 
                     File.WriteAllText(output, lua, Text.Encoding.UTF8)
                 | Json out ->
-                    YukimiScript.CodeGen.Json.genJson options.Debugging intermediate out)
+                    YukimiScript.CodeGen.Json.genJson options.Debugging intermediate out
+                | WebGAL outPath -> 
+                    let out = YukimiScript.CodeGen.WebGAL.generateWebGAL dom intermediate
+                    File.WriteAllText(outPath, out.ToString()))
 
     | Diagram (diagramType, inputDir, out, options) ->
         let diagramExporter =
@@ -229,7 +237,7 @@ let private doAction errStringing =
         |> Array.toList
         |> Result.transposeList
         |> unwrapResultExn ErrorStringing.schinese
-        |> Seq.collect (fun (Intermediate s) -> s)
+        |> Seq.collect (fun (_, Intermediate s) -> s)
         |> Seq.collect (fun x -> x.Block)
         |> Seq.collect (fun x -> x.Arguments)
         |> Seq.choose (function
