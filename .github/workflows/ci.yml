@@ -32,46 +32,6 @@ jobs:
         path: ./YukimiScript.CommandLineTool/bin/Release/*.nupkg
         if-no-files-found: error
 
-
-  build-compiler-aot:
-    name: Build AOT Version
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        rid: [ win-x64 ]
-
-        include:
-        - rid: win-x64
-          os: windows-latest
-          name: Windows x64
-          test: true
-
-    steps:
-    - uses: actions/checkout@v2
-      name: Checkout
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 8.0.x
-
-    - name: Build
-      run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -p:PublishAot=true --self-contained -r:${{ matrix.rid }} -p:PublishTrimmed=true -p:StripSymbols=true
-
-    - name: Test Executable File
-      if: ${{ matrix.test }}
-      run: ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc
-
-    - name: Upload
-      uses: actions/upload-artifact@v3.1.1
-      with:
-        name: YukimiScript Compiler for ${{ matrix.name }}
-        path: |
-          ./YukimiScript.CommandLineTool/bin/Release/net8.0/${{ matrix.rid }}/publish/ykmc
-          ./YukimiScript.CommandLineTool/bin/Release/net8.0/${{ matrix.rid }}/publish/ykmc.exe
-        if-no-files-found: error
-
-
   build-vscode-extension:
     name: Build Visual Studio Code Extension
     runs-on: ubuntu-latest
