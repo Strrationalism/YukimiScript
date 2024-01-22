@@ -38,7 +38,7 @@ let private help () =
       "    json               Json."
       ""
       "Example:"
-      "    ykmc ./Example/main.ykm --target-pymo ./main.lua -L../lib -lpymo"
+      "    ykmc ./Example/main.ykm --target-pymo ./main.txt -L../lib -lpymo"
       "    ykmc diagram dgml ./Example/scenario ./Example.dgml --lib ./Example/lib"
       "    ykmc charset ./Example/ ./ExampleCharset.txt --lib ./Example/lib"
       "" ]
@@ -56,7 +56,7 @@ let private unwrapResultExn (errorStringing: ErrorStringing.ErrorStringing) =
         raise FailException
 
 
-type private Options = 
+type private Options =
   { LibExactly: string list
     LibsToSearch: string list
     LibSearchDir: string list
@@ -69,14 +69,14 @@ let defaultLibSearchDirs =
         e.Split ';' |> List.ofArray
 
 
-let private defaultOptions = 
+let private defaultOptions =
   { LibExactly = []
     LibsToSearch = []
     Debugging = false
     LibSearchDir = "." :: defaultLibSearchDirs }
 
 
-type private TargetOption = 
+type private TargetOption =
     | Lua of outputFile: string
     | PyMO of outputFile: string * scriptName: string
     | Bytecode of outputFile: string
@@ -97,17 +97,17 @@ type private CmdArg =
 let rec private parseOptions prev =
     function
     | [] -> Ok prev
-    | "--lib" :: libPath :: next -> 
+    | "--lib" :: libPath :: next ->
         parseOptions { prev with LibExactly = libPath :: prev.LibExactly } next
-    | x :: next when x = "-g" || x = "--debug" -> 
+    | x :: next when x = "-g" || x = "--debug" ->
         parseOptions { prev with Debugging = true } next
-    | x :: next when x.StartsWith "-L" -> 
+    | x :: next when x.StartsWith "-L" ->
         parseOptions
-            { prev with LibSearchDir = x.[2..] :: prev.LibSearchDir } 
+            { prev with LibSearchDir = x.[2..] :: prev.LibSearchDir }
             next
     | x :: next when x.StartsWith "-l" ->
-        parseOptions 
-            { prev with LibsToSearch = x.[2..] :: prev.LibsToSearch } 
+        parseOptions
+            { prev with LibsToSearch = x.[2..] :: prev.LibsToSearch }
             next
     | _ -> Error()
 
@@ -120,7 +120,7 @@ let rec private parseTargetsAndOptions (inputSrc: string) =
             Bytecode binOut :: nextTargets, options)
     | "--target-pymo" :: pymoOut :: next ->
         parseTargetsAndOptions inputSrc next
-        |> Result.map (fun (nextTargets, options) -> 
+        |> Result.map (fun (nextTargets, options) ->
             let scriptName = Path.GetFileNameWithoutExtension inputSrc
             PyMO (pymoOut, scriptName) :: nextTargets, options)
     | "--target-lua" :: luaOut :: next ->
@@ -173,15 +173,15 @@ let private doAction errStringing =
     | Compile (inputFile, targets, options) ->
         let libs = loadLibs options
         let intermediate = CompilePipe.compile libs inputFile |> unwrapResultExn ErrorStringing.schinese
-        
+
         targets
         |> List.iter
             (function
-                | Bytecode output ->    
+                | Bytecode output ->
                     use file = File.Open (output, FileMode.Create)
                     YukimiScript.CodeGen.Bytecode.generateBytecode options.Debugging intermediate file
                     file.Close ()
-                | PyMO (output, scriptName) -> 
+                | PyMO (output, scriptName) ->
                     YukimiScript.CodeGen.PyMO.generateScript options.Debugging intermediate scriptName
                     |> function
                         | Ok out -> File.WriteAllText(output, out, Text.Encoding.UTF8)
@@ -212,7 +212,7 @@ let private doAction errStringing =
                 |> Result.bind CompilePipe.checkRepeat
                 |> Result.map Dom.expandTextCommands
                 |> Result.bind Dom.expandUserMacros
-                |> Result.map (fun x -> 
+                |> Result.map (fun x ->
                     Path.GetRelativePath(inputDir, path), x))
         |> List.ofArray
         |> Result.transposeList
@@ -250,7 +250,7 @@ let main argv =
     let mutable ret = 0
     (*
     let threadStart =
-        Threading.ThreadStart (fun () -> 
+        Threading.ThreadStart (fun () ->
             argv
             |> Array.toList
             |> parseArgs
@@ -264,7 +264,7 @@ let main argv =
     thread.Start ()
     thread.Join ()
     ret*)
-    
+
     argv
     |> Array.toList
     |> parseArgs
