@@ -38,27 +38,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rid: [ win-x64, linux-x64, osx-x64, win-arm64 ]
+        rid: [ win-x64 ]
 
         include:
         - rid: win-x64
           os: windows-latest
           name: Windows x64
-          test: true
-
-        - rid: win-arm64
-          os: windows-latest
-          name: Windows ARM64
-          test: false
-
-        - rid: linux-x64
-          os: ubuntu-latest
-          name: Linux x64
-          test: true
-
-        - rid: osx-x64
-          os: macos-latest
-          name: macOS x64
           test: true
 
     steps:
@@ -82,8 +67,8 @@ jobs:
       with:
         name: YukimiScript Compiler for ${{ matrix.name }}
         path: |
-          ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc
-          ./YukimiScript.CommandLineTool/bin/Release/net7.0/${{ matrix.rid }}/publish/ykmc.exe
+          ./YukimiScript.CommandLineTool/bin/Release/net8.0/${{ matrix.rid }}/publish/ykmc
+          ./YukimiScript.CommandLineTool/bin/Release/net8.0/${{ matrix.rid }}/publish/ykmc.exe
         if-no-files-found: error
 
 
