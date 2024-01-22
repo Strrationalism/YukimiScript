@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>ykmc</AssemblyName>
     <WarnOn>3390;$(WarnOn)</WarnOn>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ykmc</ToolCommandName>
-    <Version>0.8.3</Version>
+    <Version>0.8.4</Version>
     <Authors>Seng Jik</Authors>
     <Company>Strrationalism</Company>
     <Product>YukimiScript</Product>
@@ -18,7 +18,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Title>YukimiScript.CommandLineTool</Title>
   </PropertyGroup>
-   
+
    <!-- Optimizing for AOT -->
   <PropertyGroup>
     <InvariantGlobalization>true</InvariantGlobalization>
