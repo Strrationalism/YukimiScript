@@ -68,7 +68,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build
       run: dotnet publish YukimiScript.CommandLineTool/YukimiScript.CommandLineTool.fsproj -c Release -p:PublishAot=true --self-contained -r:${{ matrix.rid }} -p:PublishTrimmed=true -p:StripSymbols=true
