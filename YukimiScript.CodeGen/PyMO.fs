@@ -46,14 +46,14 @@ let private checkSceneName (name: string) =
     | name ->
         if name.Contains '.'
         then false
-        else 
+        else
             let p = seq { yield! ['0'..'9']; yield! ['a' .. 'z']; yield! ['A' .. 'Z']; yield! [ '_'; '-' ] }
             match run name <| oneOrMore (inRange p) with
             | Ok _ -> true
             | _ -> false
 
 
-let private genArgs' genArg = 
+let private genArgs' genArg =
     genArg
     >> function
         | [] -> ""
@@ -66,7 +66,7 @@ let private colorArg = function
     | Symbol "red" -> Constant.String "#FF0000"
     | Symbol "green" -> Constant.String "#00FF00"
     | Symbol "blue" -> Constant.String "#0000FF"
-    | Integer i -> 
+    | Integer i ->
         let mutable hex = Math.Clamp(i, 0, 0xFFFFFF).ToString("X")
         while hex.Length < 6 do hex <- "0" + hex
         Constant.String <| "#" + hex
@@ -83,9 +83,9 @@ type private ComplexCommand = ComplexCommand of string * string * (Constant list
 let private gen'Untyped c = genArgsUntyped >> (+) ("#" + c + " ")
 
 
-let private sayCommand = 
-    ComplexCommand 
-        ("__text_type", "__text_end", fun m _ -> 
+let private sayCommand =
+    ComplexCommand
+        ("__text_type", "__text_end", fun m _ ->
             let character = match m.[0] with | Symbol "null" -> None | x -> Some <| genArgUntyped x
             let text = m.[1..] |> List.map genArgUntyped |> List.fold (+) ""
             "#say " + (match character with | None -> "" | Some x -> x + ",") + text)
@@ -94,11 +94,11 @@ let private sayCommand =
 let private complexCommands =
     let gen command a b = a @ b |> genArgs |> (+) ("#" + command + " ")
     let gen' c = genArgs >> (+) ("#" + c + " ")
-    
-    let genSel c argGroupSize = fun m d -> 
-        let d = 
-            if List.length d >= 4 
-            then 
+
+    let genSel c argGroupSize = fun m d ->
+        let d =
+            if List.length d >= 4
+            then
                 let arr = List.toArray d
                 arr.[4] <- colorArg d.[4]
                 List.ofArray arr
@@ -110,7 +110,7 @@ let private complexCommands =
       "chara_up_multi", "chara_up_multi_do", gen "chara_up"
       "chara_y_multi", "chara_y_multi_do", fun multi d -> d.[0] :: multi @ [d.[1]] |> gen' "chara_y"
       "chara_anime", "chara_anime_do", fun multi d -> d @ multi |> gen' "chara_anime"
-      "sel", "sel_do", fun multi d -> 
+      "sel", "sel_do", fun multi d ->
         let firstLine = "#sel " + genArgs (Integer (List.length multi) :: d)
         let allLines = (firstLine :: List.choose genArg multi)
         allLines |> List.reduce (fun a b -> a + "\n" + b)
@@ -123,7 +123,7 @@ let private complexCommands =
     |> Map.ofSeq
 
 
-let private commandsWithUntypedSymbol = 
+let private commandsWithUntypedSymbol =
     [ "set"
       "add"
       "sub"
@@ -135,54 +135,16 @@ type Scope =
     | IfScope of ifs: (string * StringBuilder) list * def: StringBuilder option
 
 
-type private CodeGenContext = 
+type private CodeGenContext =
     { Characters: Map<string, string>
       CurrentComplexCommand: (ComplexCommand * Constant list) option
       ScopeStack: Scope list
-      Inc: int 
+      Inc: int
       GenExitLabel: bool ref }
 
 
-let private (|ComplexCommand'|_|) x = 
+let private (|ComplexCommand'|_|) x =
     Map.tryFind x complexCommands
-
-
-let private simpleCommands =
-    [ "text"
-      "text_off"
-      "waitkey"
-      "title"
-      "title_dsp"
-      "chara_cls"
-      "chara_pos"
-      "bg"
-      "flash"
-      "quake"
-      "fade_out"
-      "fade_in"
-      "movie"
-      "textbox"
-      "scroll"
-      "chara_scroll"
-      "chara_scroll_complex"
-      "anime_on"
-      "anime_off"
-      "change"
-      "call"
-      "ret"
-      "wait"
-      "wait_se"
-      "bgm"
-      "bgm_stop"
-      "se"
-      "se_stop"
-      "vo"
-      "load"
-      "album"
-      "music"
-      "date"
-      "config" ]
-    |> Set.ofSeq
 
 
 let private colorCommands =
@@ -202,15 +164,15 @@ let private getDebugString (table: ref<Map<string, int>>) str =
         curId
 
 
-let private genCommand 
+let private genCommand
     dbgStrs
     genDbg
-    (sbRoot: StringBuilder) 
+    (sbRoot: StringBuilder)
     context
-    (call: IntermediateCommandCall) 
-    : Result<CodeGenContext, string * DebugInfo> = 
+    (call: IntermediateCommandCall)
+    : Result<CodeGenContext, string * DebugInfo> =
 
-    let getScopeSb = 
+    let getScopeSb =
         function
         | [] -> sbRoot
         | IfScope ((_, sb) :: _, None) :: _ -> sb
@@ -247,9 +209,9 @@ let private genCommand
             for i in dbgInfo.MacroVars do
                 let var = fst i
                 match snd i with
-                | Constant.String x -> 
+                | Constant.String x ->
                     ";VS" + var + "=" + string (getDebugString dbgStrs x)
-                | Symbol x -> 
+                | Symbol x ->
                     ";Vs" + var + "=" + string (getDebugString dbgStrs x)
                 | Integer x -> ";Vi" + var + "=" + string x
                 | Real x -> ";Vr" + var + "=" + string x
@@ -258,9 +220,9 @@ let private genCommand
 
             match dbgInfo.Scope with
             | None -> ()
-            | Some (Choice2Of2 a) -> 
+            | Some (Choice2Of2 a) ->
                 sb.Append(";S").Append(getDebugString dbgStrs a.Name) |> ignore
-            | Some (Choice1Of2 a) -> 
+            | Some (Choice1Of2 a) ->
                 sb.Append(";M").Append(getDebugString dbgStrs a.Name) |> ignore
 
             sb.Append (";E") |> ignore
@@ -270,13 +232,13 @@ let private genCommand
 
     let genComplexCommandError () =
         Error ("当你使用PyMO变参命令时，不应该在中间夹杂其他命令。", call.DebugInfo)
-        
+
     let condStr left op right =
         let left, op, right =
             genArgUntyped left,
             genArgUntyped op,
             genArgUntyped right
-            
+
         let op =
             match op with
             | "eq" -> "="
@@ -290,25 +252,25 @@ let private genCommand
         left + op + right
 
     match context.CurrentComplexCommand with
-    | Some (ComplexCommand (openCmd, closeCmd, gen) as cc, args) -> 
+    | Some (ComplexCommand (openCmd, closeCmd, gen) as cc, args) ->
         match call.Callee with
         | "__text_begin" when openCmd = "__text_type" && call.Arguments.[0] = Symbol "null" -> Ok context
-        | "__text_end" when openCmd = "__text_type" && call.Arguments.[0] = Symbol "true" -> 
+        | "__text_end" when openCmd = "__text_type" && call.Arguments.[0] = Symbol "true" ->
             Ok { context with CurrentComplexCommand = Some (cc, args @ [Constant.String "\\n"]) }
-        | c when c = openCmd -> 
+        | c when c = openCmd ->
             Ok { context with CurrentComplexCommand = Some (cc, args @ call.Arguments)}
         | c when c = closeCmd ->
             sb.AppendLine (gen args call.Arguments) |> ignore
             Ok { context with CurrentComplexCommand = None }
         | _ -> genComplexCommandError ()
-    | None -> 
+    | None ->
         match call.Callee with
-        | "__define_character" -> 
-            Ok { context with 
-                    Characters = 
-                        Map.add 
-                            (genArgUntyped call.Arguments.[0]) 
-                            (genArgUntyped call.Arguments.[1]) 
+        | "__define_character" ->
+            Ok { context with
+                    Characters =
+                        Map.add
+                            (genArgUntyped call.Arguments.[0])
+                            (genArgUntyped call.Arguments.[1])
                             context.Characters }
         | "exit" ->
             sb.AppendLine ("#goto EXIT") |> ignore
@@ -318,16 +280,16 @@ let private genCommand
             let condStr = condStr call.Arguments[0] call.Arguments[1] call.Arguments[2]
             if context.CurrentComplexCommand.IsSome
             then genComplexCommandError ()
-            else 
-                { context with 
-                    ScopeStack = 
+            else
+                { context with
+                    ScopeStack =
                         IfScope ([condStr, StringBuilder ()], None)::context.ScopeStack }
                 |> Ok
         | "elif" ->
             let condStr = condStr call.Arguments[0] call.Arguments[1] call.Arguments[2]
             if context.CurrentComplexCommand.IsSome
             then genComplexCommandError ()
-            else 
+            else
                 match context.ScopeStack with
                 | IfScope (x, None)::ls ->
                     { context with
@@ -337,7 +299,7 @@ let private genCommand
         | "else" ->
             if context.CurrentComplexCommand.IsSome
             then genComplexCommandError ()
-            else 
+            else
                 match context.ScopeStack with
                 | IfScope (ifs, None)::ls ->
                     { context with ScopeStack = IfScope (ifs, Some <| StringBuilder ()) :: ls }
@@ -346,9 +308,9 @@ let private genCommand
         | "endif" ->
             if context.CurrentComplexCommand.IsSome
             then genComplexCommandError ()
-            else 
+            else
                 match context.ScopeStack with
-                | (IfScope (ifs, def)) :: outter -> 
+                | (IfScope (ifs, def)) :: outter ->
                     let sb = getScopeSb outter
                     let ifs = List.rev ifs
                     ifs
@@ -362,7 +324,7 @@ let private genCommand
                         |> ignore)
 
                     let endOfIfLabel = "IF_END_" + string context.Inc
-                    
+
                     if def.IsSome then
                         sb
                             .AppendLine(def.Value.ToString ())
@@ -385,14 +347,14 @@ let private genCommand
 
                 | _ -> Error ("这里不应该使用endif命令。", call.DebugInfo)
 
-        | "if_goto" -> 
-            let condStr, label = 
-                condStr 
+        | "if_goto" ->
+            let condStr, label =
+                condStr
                     call.Arguments[0]
                     call.Arguments[1]
                     call.Arguments[2],
                 genArgUntyped call.Arguments.[3]
-                
+
 
             sb.Append("#if ").Append(condStr).Append(",goto SCN_").AppendLine(label)
             |> ignore
@@ -403,10 +365,10 @@ let private genCommand
             sb.Append("#goto SCN_").AppendLine(genArgUntyped call.Arguments[0]) |> ignore
             Ok context
 
-        | "__text_begin" -> 
+        | "__text_begin" ->
             match call.Arguments.[0] with
             | Symbol "null" as n -> Ok { context with CurrentComplexCommand = Some (sayCommand, [n])}
-            | String x -> 
+            | String x ->
                 match Map.tryFind x context.Characters with
                 | None -> Ok { context with CurrentComplexCommand = Some (sayCommand, [Constant.String x])}
                 | Some x -> Ok { context with CurrentComplexCommand = Some (sayCommand, [Constant.String x])}
@@ -414,40 +376,39 @@ let private genCommand
         | "__text_type" -> Error ("错误的__text_type用法。", call.DebugInfo)
         | "__text_pushMark" | "__text_popMark" -> Error ("PyMO不支持高级文本语法。", call.DebugInfo)
         | "__text_end" -> Error ("错误的__text_end用法。", call.DebugInfo)
-        | c when Set.contains c commandsWithUntypedSymbol -> 
+        | c when Set.contains c commandsWithUntypedSymbol ->
             sb.Append('#').Append(c).Append(' ').AppendLine(genArgsUntyped call.Arguments) |> ignore
             Ok context
-        | ComplexCommand' complex -> 
+        | ComplexCommand' complex ->
             Ok { context with CurrentComplexCommand = Some (complex, call.Arguments) }
-        | simple when Set.contains simple simpleCommands -> 
-            let simple = 
+        | simple ->
+            let simple =
                 if simple = "chara_scroll_complex"
                 then "chara_scroll"
                 else simple
 
-            let args = 
+            let args =
                 match Map.tryFind simple colorCommands with
                 | None -> call.Arguments
-                | Some x -> 
+                | Some x ->
                     let arg = Array.ofList call.Arguments
                     arg.[x] <- colorArg arg.[x]
                     List.ofArray arg
             sb.Append('#').Append(simple).Append(' ').AppendLine(genArgs args) |> ignore
             Ok context
-        | x -> Error ("不能在这里使用的命令" + x + "。", call.DebugInfo)
 
 
 let private generateScene strings genDbg (scene: IntermediateScene) context (sb: StringBuilder) =
-    
+
     if genDbg then
         sb.AppendLine(
-            ";YKMDBG" + 
-            ";L" + 
+            ";YKMDBG" +
+            ";L" +
             string scene.DebugInfo.LineNumber +
             ";F" + string (getDebugString strings scene.DebugInfo.File) +
             ";S" + string (getDebugString strings scene.Name))
         |> ignore
-    
+
 
     sb
         .Append("#label SCN_")
@@ -455,29 +416,29 @@ let private generateScene strings genDbg (scene: IntermediateScene) context (sb:
     |> ignore
 
     match checkSceneName scene.Name with
-    | false -> 
+    | false ->
         ErrorStringing.header scene.DebugInfo
         + "场景名称 " + scene.Name
         + " 非法，在PyMO中只可以使用由字母、数字和下划线组成的场景名。"
         |> Console.WriteLine
         context, false
     | true ->
-        scene.Block 
-        |> List.fold 
-            (fun (context, success) -> 
+        scene.Block
+        |> List.fold
+            (fun (context, success) ->
                 genCommand strings genDbg sb context
                 >> function
                     | Ok context -> context, success
-                    | Error (msg, dbg) -> 
+                    | Error (msg, dbg) ->
                         ErrorStringing.header dbg + msg
                         |> Console.WriteLine
                         context, false)
             (context, true)
         |> function
-            | { CurrentComplexCommand = Some (ComplexCommand (o, e, _), _) } as context, _ -> 
+            | { CurrentComplexCommand = Some (ComplexCommand (o, e, _), _) } as context, _ ->
                 ErrorStringing.header scene.DebugInfo
                  + "在此场景的末尾，应当使用"
-                 + e 
+                 + e
                  + "命令来结束"
                  + o
                  + "变参命令组。"
@@ -490,13 +451,13 @@ let private generateScene strings genDbg (scene: IntermediateScene) context (sb:
                 context, false
             | c -> c
 
-    
+
 let generateScript genDbg (Intermediate scenes) scriptName =
     let sb = new StringBuilder ()
     let strings: ref<Map<string, int>> = ref Map.empty
 
-    let scenes, (context, success) = 
-        let initContext = 
+    let scenes, (context, success) =
+        let initContext =
           { Characters = Map.empty
             CurrentComplexCommand = None
             ScopeStack = []
@@ -504,39 +465,38 @@ let generateScript genDbg (Intermediate scenes) scriptName =
             GenExitLabel = ref false }
         match List.tryFind (fun (x: IntermediateScene) -> x.Name = "$init") scenes with
         | None -> scenes, (initContext, true)
-        | Some init -> 
+        | Some init ->
             List.except [init] scenes,
             generateScene strings genDbg init initContext sb
 
     match success, List.tryFind (fun (x: IntermediateScene) -> x.Name = scriptName) scenes with
     | false, _ -> Error ()
     | true, None -> Console.WriteLine "未能找到入口点场景。"; Error ()
-    | true, Some entryPoint ->  
+    | true, Some entryPoint ->
         (entryPoint :: List.except [entryPoint] scenes)
-        |> List.fold (fun success scene -> 
+        |> List.fold (fun success scene ->
             let succ' = generateScene strings genDbg scene context sb |> snd
             success && succ') true
         |> function
             | false -> Error ()
-            | true -> 
+            | true ->
                 let debugSymbolTable =
                     seq { 0 .. Map.count strings.Value - 1 }
-                    |> Seq.map (fun x -> 
+                    |> Seq.map (fun x ->
                         strings.Value
-                        |> Map.pick (fun s x' -> 
-                            if x = x' 
-                            then Some s 
+                        |> Map.pick (fun s x' ->
+                            if x = x'
+                            then Some s
                             else None))
-                    |> Seq.fold 
-                        (fun acc x -> 
-                            acc + ";YKMDBG;P" + Constants.string2literal x + "\n") 
+                    |> Seq.fold
+                        (fun acc x ->
+                            acc + ";YKMDBG;P" + Constants.string2literal x + "\n")
                         ""
 
-                if context.GenExitLabel.Value then 
+                if context.GenExitLabel.Value then
                     sb  .AppendLine()
                         .AppendLine("#label EXIT")
                     |> ignore
 
                 Ok <| debugSymbolTable + sb.ToString ()
-            
-        
+
