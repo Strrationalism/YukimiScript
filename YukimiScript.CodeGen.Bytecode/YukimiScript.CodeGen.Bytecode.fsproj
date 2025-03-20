@@ -1,8 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0;net9.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>0.8.6</Version>
+    <Authors>Seng Jik</Authors>
+    <Company>Strrationalism</Company>
+    <PackageProjectUrl>https://github.com/Strrationalism/YukimiScript</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Strrationalism/YukimiScript</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Title>YukimiScript.CodeGen.Bytecode</Title>
   </PropertyGroup>
 
   <ItemGroup>

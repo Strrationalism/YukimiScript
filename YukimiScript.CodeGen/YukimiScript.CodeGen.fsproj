@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <PackageProjectUrl>https://github.com/Strrationalism/YukimiScript</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Strrationalism/YukimiScript</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>0.8.6</Version>
+    <Title>YukimiScript.CodeGen</Title>
   </PropertyGroup>
 
   <ItemGroup>

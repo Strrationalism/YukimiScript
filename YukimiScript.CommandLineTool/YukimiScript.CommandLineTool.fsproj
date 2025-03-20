@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <AssemblyName>ykmc</AssemblyName>
     <WarnOn>3390;$(WarnOn)</WarnOn>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ykmc</ToolCommandName>
-    <Version>0.8.5</Version>
+    <Version>0.8.6</Version>
     <Authors>Seng Jik</Authors>
     <Company>Strrationalism</Company>
     <Product>YukimiScript</Product>
