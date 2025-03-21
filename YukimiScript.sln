@@ -13,6 +13,8 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "YukimiScript.CodeGen", "Yuk
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "YukimiScript.CodeGen.Bytecode", "YukimiScript.CodeGen.Bytecode\YukimiScript.CodeGen.Bytecode.fsproj", "{9926C290-A0B8-439B-9328-8569933AE8F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YukimiScript.Runtime.Bytecode.Parser", "YukimiScript.Runtime.Bytecode.Parser\YukimiScript.Runtime.Bytecode.Parser.csproj", "{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{9926C290-A0B8-439B-9328-8569933AE8F4}.Release|x64.Build.0 = Release|Any CPU
 		{9926C290-A0B8-439B-9328-8569933AE8F4}.Release|x86.ActiveCfg = Release|Any CPU
 		{9926C290-A0B8-439B-9328-8569933AE8F4}.Release|x86.Build.0 = Release|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Debug|x64.Build.0 = Debug|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Debug|x86.Build.0 = Debug|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Release|x64.ActiveCfg = Release|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Release|x64.Build.0 = Release|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Release|x86.ActiveCfg = Release|Any CPU
+		{384AB781-0A51-493A-9DD0-9C14ED2BB9E0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

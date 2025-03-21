@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net462;netstandard2.0;netstandard2.1;net8.0;net9.0</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>9.0</LangVersion>
+    <Version>0.8.6</Version>
+    <Authors>Seng Jik</Authors>
+    <Company>Strrationalism</Company>
+    <PackageProjectUrl>https://github.com/Strrationalism/YukimiScript</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Strrationalism/YukimiScript</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Title>YukimiScript.Runtime.Bytecode.Parser</Title>
+
+  </PropertyGroup>
+
+</Project>
